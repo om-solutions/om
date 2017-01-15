@@ -219,6 +219,47 @@ footer {
 																	})
 														});
 									});
+					
+					$("#provedColumn")
+					.change(
+							function(e) {
+								console
+										.log("column button clicked");
+								$
+										.ajax({
+											url : 'http://localhost:8080/Prediction/prediction/graph/changeColumn?predicted='
+													+ document
+															.getElementById("predictedColumn").value
+													+ '&proved='
+													+ document
+															.getElementById("provedColumn").value,
+											beforeSend : function(
+													request) {
+												console
+														.log("before send");
+												request
+														.setRequestHeader(
+																"Authorization",
+																"Negotiate");
+											},
+											type : 'GET',
+											dataType : 'text',
+											success : function(
+													response) {
+												console
+														.log(response);
+												loadChart(
+														'http://localhost:8080/Prediction/prediction/graph/meter',
+														null,
+														null);
+											},
+											error : function(
+													error) {
+												alert("API failure ");
+											}
+										})
+							});
+
 
 					function loadPreviousGraph() {
 
@@ -352,14 +393,13 @@ footer {
 					$(document)
 							.ready(
 									function() {
-										loadChart(
-												'http://localhost:8080/Prediction/prediction/graph/meter',
-												null, null);
 										loadColumns("http://localhost:8080/Prediction/prediction/member/getCols");
+										
+										
 
 									});
 
-					function loadColumns(url) {						
+					function loadColumns(url) {
 						$.ajax({
 							url : url,
 							type : 'GET',
@@ -377,7 +417,11 @@ footer {
 									addRow(columnName, tableName, dbName);
 
 								}
-
+								loadChart(
+										'http://localhost:8080/Prediction/prediction/graph/meter',
+										null, null,document
+										.getElementById("predictedColumn").value,document
+										.getElementById("provedColumn").value);
 							},
 							error : function(error) {
 								alert("Try again");
@@ -402,16 +446,32 @@ footer {
 						}
 					}
 
-					function loadChart(url, CurrentDate, PreMonthDate) {
+					function loadChart(url, CurrentDate, PreMonthDate,colA,colB) {
 				<%if ((session.getAttribute("userid") == null) || (session.getAttribute("userid") == "")) {%>
 					alert("Please Login!!!");
 						window.location = "Plogin.jsp";
+				<%} else {
+				System.out.println("-->" + (session.getAttribute("chartDT")) + " : " + (session.getAttribute("columns"))
+						+ " : " + (session.getAttribute("dbName")));
+				String chartDT = session.getAttribute("chartDT").toString();
+				String columns = session.getAttribute("columns").toString();
+				String dbName = session.getAttribute("dbName").toString();
+				String tableName = session.getAttribute("tableName").toString();
+
+				if ((session.getAttribute("chartDT") == null) || (session.getAttribute("columns") == null)
+						|| (session.getAttribute("dbName") == null) || (session.getAttribute("tableName") == null)) {%>
+					alert("Chart Not loaded properly ! Login Again !!" );
+						
 				<%} else {%>
-					$
+						var chartDT = '<%=chartDT%>';
+						var columns =  '<%=columns%>';
+						var dbName =  '<%=dbName%>';
+						var tableName =  '<%=tableName%>';
+						$
 								.ajax({
 									url : url,
 									data : 'dateFrom=' + CurrentDate
-											+ '&value=' + PreMonthDate,
+											+ '&value=' + PreMonthDate+ '&ColA=' + colA+ '&colB=' + colB,
 									beforeSend : function(request) {
 										request.setRequestHeader(
 												"Authorization", "Negotiate");
@@ -419,7 +479,7 @@ footer {
 									type : 'GET',
 									dataType : 'json',
 									success : function(response) {
-
+										alert(response);
 										if (response.length == 0) {
 											alert("No Value Available !!!");
 										} else {
@@ -452,43 +512,7 @@ footer {
 																			"axisThickness" : 2,
 																			"axisAlpha" : 1,
 																			"position" : "right"
-																		},
-																		{
-																			"id" : "v3",
-																			"axisColor" : "#8B4513",
-																			"axisThickness" : 2,
-																			"gridAlpha" : 0,
-																			"offset" : 50,
-																			"axisAlpha" : 1,
-																			"position" : "left"
-																		},
-																		{
-																			"id" : "v4",
-																			"axisColor" : " #ff3300",
-																			"axisThickness" : 2,
-																			"gridAlpha" : 0,
-																			"offset" : 50,
-																			"axisAlpha" : 1,
-																			"position" : "right"
-																		},
-																		{
-																			"id" : "v5",
-																			"axisColor" : "#ff00ff",
-																			"axisThickness" : 2,
-																			"gridAlpha" : 0,
-																			"offset" : 100,
-																			"axisAlpha" : 1,
-																			"position" : "left"
-																		},
-																		{
-																			"id" : "v6",
-																			"axisColor" : "#00ccff",
-																			"axisThickness" : 2,
-																			"gridAlpha" : 0,
-																			"offset" : 100,
-																			"axisAlpha" : 1,
-																			"position" : "right"
-																		} ],
+																		}, ],
 																"graphs" : [
 																		{
 																			"valueAxis" : "v1",
@@ -496,8 +520,8 @@ footer {
 																			"bullet" : "round",
 																			"bulletBorderThickness" : 1,
 																			"hideBulletsCount" : 30,
-																			"title" : "K_Factor",
-																			"valueField" : "actual",
+																			"title" :  document.getElementById("predictedColumn").value,
+																			"valueField" : document.getElementById("predictedColumn").value,
 																			"fillAlphas" : 0
 																		},
 																		{
@@ -506,48 +530,10 @@ footer {
 																			"bullet" : "square",
 																			"bulletBorderThickness" : 1,
 																			"hideBulletsCount" : 30,
-																			"title" : "Predicted",
-																			"valueField" : "predicted",
-																			"fillAlphas" : 0
-																		},
-																		{
-																			"valueAxis" : "v3",
-																			"lineColor" : "#8B4513",
-																			"bullet" : "triangleUp",
-																			"bulletBorderThickness" : 1,
-																			"hideBulletsCount" : 30,
-																			"title" : "Error",
-																			"valueField" : "error",
-																			"fillAlphas" : 0
-																		},
-																		{
-																			"valueAxis" : "v4",
-																			"lineColor" : " #ff3300",
-																			"bullet" : "triangleUp",
-																			"bulletBorderThickness" : 1,
-																			"hideBulletsCount" : 30,
-																			"title" : "Temp",
-																			"valueField" : "temp",
-																			"fillAlphas" : 0
-																		},
-																		{
-																			"valueAxis" : "v5",
-																			"lineColor" : " #ff00ff",
-																			"bullet" : "triangleUp",
-																			"bulletBorderThickness" : 1,
-																			"hideBulletsCount" : 30,
-																			"title" : "Pressure",
-																			"valueField" : "pressure",
-																			"fillAlphas" : 0
-																		},
-																		{
-																			"valueAxis" : "v6",
-																			"lineColor" : " #00ccff",
-																			"bullet" : "triangleUp",
-																			"bulletBorderThickness" : 1,
-																			"hideBulletsCount" : 30,
-																			"title" : "Flow Rate",
-																			"valueField" : "flowrate",
+																			"title" : document
+																					.getElementById("provedColumn").value,
+																			"valueField" : document
+																					.getElementById("provedColumn").value,
 																			"fillAlphas" : 0
 																		} ],
 																"chartScrollbar" : {},
@@ -587,7 +573,8 @@ footer {
 										alert("Try again");
 									},
 								});
-				<%}%>
+				<%}
+			}%>
 					}
 				</script>
 

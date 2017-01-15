@@ -211,14 +211,28 @@ footer {
 						});
 					}
 					function addRow(columnName, dataType, isNull) {
-						$("#POITable")
-								.append(
-										'<tr><td style="text-align: left;"><input class="messageCheckbox" type="checkbox" value='+columnName+' id='+columnName+'></td><td style="text-align: left;">'
-												+ columnName
-												+ '</td> <td style="text-align: left;">'
-												+ dataType
-												+ '</td><td style="text-align: left;" >'
-												+ isNull + '</td></tr>');
+						if (dataType === 'datetime') {
+							$("#POITable")
+									.append(
+											'<tr><td style="text-align: left;"><input class="messageCheckbox" type="checkbox" value='+columnName+' id='+columnName+'></td><td style="text-align: left;">'
+													+ columnName
+													+ '</td> <td style="text-align: left;">'
+													+ dataType
+													+ '</td><td style="text-align: left;" >'
+													+ isNull
+													+ '</td><td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="radio" checked="checked" name="chartDT" value='+columnName+' ></div></tr>');
+						} else {
+							$("#POITable")
+									.append(
+											'<tr><td style="text-align: left;"><input class="messageCheckbox" type="checkbox" value='+columnName+' id='+columnName+'></td><td style="text-align: left;">'
+													+ columnName
+													+ '</td> <td style="text-align: left;">'
+													+ dataType
+													+ '</td><td style="text-align: left;" >'
+													+ isNull
+													+ '</td><td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="radio" name="chartDT" value='+columnName+' ></div></tr>');
+						}
+
 					}
 					function insRow() {
 						var x = document.getElementById('POITable');
@@ -261,22 +275,31 @@ footer {
 								allColumns += ',' + $(this).val();
 						});
 
-						$
-								.ajax({
-									url : "http://localhost:8080/Prediction/prediction/admin/saveCols?columns="
-											+ allColumns
-											+ "&dbName="
-											+ dbName
-											+ "&tableName=" + tableName,
-									type : 'GET',
-									success : function(response) {
-										alert(response);
-									},
-									error : function(error) {
-										alert("Try again : "
-												+ JSON.stringify(error));
-									},
-								});
+						var chartDT = $('input[name=chartDT]:checked').val();
+
+						if (chartDT == null) {
+							alert("Plese Select Date\Time Cloumn !!!");
+						} else {
+							$
+									.ajax({
+										url : "http://localhost:8080/Prediction/prediction/admin/saveCols?columns="
+												+ allColumns
+												+ "&dbName="
+												+ dbName
+												+ "&tableName="
+												+ tableName
+												+ "&chartDT="
+												+ chartDT,
+										type : 'GET',
+										success : function(response) {
+											alert(response);
+										},
+										error : function(error) {
+											alert("Try again : "
+													+ JSON.stringify(error));
+										},
+									});
+						}
 
 					}
 				</script>

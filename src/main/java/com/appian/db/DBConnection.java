@@ -30,6 +30,8 @@ public class DBConnection {
 	private ArrayList<Double> values = new ArrayList<Double>();
 	private String provedColumnName = "k_factor";
 	private String predictedColumnName = "k_factor";
+	private ChartDB chartDB;
+	private String chartDT;
 
 	public ArrayList<Double> getValues() {
 		return values;
@@ -50,8 +52,10 @@ public class DBConnection {
 	public DBConnection(HttpServletRequest request) {
 		String predicted = (String) request.getSession().getAttribute("predicted");
 		String proved = (String) request.getSession().getAttribute("proved");
+		String chartDT = (String) request.getSession().getAttribute("chartDT");
 		this.predictedColumnName = predicted == null ? "predicted_k_factor" : predicted;
 		this.provedColumnName = proved == null ? "proved_k_factor" : proved;
+		this.chartDT = chartDT == null ?  "timestamp"  : chartDT;
 	}
 
 	public static Connection getConnection()
@@ -310,18 +314,18 @@ public class DBConnection {
 		return previousValuesList;
 	}
 
-	public String getMeterGraphValues(Timestamp fromDate, Timestamp toDate)
+	public String getMeterGraphValues(Timestamp fromDate, Timestamp toDate,String chartDT)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 
 		Connection conn = DBConnection.getConnection();
 		PreparedStatement ps;
 
 		if (fromDate == null && toDate == null) {
-			ps = conn.prepareStatement("SELECT timestamp,proved_k_factor as val1," + predictedColumnName
-					+ " as val2, MTemp as val3, MPressure,Flowrate FROM Danpac.dbo.meterdata order by timestamp");
+			ps = conn.prepareStatement("SELECT "+chartDT+",proved_k_factor as val1," + predictedColumnName
+					+ " as val2, MTemp as val3, MPressure,Flowrate FROM Danpac.dbo.meterdata order by "+chartDT+"");
 		} else {
-			ps = conn.prepareStatement("SELECT timestamp,proved_k_factor as val1," + predictedColumnName
-					+ " as val2, MTemp as val3, MPressure,Flowrate FROM Danpac.dbo.meterdata where timestamp>? and timestamp<? order by timestamp");
+			ps = conn.prepareStatement("SELECT "+chartDT+",proved_k_factor as val1," + predictedColumnName
+					+ " as val2, MTemp as val3, MPressure,Flowrate FROM Danpac.dbo.meterdata where "+chartDT+">? and "+chartDT+"<? order by "+chartDT+"");
 			ps.setTimestamp(1, fromDate);
 			ps.setTimestamp(2, toDate);
 		}
@@ -333,8 +337,8 @@ public class DBConnection {
 			PreparedStatement oldValues;
 			ResultSet rsOld = null;
 			oldValues = conn.prepareStatement("select * from (SELECT top " + DBConnection.oldValues
-					+ " timestamp,proved_k_factor as val1," + predictedColumnName
-					+ " as val2, MTemp as val3, MPressure,Flowrate FROM [danpac].[dbo].[meterdata] where timestamp<? order by timestamp desc) a order by timestamp");
+					+ " "+chartDT+",proved_k_factor as val1," + predictedColumnName
+					+ " as val2, MTemp as val3, MPressure,Flowrate FROM [danpac].[dbo].[meterdata] where "+chartDT+"<? order by "+chartDT+" desc) a order by "+chartDT+"");
 			oldValues.setTimestamp(1, fromDate);
 			;
 			rsOld = oldValues.executeQuery();
@@ -588,7 +592,7 @@ public class DBConnection {
 
 	}
 
-	public Boolean setColumns(String dbName, String tableName, String columns)
+	public Boolean setColumns(String dbName, String tableName, String columns, String chartDT)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 
 		Connection conn = DBConnection.getConnection();
@@ -597,11 +601,12 @@ public class DBConnection {
 			System.out.println("Not Blank+columns");
 			try {
 				ps = conn.prepareStatement(
-						"insert into Danpac.dbo.masterData (dbName,tableName,columnsName,dt) values (?,?,?,?)");
+						"insert into Danpac.dbo.masterData (dbName,tableName,columnsName,chartDT,dt) values (?,?,?,?,?)");
 				ps.setString(1, dbName);
 				ps.setString(2, tableName);
 				ps.setString(3, columns);
-				ps.setTimestamp(4, new Timestamp(new Date().getTime()));
+				ps.setString(4, chartDT);
+				ps.setTimestamp(5, new Timestamp(new Date().getTime()));
 				ps.execute();
 				ps.close();
 			} catch (Exception e) {
@@ -621,7 +626,7 @@ public class DBConnection {
 	public String getColumns()
 			throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
 		Connection connection = DBConnection.getConnection();
-		String sql = "select dbname,tableName,columnsName from Danpac.dbo.masterData order by dt desc ";
+		String sql = "select dbname,tableName,columnsName,chartDt from Danpac.dbo.masterData order by dt desc ";
 
 		System.out.println("SQL : " + sql);
 		PreparedStatement psDBList = connection.prepareStatement(sql);
@@ -632,10 +637,17 @@ public class DBConnection {
 			json.put("columnsName", rsDBList.getString("columnsName"));
 			json.put("tableName", rsDBList.getString("tableName"));
 			json.put("dbName", rsDBList.getString("dbname"));
+			json.put("chartDT", rsDBList.getString("chartDT"));
 			jArray.put(json);
+			chartDB = new ChartDB(rsDBList.getString("dbname"), rsDBList.getString("tableName"),
+					rsDBList.getString("columnsName"), rsDBList.getString("chartDT"));
 			System.out.println("JSON : " + jArray.toString());
 		}
 		return jArray.toString();
+	}
+
+	public ChartDB getChartDB() {
+		return chartDB;
 	}
 
 }

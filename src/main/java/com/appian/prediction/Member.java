@@ -31,6 +31,11 @@ public class Member {
 		DBConnection dbConnection = new DBConnection(request);
 		String cloumnList = dbConnection.getColumns();
 		if (!cloumnList.isEmpty()) {
+			request.getSession().setAttribute("chartDT", dbConnection.getChartDB().getChartDT());
+			request.getSession().setAttribute("columns", dbConnection.getChartDB().getColumns());
+			request.getSession().setAttribute("dbName", dbConnection.getChartDB().getDbName());
+			request.getSession().setAttribute("tableName", dbConnection.getChartDB().getTableName());
+
 			System.out.println("Clolumn List " + cloumnList);
 			return cloumnList;
 		} else {

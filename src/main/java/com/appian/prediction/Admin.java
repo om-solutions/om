@@ -64,11 +64,12 @@ public class Admin {
 	public String saveColumns(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("columns") String columns,
 			@DefaultValue("") @QueryParam("dbName") String dbName,
-			@DefaultValue("") @QueryParam("tableName") String tableName) throws ParseException, InstantiationException,
+			@DefaultValue("") @QueryParam("tableName") String tableName,
+			@DefaultValue("") @QueryParam("chartDT") String chartDT) throws ParseException, InstantiationException,
 			IllegalAccessException, ClassNotFoundException, SQLException {
-		//System.out.println("columns : " + columns);
+		// System.out.println("columns : " + columns);
 		DBConnection dbConnection = new DBConnection(request);
-		if (dbConnection.setColumns(dbName, tableName, columns)) {
+		if (dbConnection.setColumns(dbName, tableName, columns,chartDT)) {
 			System.out.println("Saved!!!!!!!!!!");
 			return "List saved successful";
 		} else {

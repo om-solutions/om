@@ -31,11 +31,12 @@ public class MeterGraphValues {
 	@Path("/meter")
 	public String Predict(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
-			@DefaultValue("") @QueryParam("value") String dateTo) throws ParseException, InstantiationException,
+			@DefaultValue("") @QueryParam("value") String dateTo, @DefaultValue("") @QueryParam("colA") String colA,
+			@DefaultValue("") @QueryParam("colB") String colB) throws ParseException, InstantiationException,
 			IllegalAccessException, ClassNotFoundException, SQLException {
 		Timestamp fromDate;
 		Timestamp toDate;
-		System.out.println("1 : " + dateFrom.toString() + " : " + dateTo.toString());
+		System.out.println(colA + " : " + colB);
 		try {
 			if (dateFrom == null || "".equals(dateFrom) || dateFrom.equals("null"))
 				fromDate = new Timestamp(0);
@@ -54,7 +55,7 @@ public class MeterGraphValues {
 		String meterJSONData = null;
 		System.out.println("2 : " + dateFrom.toString() + " : " + dateTo.toString());
 
-		meterJSONData = dbConnection.getMeterGraphValues(fromDate, toDate);
+		meterJSONData = dbConnection.getMeterGraphValues(fromDate, toDate, request.getSession().getAttribute("chartDT").toString());
 		System.out.println(meterJSONData);
 
 		return meterJSONData;
