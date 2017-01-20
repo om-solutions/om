@@ -10,33 +10,8 @@
 	src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script
 	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-<style>
-/* Remove the navbar's default margin-bottom and rounded borders */
-.navbar {
-	margin-bottom: 0;
-	border-radius: 0;
-}
-
-/* Add a gray background color and some padding to the footer */
-footer {
-	background-color: #f2f2f2;
-	padding: 25px;
-}
-
-.carousel-inner img {
-	width: 100%; /* Set width to 100% */
-	margin: auto;
-	min-height: 200px;
-}
-
-/* Hide the carousel text when the screen is less than 600 pixels wide */
-@media ( max-width : 600px) {
-	.carousel-caption {
-		display: none;
-	}
-}
-</style>
 </head>
+
 <body>
 
 	<nav class="navbar navbar-inverse">
@@ -64,35 +39,55 @@ footer {
 			</div>
 		</div>
 	</nav>
-	<div class="container text-center">
-		<div class="row">
-			<div class="col-sm-2">
-				<h5>Select Database</h5>
-				<select name="dbSelector" id="dbSelector" class="selectpicker"
-					data-style="btn-info"></select>
+
+	<div class="col-sm-2 sidenav"></div>
+
+	<div class="row-left"></div>
+
+	<ul class="nav nav-tabs">
+		<li class="active"><a data-toggle="tab" href="#selection">Selection
+		</a></li>
+		<li><a data-toggle="tab" href="#loadcsv">Load CSV</a></li>
+	</ul>
+
+	<div class="tab-content">
+
+		<div id="selection" class="tab-pane fade in active">
+			<br>
+			<div class="container text-center">
+				<div class="alert alert-success" style="text-align: center;">
+					<%=request.getParameter("status") == null ? "" : request.getParameter("status")%></div>
 			</div>
-			<div class="col-sm-2">
 
-				<h5>Select Table</h5>
-				<select name="tableSelector" id="tableSelector" class="selectpicker"
-					data-style="btn-info"></select>
+			<div class="container text-center">
+				<div class="row-left">
+					<div class="col-sm-2 left">
+						<h5>Select Database</h5>
+					</div>
+					<div class="col-sm-2 left">
+						<select name="dbSelector" id="dbSelector"
+							class="btn btn-primary dropdown-toggle" data-style="btn-info"></select>
+					</div>
+				</div>
+				<div class="row-left">
+					<div class="col-sm-2">
+						<h5>Select Table</h5>
+					</div>
+					<div class="col-sm-2">
+						<select name="tableSelector" id="tableSelector"
+							class="btn btn-primary dropdown-toggle" data-style="btn-info"></select>
+					</div>
+				</div>
+
 			</div>
-			<div class="col-sm-8" style="text-align: left;">
-				<h2>Basic Table</h2>
-			</div>
+			<div class="container text-center">
+				<div class="row">
+					<div class="col-sm-8" style="text-align: center;">
+						<h2>Basic Table</h2>
+					</div>
+					<div class="row">
 
-
-
-		</div>
-
-
-	</div>
-
-	<div class="container text-center">
-		<div class="row">
-			<div class="col-sm-1">
-
-				<script>
+						<script>
 					
 				<%int var = 1;
 			out.println(var < 10 ? "0" + var : var);%>
@@ -267,25 +262,27 @@ footer {
 
 					}
 				</script>
+					</div>
+				</div>
 			</div>
-			<div class="col-sm-8">
+			<div class="container text-center">
+				<div class="row">
+					<div class="col-sm-1"></div>
+					<div class="col-sm-8">
 
+						<table class="table" id="POITable" name="POITable" align="center">
+							<thead>
+								<tr>
+									<th>is?</th>
+									<th>Column Name</th>
+									<th>Data Type</th>
+									<th>is Null</th>
+									<th>is datetime</th>
 
-				<p>The .table class adds basic styling (light padding and only
-					horizontal dividers) to a table:</p>
-				<table class="table" id="POITable" name="POITable">
-					<thead>
-						<tr>
-							<th>is?</th>
-							<th>Column Name</th>
-							<th>Data Type</th>
-							<th>is Null</th>
-							<th>is datetime</th>
-
-						</tr>
-					</thead>
-					<tbody id="POIBody">
-						<!-- <tr>
+								</tr>
+							</thead>
+							<tbody id="POIBody">
+								<!-- <tr>
 							<td><input type="checkbox" value=""></td>
 							<td>John</td>
 							<td>Doe</td>
@@ -303,37 +300,73 @@ footer {
 							<td>Dooley</td>
 							<td id="btnAdd" class="button-add" onclick="insertRow();">add</td>
 						</tr> -->
-					</tbody>
-				</table>
+							</tbody>
+						</table>
 
+					</div>
+				</div>
+			</div>
+			<footer class="container-fluid text-center">
+				<div class="row">
+					<button type="button" class="btn btn-success disabled" id="btSave"
+						name="btSave" onclick="saveColumns()">Save</button>
+				</div>
+			</footer>
+
+		</div>
+		<div id="loadcsv" class="tab-pane fade">
+			<div class="container text-center">
+				<form id="form1" enctype="multipart/form-data"
+					action="UploadFile.jsp" method="post">
+					<table>
+						<br>
+						<br>
+						<tr>
+							<td style="padding-right: 20px">Browse File</td>
+							<td style="padding-right: 20px"><input align="center"
+								type="file" name="csvfile" accept=".csv" class="btn btn-default" />
+							<td style="padding-right: 20px"><input align="center"
+								type="submit" value="Upload File" class="btn btn-default" /></td>
+						</tr>
+					</table>
+					<p />
+
+
+				</form>
 			</div>
 		</div>
+
 	</div>
-	<br>
-
-	<footer class="container-fluid text-center">
-		<p>
-			<button type="button" class="btn btn-success disabled" id="btSave"
-				name="btSave" onclick="saveColumns()">Save</button>
-		</p>
-	</footer>
 
 
 
-	<form id="form1" enctype="multipart/form-data" action="UploadFile.jsp"
-		method="post">
-		<table align="center">
 
-			<tr>
-				<td>Browse File</td>
-				<td><input align="center" type="file" name="csvfile" accept=".csv" />
-			</tr>
-		</table>
-		<p />
-		<center>
-			<input align="center" type="submit" value="Upload File" />
-		</center>
-	</form>
+
+
+
+
+
+
+	<script type="text/javascript">
+    $(function () {
+        $('button').on('click', function () {
+            $data = {
+                autoCheck: $('#autoCheck').is(':checked') ? 32 : false,
+                size: $('#size').val(), 
+                bgColor: $('#bgColor').val(),
+                bgOpacity: $('#bgOpacity').val(), 
+                fontColor: $('#fontColor').val(),
+                title: $('#title').val(),
+                isOnly: !$('#isOnly').is(':checked')
+            };
+            switch ($(this).data('target')){
+                    $('form').loader($data);
+               
+
+            }
+        });
+    })
+</script>
 </body>
 </html>
 

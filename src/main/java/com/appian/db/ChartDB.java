@@ -1,64 +1,537 @@
 package com.appian.db;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Map.Entry;
+import java.util.TreeMap;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import com.appian.nn.Network;
 
 public class ChartDB {
-
-	private static String tableName;
-	private static String dbName;
-	private static String columns;
-	private static String chartDT;
+	public static String url;
+	public static String dbInstanceName;
+	private static String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+	public static String userName;
+	public static String password;
+	private static String oldValues = "10";
+	private ArrayList<Timestamp> times = new ArrayList<Timestamp>();
+	private ArrayList<Double> values = new ArrayList<Double>();
+	private String provedColumnName;
+	private String predictedColumnName;
+	public static String chartDT;
+	public static String dbName;
+	public static String tableName;
+	public static String columns;
 
 	public ChartDB() throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
-		super();
-
 		Connection connection = DBConnection.getConnection();
-		String sql = "select dbname,tableName,columnsName,chartDt from Danpac.dbo.masterData order by dt desc ";
-
+		String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData order by dt desc ";
 		System.out.println("SQL : " + sql);
 		PreparedStatement psDBList = connection.prepareStatement(sql);
 		ResultSet rsDBList = psDBList.executeQuery();
 		if (rsDBList.next()) {
-
-			this.columns = rsDBList.getString("columnsName");
-			this.tableName = rsDBList.getString("tableName");
-			this.dbName = rsDBList.getString("dbname");
-			this.chartDT = rsDBList.getString("chartDT");
-
-			System.out.println("JSON : " + this);
-			System.out.println("JSON  columns: " + this.columns);
-			System.out.println("JSON  tableName: " + this.tableName);
-			System.out.println("JSON  dbName: " + this.dbName);
-			System.out.println("JSON  chartDT: " + this.chartDT);
-
+			ChartDB.url = rsDBList.getString("url");
+			ChartDB.columns = rsDBList.getString("columnsName");
+			ChartDB.tableName = rsDBList.getString("tableName");
+			ChartDB.dbName = rsDBList.getString("dbname");
+			ChartDB.chartDT = rsDBList.getString("chartDT");
+			ChartDB.dbInstanceName = ";databaseName=" + rsDBList.getString("dbInstanceName") + ";instance=SQLEXPRESS";
+			ChartDB.userName = rsDBList.getString("userName");
+			ChartDB.password = rsDBList.getString("password");
+		} else {
+			ChartDB.url = DBConnection.url;
+			// this.columns = DBConnection.columns;
+			ChartDB.tableName = DBConnection.tableName;
+			ChartDB.dbName = DBConnection.dbName;
+			ChartDB.chartDT = DBConnection.chartDT;
+			ChartDB.dbInstanceName = DBConnection.dbInstanceName;
+			ChartDB.userName = DBConnection.userName;
+			ChartDB.password = DBConnection.password;
 		}
 
 	}
 
-	public ChartDB(String dbname, String tableName, String columnsName, String chartDT) {
-		this.columns = columnsName;
-		this.tableName = tableName;
-		this.dbName = dbname;
-		this.chartDT = chartDT;
+	public ArrayList<Double> getValues() {
+		return values;
 	}
 
-	public String getTableName() {
-		return tableName;
+	public void setValues(ArrayList<Double> values) {
+		this.values = values;
 	}
 
-	public String getDbName() {
-		return dbName;
+	public ArrayList<Timestamp> getTimes() {
+		return times;
 	}
 
-	public String getColumns() {
-		return columns;
+	public void setTimes(ArrayList<Timestamp> times) {
+		this.times = times;
 	}
 
-	public String getChartDT() {
-		return chartDT;
+	public ChartDB(HttpServletRequest request)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+
+		this();
+		String predicted = (String) request.getSession().getAttribute("predicted");
+		String proved = (String) request.getSession().getAttribute("proved");
+		String chartDT = (String) request.getSession().getAttribute("chartDT");
+		String dbName = (String) request.getSession().getAttribute("dbName");
+		String tableName = (String) request.getSession().getAttribute("tableName");
+		this.predictedColumnName = predicted == null ? ChartDB.columns.split(",")[0] : predicted;
+		this.provedColumnName = proved == null ? ChartDB.columns.split(",")[0] : proved;
+		ChartDB.chartDT = chartDT == null ? "" : chartDT;
+		ChartDB.dbName = dbName == null ? "" : dbName;
+		ChartDB.tableName = tableName == null ? "" : tableName;
+
+		System.out.println("DBConnection -> dbName : " + dbName + ", tableName : " + tableName);
+	}
+
+	public static Connection getConnection()
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+		System.out.println("URL : " + url + " : " + ",\nColumn : " + columns + ",\nTableName : " + tableName
+				+ "\nDBName : " + dbName + "\nChartDT : " + chartDT + "\ndbInstanceName : " + dbInstanceName
+				+ "\nUserName : " + userName + "\nPassword : " + password);
+
+		Class.forName(driver).newInstance();
+		Connection conn = DriverManager.getConnection(url + dbInstanceName, userName, password);
+		return conn;
+	}
+
+	public ArrayList<Timestamp> getActualTimestamps(Timestamp fromDate, Timestamp toDate)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+		ArrayList<Timestamp> times = new ArrayList<Timestamp>();
+		Connection conn = ChartDB.getConnection();
+		PreparedStatement ps = conn.prepareStatement("SELECT " + chartDT + ",coalesce(" + provedColumnName + ","
+				+ predictedColumnName + ") as val1 FROM " + dbName + ".dbo." + tableName + " where " + chartDT
+				+ ">? and " + chartDT + "<? order by " + chartDT + "");
+		ps.setTimestamp(1, fromDate);
+		ps.setTimestamp(2, toDate);
+		ResultSet rs = ps.executeQuery();
+		while (rs.next()) {
+			times.add(rs.getTimestamp(1));
+		}
+		ps.close();
+		rs.close();
+		conn.close();
+		return times;
+	}
+
+	public ArrayList<Double> getActualValuesAndSetNormalizationFactors(Network network, Timestamp fromDate,
+			Timestamp toDate)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+		times = new ArrayList<Timestamp>();
+		Connection conn = ChartDB.getConnection();
+		String query = "SELECT " + chartDT + ",coalesce(" + provedColumnName + "," + predictedColumnName
+				+ ") as val1 FROM " + dbName + ".dbo." + tableName + " where " + chartDT + ">=? and " + chartDT
+				+ "<=? order by " + chartDT + "";
+		System.out.println("[getActualValuesAndSetNormalizationFactors] : " + query);
+		PreparedStatement ps = conn.prepareStatement(query);
+		ps.setTimestamp(1, fromDate);
+		ps.setTimestamp(2, toDate);
+		ResultSet rs = ps.executeQuery();
+		values = new ArrayList<Double>();
+		Double value;
+		while (rs.next()) {
+			times.add(rs.getTimestamp(1));
+			value = rs.getDouble(2);
+			values.add(value);
+			if (network.max < value)
+				network.max = value;
+			else if (network.min > value) {
+				network.min = value;
+			}
+		}
+		ps.close();
+		rs.close();
+		conn.close();
+		return values;
+	}
+
+	public void savePredictedValues(TreeMap<Timestamp, Double> values2)
+			throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+		Connection conn = ChartDB.getConnection();
+
+		ArrayList<Timestamp> times = getActualTimestamps(values2.firstKey(), values2.lastKey());
+		PreparedStatement ps;
+		for (Entry<Timestamp, Double> e : values2.entrySet()) {
+			if (times.contains(e.getKey()))
+				ps = conn.prepareStatement("update " + dbName + ".dbo." + tableName + " set " + predictedColumnName
+						+ "=? where " + chartDT + "=?");
+			else
+				ps = conn.prepareStatement("insert into " + dbName + ".dbo." + tableName + " (" + predictedColumnName
+						+ "," + chartDT + ") values (?,?)");
+			ps.setDouble(1, e.getValue());
+			ps.setTimestamp(2, e.getKey());
+			ps.execute();
+			ps.close();
+		}
+		conn.close();
+	}
+
+	public java.util.TreeMap<Timestamp, Double> getPredictedValues(Timestamp fromDate, Timestamp toDate,
+			Network network)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+
+		Connection conn = ChartDB.getConnection();
+		PreparedStatement preparedStatement = conn
+				.prepareStatement("select top " + network.slidingWindowSize + " * from (select " + chartDT
+						+ ",coalesce(" + provedColumnName + "," + predictedColumnName + ") as value1 FROM " + dbName
+						+ ".dbo." + tableName + " where " + chartDT + " <? and coalesce(" + provedColumnName + ","
+						+ predictedColumnName + ") is not null ) as  a order by " + chartDT + " desc;");
+		preparedStatement.setTimestamp(1, fromDate);
+		ResultSet rs = preparedStatement.executeQuery();
+		ArrayList<Timestamp> previousValues = new ArrayList<Timestamp>();
+		double[] previousValuesList = new double[network.slidingWindowSize];
+		int i = network.slidingWindowSize - 1;
+		while (rs.next()) {
+			previousValues.add(rs.getTimestamp(1));
+			previousValuesList[i--] = network.normalizeValue(rs.getDouble(2));
+		}
+		preparedStatement.close();
+		rs.close();
+		previousValues.sort(new Comparator<Timestamp>() {
+			@Override
+			public int compare(Timestamp o1, Timestamp o2) {
+				return o2.getTime() >= o1.getTime() ? -1 : 1;
+			}
+		});
+		Long avgDelay = findAvgDelay(previousValues);
+
+		PreparedStatement getValues = conn.prepareStatement("select " + chartDT + ",coalesce(" + provedColumnName + ","
+				+ predictedColumnName + ") as value1 FROM " + dbName + ".dbo." + tableName + " where " + chartDT
+				+ ">? and " + chartDT + "<? order by " + chartDT + "");
+		getValues.setTimestamp(1, fromDate);
+		getValues.setTimestamp(2, toDate);
+		ResultSet valuesSet = getValues.executeQuery();
+		double nextVal;
+
+		Long previousTime = findPrevTime(fromDate, previousValuesList, network,
+				previousValues.get(previousValues.size() - 1).getTime(), avgDelay);
+
+		TreeMap<Timestamp, Double> predictedValuesMap = new TreeMap<Timestamp, Double>();
+		while (valuesSet.next()) {
+			while (valuesSet.getTimestamp(1).getTime() - previousTime > 2 * avgDelay) {
+				nextVal = network.nextVal(previousValuesList);
+				previousValuesList = this.shiftAllLeft(previousValuesList, network.normalizeValue(nextVal));
+				previousTime = previousTime + avgDelay;
+				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
+			}
+			network.getNeuralNetwork().setInput(previousValuesList);
+			network.getNeuralNetwork().calculate();
+			nextVal = network.deNormalizeValue(network.getNeuralNetwork().getOutput()[0]);
+			if (valuesSet.getDouble(2) == 0) {
+				network.trainingSet.addRow(previousValuesList, new double[] { network.normalizeValue(nextVal) });
+				previousValuesList = this.shiftAllLeft(previousValuesList, network.normalizeValue(nextVal));
+			} else {
+				network.trainingSet.addRow(previousValuesList,
+						new double[] { network.normalizeValue(valuesSet.getDouble(2)) });
+				previousValuesList = this.shiftAllLeft(previousValuesList,
+						network.normalizeValue(valuesSet.getDouble(2)));
+			}
+			network.getNeuralNetwork().learn(network.trainingSet);
+			previousTime = valuesSet.getTimestamp(1).getTime();
+			predictedValuesMap.put(new Timestamp(previousTime), nextVal);
+		}
+
+		while (toDate.getTime() - previousTime > 2 * avgDelay) {
+			nextVal = network.nextVal(previousValuesList);
+			previousValuesList = this.shiftAllLeft(previousValuesList, network.normalizeValue(nextVal));
+			previousTime = previousTime + avgDelay;
+			predictedValuesMap.put(new Timestamp(previousTime), nextVal);
+		}
+		return predictedValuesMap;
+
+	}
+
+	public java.util.TreeMap<Timestamp, Double> getPredictedValues(Timestamp fromDate, Integer numberOfValues,
+			Network network)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+		Connection conn = ChartDB.getConnection();
+		PreparedStatement preparedStatement = conn
+				.prepareStatement("select top " + network.slidingWindowSize + " * from (select " + chartDT
+						+ ",coalesce(" + provedColumnName + "," + predictedColumnName + ") as value1 FROM " + dbName
+						+ ".dbo." + tableName + " where " + chartDT + " <? and coalesce(" + provedColumnName + ","
+						+ predictedColumnName + ") is not null ) as  a order by " + chartDT + " desc;");
+		preparedStatement.setTimestamp(1, fromDate);
+		ResultSet prevValRs = preparedStatement.executeQuery();
+		ArrayList<Timestamp> previousValues = new ArrayList<Timestamp>();
+		double[] previousValuesList = new double[network.slidingWindowSize];
+		int i = network.slidingWindowSize - 1;
+		while (prevValRs.next() && i > 0) {
+			previousValues.add(prevValRs.getTimestamp(1));
+			previousValuesList[i--] = network.normalizeValue(prevValRs.getDouble(2));
+		}
+		preparedStatement.close();
+		prevValRs.close();
+		previousValues.sort(new Comparator<Timestamp>() {
+			@Override
+			public int compare(Timestamp o1, Timestamp o2) {
+				return o2.getTime() >= o1.getTime() ? -1 : 1;
+			}
+		});
+		Long avgDelay = findAvgDelay(previousValues);
+
+		PreparedStatement getValues = conn.prepareStatement("select top " + numberOfValues + " * from (select "
+				+ chartDT + ",coalesce(" + provedColumnName + "," + predictedColumnName + ") as value1 FROM " + dbName
+				+ ".dbo." + tableName + " where " + chartDT + ">?) as a order by " + chartDT + "");
+		getValues.setTimestamp(1, fromDate);
+		ResultSet valuesSet = getValues.executeQuery();
+		double nextVal;
+
+		Long previousTime = findPrevTime(fromDate, previousValuesList, network,
+				previousValues.get(previousValues.size() - 1).getTime(), avgDelay);
+		TreeMap<Timestamp, Double> predictedValuesMap = new TreeMap<Timestamp, Double>();
+		while (valuesSet.next() && predictedValuesMap.size() < numberOfValues) {
+			while (valuesSet.getTimestamp(1).getTime() - previousTime > 2 * avgDelay
+					&& predictedValuesMap.size() < numberOfValues) {
+				nextVal = network.nextVal(previousValuesList);
+				previousValuesList = this.shiftAllLeft(previousValuesList, network.normalizeValue(nextVal));
+				previousTime = previousTime + avgDelay;
+				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
+			}
+			if (predictedValuesMap.size() == numberOfValues) {
+				break;
+			}
+			network.getNeuralNetwork().setInput(previousValuesList);
+			network.getNeuralNetwork().calculate();
+			nextVal = network.deNormalizeValue(network.getNeuralNetwork().getOutput()[0]);
+			if (valuesSet.getDouble(2) == 0) {
+
+				network.trainingSet.addRow(previousValuesList, new double[] { network.normalizeValue(nextVal) });
+				previousValuesList = this.shiftAllLeft(previousValuesList, nextVal);
+			} else {
+				network.trainingSet.addRow(previousValuesList,
+						new double[] { network.normalizeValue(valuesSet.getDouble(2)) });
+				previousValuesList = this.shiftAllLeft(previousValuesList, valuesSet.getDouble(2));
+			}
+			network.getNeuralNetwork().learn(network.trainingSet);
+			previousTime = valuesSet.getTimestamp(1).getTime();
+			predictedValuesMap.put(new Timestamp(previousTime), nextVal);
+		}
+		while (predictedValuesMap.size() < numberOfValues) {
+			nextVal = network.nextVal(previousValuesList);
+			previousValuesList = this.shiftAllLeft(previousValuesList, network.deNormalizeValue(nextVal));
+			previousTime = previousTime + avgDelay;
+			predictedValuesMap.put(new Timestamp(previousTime), nextVal);
+		}
+		return predictedValuesMap;
+	}
+
+	private Long findPrevTime(Timestamp fromDate, double[] previousValuesList, Network network, Long previousTime,
+			Long avgDelay) {
+		double nextVal;
+		while (fromDate.getTime() - previousTime > avgDelay * 2) {
+			nextVal = network.nextVal(previousValuesList);
+			this.shiftAllLeft(previousValuesList, network.normalizeValue(nextVal));
+			previousTime = previousTime + avgDelay;
+		}
+		return previousTime;
+	}
+
+	private Long findAvgDelay(ArrayList<Timestamp> previousValues) {
+		Timestamp prevVal = null, curVal;
+		Long totalDelay = 0l;
+		for (Timestamp e : previousValues) {
+			curVal = e;
+			if (prevVal != null) {
+				totalDelay = totalDelay + curVal.getTime() - prevVal.getTime();
+			}
+			prevVal = curVal;
+		}
+		return totalDelay / previousValues.size();
+	}
+
+	private double[] shiftAllLeft(double[] previousValuesList, double nextVal) {
+		for (int i = 1; i < previousValuesList.length; i++) {
+			previousValuesList[i - 1] = previousValuesList[i];
+		}
+		previousValuesList[previousValuesList.length - 1] = nextVal;
+		return previousValuesList;
+	}
+
+	public String getMeterGraphValues(Timestamp fromDate, Timestamp toDate)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+
+		Connection conn = ChartDB.getConnection();
+		PreparedStatement ps;
+
+		if (fromDate == null && toDate == null) {
+			String query = "SELECT " + chartDT + ",tab1." + predictedColumnName + " as predicted,tab2."
+					+ provedColumnName + " as proved from " + tableName + " as tab1 join " + tableName
+					+ " as tab2 on tab1." + chartDT + "=tab2." + chartDT + " order by " + chartDT + "";
+			System.out.println("[getMeterGraphValues] : from\\to date is null Query : " + query);
+			ps = conn.prepareStatement(query);
+		} else {
+			String query = "SELECT " + chartDT + "," + predictedColumnName + " as val1, " + provedColumnName
+					+ " as val2  FROM " + dbName + ".dbo." + tableName + " where " + chartDT + ">? and " + chartDT
+					+ "<? order by " + chartDT + "";
+			System.out.println("[getMeterGraphValues] : from \\ to date Not null Query : " + query);
+			ps = conn.prepareStatement(query);
+
+			ps.setTimestamp(1, fromDate);
+			ps.setTimestamp(2, toDate);
+		}
+		// System.out.println("3 : " + fromDate + " : " + toDate);
+
+		JSONArray jArray = new JSONArray();
+
+		if (fromDate != null) {
+			PreparedStatement oldValues;
+			ResultSet rsOld = null;
+			oldValues = conn.prepareStatement(
+					"select * from (SELECT top " + ChartDB.oldValues + " " + chartDT + "," + predictedColumnName
+							+ " as val1 , " + provedColumnName + " as val2 FROM [" + dbName + "].[dbo].[" + tableName
+							+ "] where " + chartDT + "<? order by " + chartDT + " desc) a order by " + chartDT + "");
+			oldValues.setTimestamp(1, fromDate);
+
+			rsOld = oldValues.executeQuery();
+			while (rsOld.next()) {
+				String timestamp = rsOld.getString(1);
+				Float actual = rsOld.getString(2) != null ? Float.valueOf(rsOld.getString(2)) : 0f;
+				Float predicted = rsOld.getString(3) != null ? Float.valueOf(rsOld.getString(3)) : 0f;
+
+				if (actual == null || predicted == null || actual.equals(0f)) {
+				} else
+					Math.abs(((actual - predicted) / actual) * 100);
+				JSONObject json = new JSONObject();
+
+				json.put(chartDT, timestamp);
+				json.put(predictedColumnName, actual == 0f ? null : actual.toString());
+				json.put(provedColumnName, predicted == 0f ? null : predicted.toString());
+				// json.put("error", error != null ? error.toString() : null);
+				System.out.println("json1 : " + json.toString());
+				jArray.put(json);
+			}
+		}
+		ResultSet rs = ps.executeQuery();
+		values = new ArrayList<Double>();
+
+		while (rs.next()) {
+			String timestamp = rs.getString(1);
+			Float actual = rs.getString(2) != null ? Float.valueOf(rs.getString(2)) : 0f;
+			Float predicted = rs.getString(3) != null ? Float.valueOf(rs.getString(3)) : 0f;
+
+			if (actual == null || predicted == null || actual.equals(0f)) {
+			} else
+				Math.abs(((actual - predicted) / actual) * 100);
+			JSONObject json = new JSONObject();
+
+			json.put(chartDT, timestamp);
+			json.put(predictedColumnName, actual == 0f ? null : actual.toString());
+			json.put(provedColumnName, predicted == 0f ? null : predicted.toString());
+			// json.put("error", error != null ? error.toString() : null);
+
+			// System.out.println("json2 : " + json.toString());
+			jArray.put(json);
+		}
+
+		ps.close();
+		rs.close();
+		conn.close();
+		return jArray.toString();
+
+	}
+
+	public String getMeterGraphWithPredictValues(Timestamp fromDate, String predict)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+		Connection conn = ChartDB.getConnection();
+		String querry = "SELECT TOP " + predict + " " + chartDT + "," + provedColumnName + " as val1,"
+				+ predictedColumnName + " as val2 FROM [" + dbName + "].[dbo].[" + tableName + "] where " + chartDT
+				+ ">? order by " + chartDT + " ";
+		System.out.println("[getMeterGraphWithPredictValues] : " + querry);
+		PreparedStatement ps = conn.prepareStatement(querry);
+		ps.setTimestamp(1, fromDate);
+
+		ResultSet rs = ps.executeQuery();
+		values = new ArrayList<Double>();
+
+		JSONArray jArray = new JSONArray();
+		if (fromDate != null) {
+			PreparedStatement oldValues;
+			ResultSet rsOld = null;
+			oldValues = conn.prepareStatement(
+					"select * from (SELECT top " + ChartDB.oldValues + " " + chartDT + "," + provedColumnName
+							+ " as val1," + predictedColumnName + " as val2 FROM [" + dbName + "].[dbo].[" + tableName
+							+ "] where " + chartDT + "<? order by " + chartDT + " desc) a order by " + chartDT + "");
+			oldValues.setTimestamp(1, fromDate);
+			;
+			rsOld = oldValues.executeQuery();
+			while (rsOld.next()) {
+				String timestamp = rsOld.getString(1);
+				Float actual = rsOld.getString(2) != null ? Float.valueOf(rsOld.getString(2)) : 0f;
+				Float predicted = rsOld.getString(3) != null ? Float.valueOf(rsOld.getString(3)) : 0f;
+
+				if (actual == null || predicted == null || actual.equals(0f)) {
+				} else
+					Math.abs(((actual - predicted) / actual) * 100);
+				JSONObject json = new JSONObject();
+
+				json.put(chartDT, timestamp);
+				json.put(predictedColumnName, actual == 0f ? null : actual.toString());
+				json.put(provedColumnName, predicted == 0f ? null : predicted.toString());
+				// json.put("error", error != null ? error.toString() : null);
+				jArray.put(json);
+			}
+		}
+
+		while (rs.next()) {
+			String timestamp = rs.getString(1);
+			Float actual = rs.getString(2) != null ? Float.valueOf(rs.getString(2)) : 0f;
+			Float predicted = rs.getString(3) != null ? Float.valueOf(rs.getString(3)) : 0f;
+
+			try {
+				Math.abs(((actual - predicted) / actual) * 100);
+			} catch (Exception e) {
+			}
+			JSONObject json = new JSONObject();
+
+			json.put(chartDT, timestamp);
+			json.put(predictedColumnName, actual == 0f ? null : actual.toString());
+			json.put(provedColumnName, predicted == 0f ? null : predicted.toString());
+			// json.put("error", error != null ? error.toString() : null);
+
+			jArray.put(json);
+		}
+
+		ps.close();
+		rs.close();
+		conn.close();
+		return jArray.toString();
+	}
+
+	public String getColumns()
+			throws SQLException, InstantiationException, IllegalAccessException, ClassNotFoundException {
+		Connection connection = ChartDB.getConnection();
+		String sql = "select  url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData order by dt desc ";
+
+		System.out.println("SQL : " + sql);
+		PreparedStatement psDBList = connection.prepareStatement(sql);
+		ResultSet rsDBList = psDBList.executeQuery();
+		JSONArray jArray = new JSONArray();
+		if (rsDBList.next()) {
+			JSONObject json = new JSONObject();
+			json.put("url", rsDBList.getString("url"));
+			json.put("dbInstanceName", rsDBList.getString("dbInstanceName"));
+			json.put("dbName", rsDBList.getString("dbName"));
+			json.put("tableName", rsDBList.getString("tableName"));
+			json.put("columnsName", rsDBList.getString("columnsName"));
+			json.put("chartDt", rsDBList.getString("chartDt"));
+			json.put("userName", rsDBList.getString("userName"));
+			json.put("password", rsDBList.getString("password"));
+			jArray.put(json);
+			System.out.println("JSON : " + jArray.toString());
+		}
+		return jArray.toString();
 	}
 
 }

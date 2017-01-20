@@ -16,6 +16,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.appian.db.ChartDB;
 import com.appian.db.DBConnection;
 import com.appian.nn.Network;
 
@@ -50,11 +51,11 @@ public class MeterGraphValues {
 			e1.printStackTrace();
 			return null;
 		}
-		DBConnection dbConnection = new DBConnection(request);
+		ChartDB chartDB = new ChartDB(request);
 		String meterJSONData = null;
 		System.out.println("2 : " + dateFrom.toString() + " : " + dateTo.toString());
 
-		meterJSONData = dbConnection.getMeterGraphValues(fromDate, toDate);
+		meterJSONData = chartDB.getMeterGraphValues(fromDate, toDate);
 		System.out.println(meterJSONData);
 
 		return meterJSONData;
@@ -64,7 +65,7 @@ public class MeterGraphValues {
 	@Path("/changeColumn")
 	public String changeColumn(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("predicted") String predicted,
-			@DefaultValue("") @QueryParam("proved") String proved) {
+			@DefaultValue("") @QueryParam("proved") String proved) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		Network network = (Network) request.getSession().getAttribute("NeuralNetwork");
 		/*
 		 * try { if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS)) return
@@ -76,9 +77,11 @@ public class MeterGraphValues {
 
 		request.getSession().setAttribute("predicted", predicted);
 		request.getSession().setAttribute("proved", proved);
-		request.getSession().setAttribute("dbName", predicted);
-		request.getSession().setAttribute("tableName", predicted);
-		request.getSession().setAttribute("chartDT", predicted);
+		/*
+		 * request.getSession().setAttribute("dbName", predicted);
+		 * request.getSession().setAttribute("tableName", predicted);
+		 * request.getSession().setAttribute("chartDT", predicted);
+		 */
 		/*
 		 * switch (column) { case "Pressure":
 		 * request.getSession().setAttribute("predicted", "PPressure");
@@ -118,10 +121,10 @@ public class MeterGraphValues {
 			e1.printStackTrace();
 			return null;
 		}
-		DBConnection dbConnection = new DBConnection(request);
+		ChartDB chartDB = new ChartDB(request);
 		String meterJSONData = null;
 		System.out.println("!!!" + fromDate + " : " + predict);
-		meterJSONData = dbConnection.getMeterGraphWithPredictValues(fromDate, predict);
+		meterJSONData = chartDB.getMeterGraphWithPredictValues(fromDate, predict);
 		System.out.println(meterJSONData);
 		return meterJSONData;
 	}

@@ -17,9 +17,9 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.appian.db.ChartDB;
 import com.appian.db.DBConnection;
 import com.appian.nn.Network;
-
 
 @Path("/predict")
 @Produces(MediaType.APPLICATION_JSON)
@@ -29,54 +29,54 @@ public class PredictValues {
 
 	@GET
 	@Path("/predictbetween")
-	public TreeMap<Timestamp,Double> Predict(@Context HttpServletRequest request,@DefaultValue("") @QueryParam("dateFrom") String dateFrom,@DefaultValue("") @QueryParam("dateTo") String dateTo) {
+	public TreeMap<Timestamp, Double> Predict(@Context HttpServletRequest request,
+			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
+			@DefaultValue("") @QueryParam("dateTo") String dateTo) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		Timestamp fromDate;
 		Timestamp toDate;
 		try {
-			if("".equals(dateFrom))
-				fromDate=new Timestamp(0);
+			if ("".equals(dateFrom))
+				fromDate = new Timestamp(0);
 			else
 				fromDate = new Timestamp(format.parse(dateFrom).getTime());
 
-
-			if("".equals(dateTo))
-				toDate=new Timestamp(new Date().getTime());
+			if ("".equals(dateTo))
+				toDate = new Timestamp(new Date().getTime());
 			else
-				toDate=new Timestamp(format.parse(dateTo).getTime());
+				toDate = new Timestamp(format.parse(dateTo).getTime());
 		} catch (ParseException e1) {
 			e1.printStackTrace();
 			return null;
 		}
-		Network network=(Network) request.getSession().getAttribute("NeuralNetwork");
-		/*try {
-			if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS))
-					return null;
-		} catch (InterruptedException e1) {
-			return null;
-		}*/
-		DBConnection dbConnection=new DBConnection(request);
-		TreeMap<Timestamp,Double> values = null;
+		Network network = (Network) request.getSession().getAttribute("NeuralNetwork");
+		/*
+		 * try { if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS)) return
+		 * null; } catch (InterruptedException e1) { return null; }
+		 */
+		ChartDB chartDB = new ChartDB(request);
+		TreeMap<Timestamp, Double> values = null;
 		try {
-			values=dbConnection.getPredictedValues(fromDate, toDate,network);
-			if(values!=null&&values.size()>0)
-				dbConnection.savePredictedValues(values);
-		} catch (InstantiationException | IllegalAccessException
-				| ClassNotFoundException | SQLException e) {
+			values = chartDB.getPredictedValues(fromDate, toDate, network);
+			if (values != null && values.size() > 0)
+				chartDB.savePredictedValues(values);
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | SQLException e) {
 			e.printStackTrace();
-			/*network.lock.unlock();*/
+			/* network.lock.unlock(); */
 			return null;
 		}
-		/*network.lock.unlock();*/
+		/* network.lock.unlock(); */
 		return values;
 	}
 
 	@GET
 	@Path("/predictnvalues")
-	public TreeMap<Timestamp,Double> PredictNValues(@Context HttpServletRequest request,@DefaultValue("") @QueryParam("dateFrom") String dateFrom,@DefaultValue("5") @QueryParam("numberOfValues") Integer numberOfValues) {
+	public TreeMap<Timestamp, Double> PredictNValues(@Context HttpServletRequest request,
+			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
+			@DefaultValue("5") @QueryParam("numberOfValues") Integer numberOfValues) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		Timestamp fromDate;
 		try {
-			if("".equals(dateFrom))
-				fromDate=new Timestamp(0);
+			if ("".equals(dateFrom))
+				fromDate = new Timestamp(0);
 			else
 				fromDate = new Timestamp(format.parse(dateFrom).getTime());
 		} catch (ParseException e1) {
@@ -84,27 +84,24 @@ public class PredictValues {
 			e1.printStackTrace();
 			return null;
 		}
-		Network network=(Network) request.getSession().getAttribute("NeuralNetwork");
-		/*try {
-			if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS))
-					return null;
-		} catch (InterruptedException e1) {
-			return null;
-		}*/
-		DBConnection dbConnection=new DBConnection(request);
-		TreeMap<Timestamp,Double> values = null;
+		Network network = (Network) request.getSession().getAttribute("NeuralNetwork");
+		/*
+		 * try { if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS)) return
+		 * null; } catch (InterruptedException e1) { return null; }
+		 */
+		ChartDB chartDB = new ChartDB(request);
+		TreeMap<Timestamp, Double> values = null;
 		try {
-			values=dbConnection.getPredictedValues(fromDate, numberOfValues,network);
-			if(values!=null&&values.size()>0)
-				dbConnection.savePredictedValues(values);
-		} catch (InstantiationException | IllegalAccessException
-				| ClassNotFoundException | SQLException e) {
+			values = chartDB.getPredictedValues(fromDate, numberOfValues, network);
+			if (values != null && values.size() > 0)
+				chartDB.savePredictedValues(values);
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			/*network.lock.unlock();*/
+			/* network.lock.unlock(); */
 			return null;
 		}
-		/*network.lock.unlock();*/
+		/* network.lock.unlock(); */
 		return values;
 	}
 

@@ -34,15 +34,19 @@ public class User {
 		DBConnection dbConnection = new DBConnection(request);
 		String status = null;
 		status = dbConnection.validateUser(username, password);
-		System.out.println("Authentication : " + status);
+		System.out.println("Login() : " + status);
 		request.getSession().setAttribute("user", username);
 
 		ChartDB chartDB = new ChartDB();
 		if (chartDB != null) {
-			request.getSession().setAttribute("chartDT", chartDB.getChartDT());
-			request.getSession().setAttribute("columns", chartDB.getColumns());
-			request.getSession().setAttribute("dbName", chartDB.getDbName());
-			request.getSession().setAttribute("tableName", chartDB.getTableName());
+			request.getSession().setAttribute("chartDT", chartDB.chartDT);
+			request.getSession().setAttribute("columns", chartDB.columns);
+			request.getSession().setAttribute("dbName", chartDB.dbName);
+			request.getSession().setAttribute("tableName", chartDB.tableName);
+			request.getSession().setAttribute("dbInstanceName", chartDB.dbInstanceName);
+			request.getSession().setAttribute("password", chartDB.password);
+			request.getSession().setAttribute("userName", chartDB.userName);
+			request.getSession().setAttribute("url", chartDB.url);
 		}
 		TrainNetwork trainNetwork = new TrainNetwork();
 		trainNetwork.Train(request, format.format(new Date(0)), format.format(new Date()));

@@ -13,6 +13,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.appian.db.ChartDB;
 import com.appian.db.DBConnection;
 import com.appian.prediction.POJO.Column;
 import com.google.gson.Gson;
@@ -27,14 +28,18 @@ public class Member {
 	public String getCols(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("columns") String columns)
 			throws ParseException, InstantiationException, IllegalAccessException, ClassNotFoundException,
 			SQLException {
-		System.out.println("columns : " + columns);
-		DBConnection dbConnection = new DBConnection(request);
-		String cloumnList = dbConnection.getColumns();
+		System.out.println("getCols : " + columns);
+		ChartDB chartDB = new ChartDB(request);
+		String cloumnList = chartDB.getColumns();
 		if (!cloumnList.isEmpty()) {
-			request.getSession().setAttribute("chartDT", dbConnection.getChartDB().getChartDT());
-			request.getSession().setAttribute("columns", dbConnection.getChartDB().getColumns());
-			request.getSession().setAttribute("dbName", dbConnection.getChartDB().getDbName());
-			request.getSession().setAttribute("tableName", dbConnection.getChartDB().getTableName());
+			request.getSession().setAttribute("chartDT", ChartDB.chartDT);
+			request.getSession().setAttribute("columns", ChartDB.columns);
+			request.getSession().setAttribute("dbName", ChartDB.dbName);
+			request.getSession().setAttribute("tableName", ChartDB.tableName);
+			request.getSession().setAttribute("dbInstanceName", ChartDB.dbInstanceName);
+			request.getSession().setAttribute("password", ChartDB.password);
+			request.getSession().setAttribute("userName", ChartDB.userName);
+			request.getSession().setAttribute("url", ChartDB.url);
 
 			System.out.println("Clolumn List " + cloumnList);
 			return cloumnList;

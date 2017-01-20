@@ -1,11 +1,11 @@
 package com.appian.prediction;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
@@ -16,9 +16,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
-import org.glassfish.jersey.process.internal.RequestScoped;
-
-import com.appian.db.DBConnection;
+import com.appian.db.ChartDB;
 import com.appian.nn.Network;
 
 @Path("/train")
@@ -28,7 +26,9 @@ public class TrainNetwork {
 	SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
-	public String Train(@Context HttpServletRequest request,@DefaultValue("") @QueryParam("dateFrom") String dateFrom,@DefaultValue("") @QueryParam("dateTo") String dateTo) {
+	public String Train(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("dateFrom") String dateFrom,
+			@DefaultValue("") @QueryParam("dateTo") String dateTo)
+			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		Timestamp fromDate;
 		Timestamp toDate;
 		
@@ -62,9 +62,9 @@ public class TrainNetwork {
 			request.getSession().setAttribute("NeuralNetwork", network);
 		}
 		network.clearTrainingSet();
-		DBConnection dbConnection=new DBConnection(request);
+		ChartDB chartDB=new ChartDB(request);
 		try {
-			ArrayList<Double> values=dbConnection.getActualValuesAndSetNormalizationFactors(network,fromDate, toDate);
+			ArrayList<Double> values=chartDB.getActualValuesAndSetNormalizationFactors(network,fromDate, toDate);
 			ArrayList<Integer> missingValues=network.trainNetworkFromData(values);
 			HashMap<Integer, Double> predicted=network.addMissingValues(values,missingValues);
 		} catch (Exception e){
