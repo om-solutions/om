@@ -31,12 +31,11 @@ public class MeterGraphValues {
 	@Path("/meter")
 	public String Predict(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
-			@DefaultValue("") @QueryParam("value") String dateTo, @DefaultValue("") @QueryParam("colA") String colA,
-			@DefaultValue("") @QueryParam("colB") String colB) throws ParseException, InstantiationException,
+			@DefaultValue("") @QueryParam("value") String dateTo) throws ParseException, InstantiationException,
 			IllegalAccessException, ClassNotFoundException, SQLException {
 		Timestamp fromDate;
 		Timestamp toDate;
-		System.out.println(colA + " : " + colB);
+
 		try {
 			if (dateFrom == null || "".equals(dateFrom) || dateFrom.equals("null"))
 				fromDate = new Timestamp(0);
@@ -55,7 +54,7 @@ public class MeterGraphValues {
 		String meterJSONData = null;
 		System.out.println("2 : " + dateFrom.toString() + " : " + dateTo.toString());
 
-		meterJSONData = dbConnection.getMeterGraphValues(fromDate, toDate, request.getSession().getAttribute("chartDT").toString());
+		meterJSONData = dbConnection.getMeterGraphValues(fromDate, toDate);
 		System.out.println(meterJSONData);
 
 		return meterJSONData;
@@ -77,7 +76,9 @@ public class MeterGraphValues {
 
 		request.getSession().setAttribute("predicted", predicted);
 		request.getSession().setAttribute("proved", proved);
-
+		request.getSession().setAttribute("dbName", predicted);
+		request.getSession().setAttribute("tableName", predicted);
+		request.getSession().setAttribute("chartDT", predicted);
 		/*
 		 * switch (column) { case "Pressure":
 		 * request.getSession().setAttribute("predicted", "PPressure");

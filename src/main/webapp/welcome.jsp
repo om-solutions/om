@@ -210,7 +210,9 @@ footer {
 																			loadChart(
 																					'http://localhost:8080/Prediction/prediction/graph/meter',
 																					null,
-																					null);
+																					null,document
+																					.getElementById("predictedColumn").value,document
+																					.getElementById("provedColumn").value);
 																		},
 																		error : function(
 																				error) {
@@ -251,7 +253,9 @@ footer {
 												loadChart(
 														'http://localhost:8080/Prediction/prediction/graph/meter',
 														null,
-														null);
+														null,document
+														.getElementById("predictedColumn").value,document
+														.getElementById("provedColumn").value);
 											},
 											error : function(
 													error) {
@@ -376,7 +380,8 @@ footer {
 						}
 					}
 					function showGraph2() {
-						if (document.getElementById("dateFrom").value == ''
+						alert(document.getElementById("dateFrom1").value +" : "+document.getElementById("predict").value);
+						if (document.getElementById("dateFrom1").value == ''
 								|| document.getElementById("predict").value == '') {
 							alert("Please enter values");
 						} else {
@@ -467,112 +472,100 @@ footer {
 						var columns =  '<%=columns%>';
 						var dbName =  '<%=dbName%>';
 						var tableName =  '<%=tableName%>';
-						$
-								.ajax({
-									url : url,
-									data : 'dateFrom=' + CurrentDate
-											+ '&value=' + PreMonthDate+ '&ColA=' + colA+ '&colB=' + colB,
-									beforeSend : function(request) {
-										request.setRequestHeader(
-												"Authorization", "Negotiate");
-									},
-									type : 'GET',
-									dataType : 'json',
-									success : function(response) {
-										alert(response);
-										if (response.length == 0) {
-											alert("No Value Available !!!");
-										} else {
-											//data = response;
-											chartData = generateChartData(response);
-											//alert(response);
-											//chart.addListener("rendered", zoomChart);
-											var chart = AmCharts
-													.makeChart(
-															"chartdiv",
-															{
-																"type" : "serial",
-																"theme" : "light",
-																"legend" : {
-																	"useGraphSettings" : true
-																},
-																"dataProvider" : chartData,
-																"synchronizeGrid" : true,
-																"valueAxes" : [
-																		{
-																			"id" : "v1",
-																			"axisColor" : "#556B2F",
-																			"axisThickness" : 2,
-																			"axisAlpha" : 1,
-																			"position" : "left"
-																		},
-																		{
-																			"id" : "v2",
-																			"axisColor" : "#00FF00",
-																			"axisThickness" : 2,
-																			"axisAlpha" : 1,
-																			"position" : "right"
-																		}, ],
-																"graphs" : [
-																		{
-																			"valueAxis" : "v1",
-																			"lineColor" : "#556B2F",
-																			"bullet" : "round",
-																			"bulletBorderThickness" : 1,
-																			"hideBulletsCount" : 30,
-																			"title" :  document.getElementById("predictedColumn").value,
-																			"valueField" : document.getElementById("predictedColumn").value,
-																			"fillAlphas" : 0
-																		},
-																		{
-																			"valueAxis" : "v2",
-																			"lineColor" : "#00FF00",
-																			"bullet" : "square",
-																			"bulletBorderThickness" : 1,
-																			"hideBulletsCount" : 30,
-																			"title" : document
-																					.getElementById("provedColumn").value,
-																			"valueField" : document
-																					.getElementById("provedColumn").value,
-																			"fillAlphas" : 0
-																		} ],
-																"chartScrollbar" : {},
-																"chartCursor" : {
-																	"cursorPosition" : "mouse"
-																},
-																"categoryField" : "datetime",
-																"categoryAxis" : {
-																	"parseDates" : true,
-																	"axisColor" : "#DADADA",
-																	"minorGridEnabled" : true
-																},
-																"export" : {
-																	"enabled" : true,
-																	"position" : "bottom-right"
-																}
-															});
-
-											chart.addListener("dataUpdated",
-													zoomChart);
-											zoomChart();
-
-											function generateChartData(response) {
-												return response;
-											}
-
-											function zoomChart() {
-												chart
-														.zoomToIndexes(
-																chart.dataProvider.length - 20,
-																chart.dataProvider.length - 1);
-
-											}
+						$.ajax( {
+							url : url,
+							data : 'dateFrom=' + CurrentDate + '&value=' + PreMonthDate + '&ColA=' + colA + '&colB=' + colB,
+							beforeSend : function ( request ) {
+								request.setRequestHeader( "Authorization", "Negotiate" );
+							},
+							type : 'GET',
+							dataType : 'json',
+							success : function ( response ) {
+								//alert(JSON.stringify(response));
+								if ( response.length == 0 ) {
+									alert( "No Value Available !!!" );
+								} else {
+									//data = response;
+									chartData = generateChartData( response );
+									//alert(response);
+									//chart.addListener("rendered", zoomChart);
+									var chart = AmCharts.makeChart( "chartdiv", {
+										"type" : "serial",
+										"theme" : "light",
+										"legend" : {
+											"useGraphSettings" : true
+										},
+										"dataProvider" : chartData,
+										"synchronizeGrid" : true,
+										"valueAxes" : [
+												{
+													"id" : "v1",
+													"axisColor" : "#FF6600",
+													"axisThickness" : 2,
+													"axisAlpha" : 1,
+													"position" : "left"
+												}, {
+													"id" : "v2",
+													"axisColor" : "#00FF00",
+													"axisThickness" : 2,
+													"axisAlpha" : 1,
+													"position" : "right"
+												}
+										],
+										"graphs" : [
+												{
+													"valueAxis" : "v1",
+													"lineColor" : "#FF6600",
+													"bullet" : "round",
+													"bulletBorderThickness" : 1,
+													"hideBulletsCount" : 30,
+													"title" : document.getElementById( "predictedColumn" ).value,
+													"valueField" : document.getElementById( "predictedColumn" ).value,
+													"fillAlphas" : 0
+												}, {
+													"valueAxis" : "v2",
+													"lineColor" : "#00FF00",
+													"bullet" : "square",
+													"bulletBorderThickness" : 1,
+													"hideBulletsCount" : 30,
+													"title" : document.getElementById( "provedColumn" ).value,
+													"valueField" : document.getElementById( "provedColumn" ).value,
+													"fillAlphas" : 0
+												}
+										],
+										"chartScrollbar" : {},
+										"chartCursor" : {
+											"cursorPosition" : "mouse"
+										},
+										"categoryField" : chartDT,
+										"categoryAxis" : {
+											"parseDates" : true,
+											"axisColor" : "#DADADA",
+											"minorGridEnabled" : true
+										},
+										"export" : {
+											"enabled" : true,
+											"position" : "bottom-right"
 										}
-									},
-									error : function(error) {
-										alert("Try again");
-									},
-								});
+									} );
+
+									chart.addListener( "dataUpdated", zoomChart );
+									zoomChart();
+
+									function generateChartData ( response ) {
+										return response;
+									}
+
+									function zoomChart () {
+										chart.zoomToIndexes( chart.dataProvider.length - 20, chart.dataProvider.length - 1 );
+
+									}
+								}
+							},
+							error : function ( error ) {
+								alert( "Try again" );
+							},
+						} );
 				<%}
 			}%>
 					}

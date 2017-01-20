@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -21,7 +22,7 @@ import com.appian.nn.Network;
 
 public class DBConnection {
 	private static String url = "jdbc:sqlserver://localhost:1433";
-	private static String dbName = ";databaseName=Danpac;instance=SQLEXPRESS";
+	private static String dbInstanceName = ";databaseName=Danpac;instance=SQLEXPRESS";
 	private static String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
 	private static String userName = "sa";
 	private static String password = "root";
@@ -31,7 +32,12 @@ public class DBConnection {
 	private String provedColumnName = "k_factor";
 	private String predictedColumnName = "k_factor";
 	private ChartDB chartDB;
-	private String chartDT;
+	private static String chartDT;
+	private static String dbName;
+	private static String tableName;
+	private static String csvTableName;
+	private static String insertQuery;
+	private static int columnCount;
 
 	public ArrayList<Double> getValues() {
 		return values;
@@ -53,16 +59,150 @@ public class DBConnection {
 		String predicted = (String) request.getSession().getAttribute("predicted");
 		String proved = (String) request.getSession().getAttribute("proved");
 		String chartDT = (String) request.getSession().getAttribute("chartDT");
-		this.predictedColumnName = predicted == null ? "predicted_k_factor" : predicted;
-		this.provedColumnName = proved == null ? "proved_k_factor" : proved;
-		this.chartDT = chartDT == null ?  "timestamp"  : chartDT;
+		String dbName = (String) request.getSession().getAttribute("dbName");
+		String tableName = (String) request.getSession().getAttribute("tableName");
+		try {
+			chartDB = new ChartDB();
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		this.predictedColumnName = predicted == null ? chartDB.getColumns().split(",")[0] : predicted;
+		this.provedColumnName = proved == null ? chartDB.getColumns().split(",")[0] : proved;
+		this.chartDT = chartDT == null ? "" : chartDT;
+		this.dbName = dbName == null ? "" : dbName;
+		this.tableName = tableName == null ? "" : tableName;
+
+		System.out.println("DBConnection -> dbName : " + dbName + ", tableName : " + tableName);
 	}
 
 	public static Connection getConnection()
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		Class.forName(driver).newInstance();
-		Connection conn = DriverManager.getConnection(url + dbName, userName, password);
+		Connection conn = DriverManager.getConnection(url + dbInstanceName, userName, password);
 		return conn;
+	}
+
+	public static String insertRowTable(String[] rowData) {
+		Connection conn;
+		int count = 0;
+		try {
+			conn = DBConnection.getConnection();
+
+			PreparedStatement ps = conn.prepareStatement(insertQuery);
+			for (int i = 0; i < columnCount; i++) {
+				ps.setString(i + 1, rowData[i].toString());
+			}
+			count = ps.executeUpdate();
+			ps.close();
+			conn.close();
+			// return jArray.toString();
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return count > 0 ? "true" : "false";
+
+	}
+
+	public static void createReplaceTable(String fileName, String[] headerData, String[] rowData) {
+		System.out.println("fileName : " + fileName);
+		csvTableName = removeSpecialChar(fileName).replace("\\", "");
+		System.out.println("fileName : " + csvTableName);
+		String query = "CREATE TABLE " + csvTableName + " ( ";
+		insertQuery = " insert into " + csvTableName;
+		String insertColumns = " ( ";
+		String insertValues = " ( ";
+		columnCount = rowData.length;
+		for (int i = 0; i < columnCount; i++) {
+			// String regex="\\d+[\\/\\:\\-]\\d+";
+			// System.out.println(i + " : " + splitData.toString());
+			String header = removeSpecialChar(headerData[i].toString());
+			if (header.isEmpty()) {
+				header = "header" + i;
+			}
+
+			if (rowData[i].toString().matches("[0-9.]*")) {
+				if (i == 0) {
+					query += " " + header + " real ";
+					insertColumns += header;
+					insertValues += " ? ";
+				} else {
+					query += ", " + header + " real ";
+					insertColumns += ", " + header;
+					insertValues += ", ? ";
+				}
+			} else if (rowData[i].toString().contains(":") && (rowData[i].toString().contains("/")
+					|| rowData[i].toString().contains(".") || rowData[i].toString().contains("-"))) {
+				if (i == 0) {
+					query += " " + header + " datetime UNIQUE ";
+					insertColumns += header;
+					insertValues += " ? ";
+				} else {
+					query += ", " + header + " datetime  UNIQUE";
+					insertColumns += ", " + header;
+					insertValues += ", ? ";
+				}
+			} else {
+				if (i == 0) {
+					query += " " + header + " varchar(MAX)  ";
+					insertColumns += header;
+					insertValues += " ? ";
+				} else {
+					query += ", " + header + " varchar(MAX)  ";
+					insertColumns += ", " + header;
+					insertValues += ", ? ";
+				}
+
+			}
+
+		}
+
+		insertQuery += insertColumns + " ) values " + insertValues + " ) ";
+		System.out.println("$$$ " + insertQuery);
+		query += " ) ";
+
+		Statement stmt;
+		try {
+			stmt = getConnection().createStatement();
+
+			/*
+			 * String sql = "CREATE TABLE REGISTRATION " +
+			 * "(id INTEGER not NULL, " + " first VARCHAR(255), " +
+			 * " last VARCHAR(255), " + " age INTEGER, " +
+			 * " PRIMARY KEY ( id ))";
+			 */
+
+			System.out.println("Query : " + query);
+			stmt.executeUpdate(query);
+
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | SQLException e) {
+			// TODO Auto-generated catch block
+			// e.printStackTrace();
+			System.out.println("INFO : " + e.getMessage());
+
+		}
+	}
+
+	private static String removeSpecialChar(String fileName) {
+		fileName = fileName.replace("\\", "");
+		fileName = fileName.replace("/", "");
+		fileName = fileName.replace(",", "");
+		fileName = fileName.replace(".", "");
+		fileName = fileName.replace("-", "");
+		fileName = fileName.replace("_", "");
+		fileName = fileName.replace("\\s+", "");
+		fileName = fileName.replace(" ", "");
+		fileName = fileName.replace("(", "");
+		fileName = fileName.replace(")", "");
+		fileName = fileName.replace("%", "");
+		fileName = fileName.replace("+", "");
+		fileName = fileName.replace("-", "");
+		fileName = fileName.replace("@", "");
+		fileName = fileName.replace("#", "");
+		fileName = fileName.replace("$", "");
+		fileName = fileName.replace("&", "");
+		return fileName;
 	}
 
 	public ArrayList<Timestamp> getActualTimestamps(Timestamp fromDate, Timestamp toDate)
@@ -90,9 +230,10 @@ public class DBConnection {
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		times = new ArrayList<Timestamp>();
 		Connection conn = DBConnection.getConnection();
-		PreparedStatement ps = conn
-				.prepareStatement("SELECT timestamp,coalesce(" + provedColumnName + "," + predictedColumnName
-						+ ") as val1 FROM Danpac.dbo.meterdata where timestamp>=? and timestamp<=? order by timestamp");
+		String query = "SELECT " + chartDB.getChartDT() + ",coalesce(" + provedColumnName + "," + predictedColumnName
+				+ ") as val1 FROM Danpac.dbo.meterdata where timestamp>=? and timestamp<=? order by timestamp";
+		System.out.println("[getActualValuesAndSetNormalizationFactors] : " + query);
+		PreparedStatement ps = conn.prepareStatement(query);
 		ps.setTimestamp(1, fromDate);
 		ps.setTimestamp(2, toDate);
 		ResultSet rs = ps.executeQuery();
@@ -314,18 +455,27 @@ public class DBConnection {
 		return previousValuesList;
 	}
 
-	public String getMeterGraphValues(Timestamp fromDate, Timestamp toDate,String chartDT)
+	public String getMeterGraphValues(Timestamp fromDate, Timestamp toDate)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 
 		Connection conn = DBConnection.getConnection();
 		PreparedStatement ps;
 
 		if (fromDate == null && toDate == null) {
-			ps = conn.prepareStatement("SELECT "+chartDT+",proved_k_factor as val1," + predictedColumnName
-					+ " as val2, MTemp as val3, MPressure,Flowrate FROM Danpac.dbo.meterdata order by "+chartDT+"");
+			String query = "SELECT " + chartDB.getChartDT() + ",tab1." + predictedColumnName + " as predicted,tab2."
+					+ provedColumnName + " as proved from " + tableName + " as tab1 join " + tableName
+					+ " as tab2 on tab1." + chartDB.getChartDT() + "=tab2." + chartDB.getChartDT() + " order by "
+					+ chartDB.getChartDT() + "";
+			System.out.println("[getMeterGraphValues] : from\\to date is null Query : " + query);
+			ps = conn.prepareStatement(query);
 		} else {
-			ps = conn.prepareStatement("SELECT "+chartDT+",proved_k_factor as val1," + predictedColumnName
-					+ " as val2, MTemp as val3, MPressure,Flowrate FROM Danpac.dbo.meterdata where "+chartDT+">? and "+chartDT+"<? order by "+chartDT+"");
+			String query = "SELECT " + chartDB.getChartDT() + "," + predictedColumnName + " as val1, "
+					+ provedColumnName + " as val2  FROM " + chartDB.getDbName() + ".dbo." + chartDB.getTableName()
+					+ " where " + chartDB.getChartDT() + ">? and " + chartDB.getChartDT() + "<? order by "
+					+ chartDB.getChartDT() + "";
+			System.out.println("[getMeterGraphValues] : from \\ to date Not null Query : " + query);
+			ps = conn.prepareStatement(query);
+
 			ps.setTimestamp(1, fromDate);
 			ps.setTimestamp(2, toDate);
 		}
@@ -336,19 +486,18 @@ public class DBConnection {
 		if (fromDate != null) {
 			PreparedStatement oldValues;
 			ResultSet rsOld = null;
-			oldValues = conn.prepareStatement("select * from (SELECT top " + DBConnection.oldValues
-					+ " "+chartDT+",proved_k_factor as val1," + predictedColumnName
-					+ " as val2, MTemp as val3, MPressure,Flowrate FROM [danpac].[dbo].[meterdata] where "+chartDT+"<? order by "+chartDT+" desc) a order by "+chartDT+"");
+			oldValues = conn.prepareStatement("select * from (SELECT top " + DBConnection.oldValues + " "
+					+ chartDB.getChartDT() + "," + predictedColumnName + " as val1 , " + provedColumnName
+					+ " as val2 FROM [" + chartDB.getDbName() + "].[dbo].[" + chartDB.getTableName() + "] where "
+					+ chartDB.getChartDT() + "<? order by " + chartDB.getChartDT() + " desc) a order by "
+					+ chartDB.getChartDT() + "");
 			oldValues.setTimestamp(1, fromDate);
-			;
+
 			rsOld = oldValues.executeQuery();
 			while (rsOld.next()) {
 				String timestamp = rsOld.getString(1);
 				Float actual = rsOld.getString(2) != null ? Float.valueOf(rsOld.getString(2)) : 0f;
 				Float predicted = rsOld.getString(3) != null ? Float.valueOf(rsOld.getString(3)) : 0f;
-				Float temp = rsOld.getString(4) != null ? Float.valueOf(rsOld.getString(4)) : 0f;
-				Float pressure = rsOld.getString(5) != null ? Float.valueOf(rsOld.getString(5)) : 0f;
-				Float flowrate = rsOld.getString(6) != null ? Float.valueOf(rsOld.getString(6)) : 0f;
 
 				Float error = null;
 				if (actual == null || predicted == null || actual.equals(0f))
@@ -357,14 +506,11 @@ public class DBConnection {
 					error = Math.abs(((actual - predicted) / actual) * 100);
 				JSONObject json = new JSONObject();
 
-				json.put("datetime", timestamp);
-				json.put("actual", actual == 0f ? null : actual.toString());
-				json.put("predicted", predicted == 0f ? null : predicted.toString());
-				json.put("error", error != null ? error.toString() : null);
-				json.put("temp", temp.equals(0f) ? null : temp.toString());
-				json.put("pressure", pressure.equals(0f) ? null : pressure.toString());
-				json.put("flowrate", flowrate.equals(0f) ? null : flowrate.toString());
-
+				json.put(chartDB.getChartDT(), timestamp);
+				json.put(predictedColumnName, actual == 0f ? null : actual.toString());
+				json.put(provedColumnName, predicted == 0f ? null : predicted.toString());
+				// json.put("error", error != null ? error.toString() : null);
+				System.out.println("json1 : " + json.toString());
 				jArray.put(json);
 			}
 		}
@@ -375,9 +521,6 @@ public class DBConnection {
 			String timestamp = rs.getString(1);
 			Float actual = rs.getString(2) != null ? Float.valueOf(rs.getString(2)) : 0f;
 			Float predicted = rs.getString(3) != null ? Float.valueOf(rs.getString(3)) : 0f;
-			Float temp = rs.getString(4) != null ? Float.valueOf(rs.getString(4)) : 0f;
-			Float pressure = rs.getString(5) != null ? Float.valueOf(rs.getString(5)) : 0f;
-			Float flowrate = rs.getString(6) != null ? Float.valueOf(rs.getString(6)) : 0f;
 
 			Float error = null;
 			if (actual == null || predicted == null || actual.equals(0f))
@@ -386,14 +529,12 @@ public class DBConnection {
 				error = Math.abs(((actual - predicted) / actual) * 100);
 			JSONObject json = new JSONObject();
 
-			json.put("datetime", timestamp);
-			json.put("actual", actual == 0f ? null : actual.toString());
-			json.put("predicted", predicted == 0f ? null : predicted.toString());
-			json.put("error", error != null ? error.toString() : null);
-			json.put("temp", temp.equals(0f) ? null : temp.toString());
-			json.put("pressure", pressure.equals(0f) ? null : pressure.toString());
-			json.put("flowrate", flowrate.equals(0f) ? null : flowrate.toString());
-			// System.out.println("json : " + json.toString());
+			json.put(chartDB.getChartDT(), timestamp);
+			json.put(predictedColumnName, actual == 0f ? null : actual.toString());
+			json.put(provedColumnName, predicted == 0f ? null : predicted.toString());
+			// json.put("error", error != null ? error.toString() : null);
+
+			System.out.println("json2 : " + json.toString());
 			jArray.put(json);
 		}
 
@@ -407,9 +548,11 @@ public class DBConnection {
 	public String getMeterGraphWithPredictValues(Timestamp fromDate, String predict)
 			throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		Connection conn = DBConnection.getConnection();
-		PreparedStatement ps = conn.prepareStatement("SELECT TOP " + predict + " timestamp,proved_k_factor as val1,"
-				+ predictedColumnName
-				+ " as val2, MTemp as val3, MPressure,Flowrate FROM Danpac.dbo.meterdata where timestamp>? order by timestamp ");
+		String querry = "SELECT TOP " + predict + " " + chartDT + "," + provedColumnName + " as val1,"
+				+ predictedColumnName + " as val2 FROM [" + dbName + "].[dbo].[" + tableName + "] where " + chartDT
+				+ ">? order by " + chartDT + " ";
+		System.out.println("[getMeterGraphWithPredictValues] : " + querry);
+		PreparedStatement ps = conn.prepareStatement(querry);
 		ps.setTimestamp(1, fromDate);
 
 		ResultSet rs = ps.executeQuery();
@@ -419,9 +562,10 @@ public class DBConnection {
 		if (fromDate != null) {
 			PreparedStatement oldValues;
 			ResultSet rsOld = null;
-			oldValues = conn.prepareStatement("select * from (SELECT top " + DBConnection.oldValues
-					+ " timestamp,proved_k_factor as val1," + predictedColumnName
-					+ " as val2, MTemp as val3, MPressure,Flowrate FROM [danpac].[dbo].[meterdata] where timestamp<? order by timestamp desc) a order by timestamp");
+			oldValues = conn.prepareStatement(
+					"select * from (SELECT top " + DBConnection.oldValues + " " + chartDT + "," + provedColumnName
+							+ " as val1," + predictedColumnName + " as val2 FROM [" + dbName + "].[dbo].[" + tableName
+							+ "] where " + chartDT + "<? order by " + chartDT + " desc) a order by " + chartDT + "");
 			oldValues.setTimestamp(1, fromDate);
 			;
 			rsOld = oldValues.executeQuery();
@@ -429,9 +573,6 @@ public class DBConnection {
 				String timestamp = rsOld.getString(1);
 				Float actual = rsOld.getString(2) != null ? Float.valueOf(rsOld.getString(2)) : 0f;
 				Float predicted = rsOld.getString(3) != null ? Float.valueOf(rsOld.getString(3)) : 0f;
-				Float temp = rsOld.getString(4) != null ? Float.valueOf(rsOld.getString(4)) : 0f;
-				Float pressure = rsOld.getString(5) != null ? Float.valueOf(rsOld.getString(5)) : 0f;
-				Float flowrate = rsOld.getString(6) != null ? Float.valueOf(rsOld.getString(6)) : 0f;
 
 				Float error = null;
 				if (actual == null || predicted == null || actual.equals(0f))
@@ -440,14 +581,10 @@ public class DBConnection {
 					error = Math.abs(((actual - predicted) / actual) * 100);
 				JSONObject json = new JSONObject();
 
-				json.put("datetime", timestamp);
-				json.put("actual", actual == 0f ? null : actual.toString());
-				json.put("predicted", predicted == 0f ? null : predicted.toString());
-				json.put("error", error != null ? error.toString() : null);
-				json.put("temp", temp.equals(0f) ? null : temp.toString());
-				json.put("pressure", pressure.equals(0f) ? null : pressure.toString());
-				json.put("flowrate", flowrate.equals(0f) ? null : flowrate.toString());
-
+				json.put(chartDB.getChartDT(), timestamp);
+				json.put(predictedColumnName, actual == 0f ? null : actual.toString());
+				json.put(provedColumnName, predicted == 0f ? null : predicted.toString());
+				// json.put("error", error != null ? error.toString() : null);
 				jArray.put(json);
 			}
 		}
@@ -456,9 +593,6 @@ public class DBConnection {
 			String timestamp = rs.getString(1);
 			Float actual = rs.getString(2) != null ? Float.valueOf(rs.getString(2)) : 0f;
 			Float predicted = rs.getString(3) != null ? Float.valueOf(rs.getString(3)) : 0f;
-			Float temp = rs.getString(4) != null ? Float.valueOf(rs.getString(4)) : 0f;
-			Float pressure = rs.getString(5) != null ? Float.valueOf(rs.getString(5)) : 0f;
-			Float flowrate = rs.getString(6) != null ? Float.valueOf(rs.getString(6)) : 0f;
 
 			Float error = null;
 			try {
@@ -468,13 +602,10 @@ public class DBConnection {
 			}
 			JSONObject json = new JSONObject();
 
-			json.put("datetime", timestamp);
-			json.put("actual", actual == 0f ? null : actual.toString());
-			json.put("predicted", predicted == 0f ? null : predicted.toString());
-			json.put("error", error != null ? error.toString() : null);
-			json.put("temp", temp.equals(0f) ? null : temp.toString());
-			json.put("pressure", pressure.equals(0f) ? null : pressure.toString());
-			json.put("flowrate", flowrate.equals(0f) ? null : flowrate.toString());
+			json.put(chartDB.getChartDT(), timestamp);
+			json.put(predictedColumnName, actual == 0f ? null : actual.toString());
+			json.put(provedColumnName, predicted == 0f ? null : predicted.toString());
+			// json.put("error", error != null ? error.toString() : null);
 
 			jArray.put(json);
 		}

@@ -96,209 +96,173 @@ footer {
 					
 				<%int var = 1;
 			out.println(var < 10 ? "0" + var : var);%>
-					$('#tableSelector')
-							.change(
-									function() {
-										var selectedTable = $(this).find(
-												"option:selected").text();
-										var selectedDb = $('#dbSelector').find(
-												"option:selected").text();
-										loadColumns("http://localhost:8080/Prediction/prediction/admin/columns?dbName="
-												+ selectedDb
-												+ "&tableName="
-												+ selectedTable);
-									});
-					$('#dbSelector')
-							.change(
-									function() {
-										var selectedText = $(this).find(
-												"option:selected").text();
-										loadTable("http://localhost:8080/Prediction/prediction/admin/table?dbName="
-												+ selectedText);
-										$("#tableSelector").empty();
-									});
+					$( '#tableSelector' ).change( function () {
+						var selectedTable = $( this ).find( "option:selected" ).text();
+						var selectedDb = $( '#dbSelector' ).find( "option:selected" ).text();
+						loadColumns( "http://localhost:8080/Prediction/prediction/admin/columns?dbName=" + selectedDb + "&tableName=" + selectedTable );
+					} );
+					$( '#dbSelector' ).change( function () {
+						var selectedText = $( this ).find( "option:selected" ).text();
+						loadTable( "http://localhost:8080/Prediction/prediction/admin/table?dbName=" + selectedText );
+						$( "#tableSelector" ).empty();
+					} );
 
-					$(document)
-							.ready(
-									function() {
+					$( document ).ready( function () {
 				<%if ((session.getAttribute("userid") == null) || (session.getAttribute("userid") == "")) {%>
-					alert("Please Login!!!");
-										window.location = "Plogin.jsp";
-				<%} else {%>
-					loadDatabase("http://localhost:8080/Prediction/prediction/admin/database");
+					alert( "Please Login!!!" );
+						window.location = "Plogin.jsp";
+				<%} else {
+				System.out.println(" - - >" + (session.getAttribute("userid")));%>
+					loadDatabase( "http://localhost:8080/Prediction/prediction/admin/database" );
 				<%}%>
-					});
+					} );
 
-					function loadDatabase(url) {
-						$.ajax({
+					function loadDatabase ( url ) {
+						$.ajax( {
 							url : url,
 							type : 'GET',
 							dataType : 'json',
-							success : function(response) {
+							success : function ( response ) {
 								//alert(JSON.stringify(response));
-								for (var i = 0; i < response.length; i++) {
-									var obj = response[i];
-									for ( var key in obj) {
+								for ( var i = 0; i < response.length; i++ ) {
+									var obj = response[ i ];
+									for ( var key in obj ) {
 										var attrName = key;
-										var attrValue = obj[key];
+										var attrValue = obj[ key ];
 										//alert(attrValue);
-										$('#dbSelector').append($('<option>', {
+										$( '#dbSelector' ).append( $( '<option>', {
 											value : attrValue,
 											text : attrValue
-										}));
+										} ) );
 
 									}
 								}
 
 							},
-							error : function(error) {
-								alert("Try again");
+							error : function ( error ) {
+								alert( "Try again" );
 							},
-						});
+						} );
 					}
 
-					function loadTable(url) {
-						$.ajax({
+					function loadTable ( url ) {
+						$.ajax( {
 							url : url,
 							type : 'GET',
 							dataType : 'json',
-							success : function(response) {
+							success : function ( response ) {
 								//alert(JSON.stringify(response));
-								for (var i = 0; i < response.length; i++) {
-									var obj = response[i];
-									for ( var key in obj) {
+								for ( var i = 0; i < response.length; i++ ) {
+									var obj = response[ i ];
+									for ( var key in obj ) {
 										var attrName = key;
-										var attrValue = obj[key];
+										var attrValue = obj[ key ];
 										//alert(attrValue);
-										$('#tableSelector').append(
-												$('<option>', {
-													value : attrValue,
-													text : attrValue
-												}));
+										$( '#tableSelector' ).append( $( '<option>', {
+											value : attrValue,
+											text : attrValue
+										} ) );
 
 									}
 								}
 
 							},
-							error : function(error) {
-								alert("Try again");
+							error : function ( error ) {
+								alert( "Try again" );
 							},
-						});
+						} );
 					}
 
-					function loadColumns(url) {
-						$.ajax({
+					function loadColumns ( url ) {
+						$.ajax( {
 							url : url,
 							type : 'GET',
 							dataType : 'json',
-							success : function(response) {
+							success : function ( response ) {
 								//alert(JSON.stringify(response));
-								$("#POIBody").children().remove();
-								for (var i = 0; i < response.length; i++) {
+								$( "#POIBody" ).children().remove();
+								for ( var i = 0; i < response.length; i++ ) {
 									//alert("1221212");
-									var obj = response[i];
-									var columnName = obj["columnName"];
-									var dataType = obj["dataType"];
-									var isNull = obj["isNull"];
-									addRow(columnName, dataType, isNull);
+									var obj = response[ i ];
+									var columnName = obj[ "columnName" ];
+									var dataType = obj[ "dataType" ];
+									var isNull = obj[ "isNull" ];
+									addRow( columnName, dataType, isNull );
 
 								}
 
 							},
-							error : function(error) {
-								alert("Try again");
+							error : function ( error ) {
+								alert( "Try again" );
 							},
-						});
+						} );
 					}
-					function addRow(columnName, dataType, isNull) {
-						if (dataType === 'datetime') {
-							$("#POITable")
-									.append(
-											'<tr><td style="text-align: left;"><input class="messageCheckbox" type="checkbox" value='+columnName+' id='+columnName+'></td><td style="text-align: left;">'
-													+ columnName
-													+ '</td> <td style="text-align: left;">'
-													+ dataType
-													+ '</td><td style="text-align: left;" >'
-													+ isNull
-													+ '</td><td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="radio" checked="checked" name="chartDT" value='+columnName+' ></div></tr>');
-						} else {
-							$("#POITable")
-									.append(
-											'<tr><td style="text-align: left;"><input class="messageCheckbox" type="checkbox" value='+columnName+' id='+columnName+'></td><td style="text-align: left;">'
-													+ columnName
-													+ '</td> <td style="text-align: left;">'
-													+ dataType
-													+ '</td><td style="text-align: left;" >'
-													+ isNull
-													+ '</td><td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="radio" name="chartDT" value='+columnName+' ></div></tr>');
-						}
+					function addRow ( columnName, dataType, isNull ) {
+						if ( dataType === 'real' || dataType === 'int' || dataType === 'float' || dataType === 'datetime' )
+							if ( dataType === 'datetime' ) {
+								$( "#POITable" ).append(
+										'<tr><td style="text-align: left;"></td><td style="text-align: left;">' + columnName + '</td> <td style="text-align: left;">' + dataType + '</td><td style="text-align: left;" >' + isNull
+												+ '</td><td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="radio" checked="checked" name="chartDT" value='+columnName+' ></div></tr>' );
+								$( "#btSave" ).removeClass( "disabled" )
+							} else {
+								$( "#POITable" ).append(
+										'<tr><td style="text-align: left;"><input class="messageCheckbox" type="checkbox" value='+columnName+' id='+columnName+'></td><td style="text-align: left;">' + columnName + '</td> <td style="text-align: left;">' + dataType
+												+ '</td><td style="text-align: left;" >' + isNull + '</td><td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="radio" name="chartDT" value='+columnName+' ></div></tr>' );
+							}
 
 					}
-					function insRow() {
-						var x = document.getElementById('POITable');
+					function insRow () {
+						var x = document.getElementById( 'POITable' );
 						// deep clone the targeted row
-						var new_row = x.rows[1].cloneNode(true);
+						var new_row = x.rows[ 1 ].cloneNode( true );
 						// get the total number of rows
 						var len = x.rows.length;
 						// set the innerHTML of the first row 
-						new_row.cells[0].innerHTML = len;
+						new_row.cells[ 0 ].innerHTML = len;
 
 						// grab the input from the first cell and update its ID and value
-						var inp1 = new_row.cells[1]
-								.getElementsByTagName('input')[0];
+						var inp1 = new_row.cells[ 1 ].getElementsByTagName( 'input' )[ 0 ];
 						inp1.id += len;
 						inp1.value = '';
 
 						// grab the input from the first cell and update its ID and value
-						var inp2 = new_row.cells[2]
-								.getElementsByTagName('input')[0];
+						var inp2 = new_row.cells[ 2 ].getElementsByTagName( 'input' )[ 0 ];
 						inp2.id += len;
 						inp2.value = '';
 
 						// append the new row to the table
-						x.appendChild(new_row);
+						x.appendChild( new_row );
 					}
-					function saveColumns() {
+					function saveColumns () {
 						var allColumns = "";
 						var dbName = "";
 						var tableName = "";
 
-						var dbName = $('#dbSelector').find("option:selected")
-								.text();
-						var tableName = $('#tableSelector').find(
-								"option:selected").text();
+						var dbName = $( '#dbSelector' ).find( "option:selected" ).text();
+						var tableName = $( '#tableSelector' ).find( "option:selected" ).text();
 
-						$("input[type=checkbox]:checked").each(function() {
-							if (allColumns == "")
-								allColumns = $(this).val();
+						$( "input[type=checkbox]:checked" ).each( function () {
+							if ( allColumns == "" )
+								allColumns = $( this ).val();
 							else
-								allColumns += ',' + $(this).val();
-						});
+								allColumns += ',' + $( this ).val();
+						} );
 
-						var chartDT = $('input[name=chartDT]:checked').val();
+						var chartDT = $( 'input[name=chartDT]:checked' ).val();
 
-						if (chartDT == null) {
-							alert("Plese Select Date\Time Cloumn !!!");
+						if ( chartDT == null ) {
+							alert( "Plese Select Date\Time Cloumn !!!" );
 						} else {
-							$
-									.ajax({
-										url : "http://localhost:8080/Prediction/prediction/admin/saveCols?columns="
-												+ allColumns
-												+ "&dbName="
-												+ dbName
-												+ "&tableName="
-												+ tableName
-												+ "&chartDT="
-												+ chartDT,
-										type : 'GET',
-										success : function(response) {
-											alert(response);
-										},
-										error : function(error) {
-											alert("Try again : "
-													+ JSON.stringify(error));
-										},
-									});
+							$.ajax( {
+								url : "http://localhost:8080/Prediction/prediction/admin/saveCols?columns=" + allColumns + "&dbName=" + dbName + "&tableName=" + tableName + "&chartDT=" + chartDT,
+								type : 'GET',
+								success : function ( response ) {
+									alert( response );
+								},
+								error : function ( error ) {
+									alert( "Try again : " + JSON.stringify( error ) );
+								},
+							} );
 						}
 
 					}
@@ -316,6 +280,7 @@ footer {
 							<th>Column Name</th>
 							<th>Data Type</th>
 							<th>is Null</th>
+							<th>is datetime</th>
 
 						</tr>
 					</thead>
@@ -348,9 +313,27 @@ footer {
 
 	<footer class="container-fluid text-center">
 		<p>
-			<button type="button" class="btn btn-success" onclick="saveColumns()">Save</button>
+			<button type="button" class="btn btn-success disabled" id="btSave"
+				name="btSave" onclick="saveColumns()">Save</button>
 		</p>
 	</footer>
 
+
+
+	<form id="form1" enctype="multipart/form-data" action="UploadFile.jsp"
+		method="post">
+		<table align="center">
+
+			<tr>
+				<td>Browse File</td>
+				<td><input align="center" type="file" name="csvfile" accept=".csv" />
+			</tr>
+		</table>
+		<p />
+		<center>
+			<input align="center" type="submit" value="Upload File" />
+		</center>
+	</form>
 </body>
 </html>
+

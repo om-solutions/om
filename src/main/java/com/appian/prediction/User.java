@@ -14,6 +14,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.appian.db.ChartDB;
 import com.appian.db.DBConnection;
 
 @Path("/user")
@@ -35,7 +36,15 @@ public class User {
 		status = dbConnection.validateUser(username, password);
 		System.out.println("Authentication : " + status);
 		request.getSession().setAttribute("user", username);
-		TrainNetwork trainNetwork=new TrainNetwork();
+
+		ChartDB chartDB = new ChartDB();
+		if (chartDB != null) {
+			request.getSession().setAttribute("chartDT", chartDB.getChartDT());
+			request.getSession().setAttribute("columns", chartDB.getColumns());
+			request.getSession().setAttribute("dbName", chartDB.getDbName());
+			request.getSession().setAttribute("tableName", chartDB.getTableName());
+		}
+		TrainNetwork trainNetwork = new TrainNetwork();
 		trainNetwork.Train(request, format.format(new Date(0)), format.format(new Date()));
 		return status;
 	}
@@ -57,6 +66,7 @@ public class User {
 			msg = dbConnection.register(name, email, username, password);
 		}
 		request.getSession().setAttribute("user", username);
+
 		return msg;
 	}
 
