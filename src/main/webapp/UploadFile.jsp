@@ -57,11 +57,11 @@
 
 			}
 		}
-
+		session.setAttribute("status", "File Uploaded Successfully !!!");
 		//	out.println("File Uploaded Successfully.");
 %>
 <script type="text/javascript">
-	window.location.href = "admin.jsp?status=File Uploaded Successfully !!!";
+	window.location.href = "admin.jsp";
 </script>
 <%
 	} catch (Exception ex) {
