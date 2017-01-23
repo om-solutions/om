@@ -181,9 +181,7 @@ footer {
 
 										$("#predictedColumn")
 												.change(
-														function(e) {
-															console
-																	.log("column button clicked");
+														function(e) {														
 															$
 																	.ajax({
 																		url : 'http://localhost:8080/Prediction/prediction/graph/changeColumn?predicted='
@@ -193,9 +191,7 @@ footer {
 																				+ document
 																						.getElementById("provedColumn").value,
 																		beforeSend : function(
-																				request) {
-																			console
-																					.log("before send");
+																				request) {																			
 																			request
 																					.setRequestHeader(
 																							"Authorization",
@@ -380,7 +376,7 @@ footer {
 						}
 					}
 					function showGraph2() {
-						alert(document.getElementById("dateFrom1").value +" : "+document.getElementById("predict").value);
+						//alert(document.getElementById("dateFrom1").value +" : "+document.getElementById("predict").value);
 						if (document.getElementById("dateFrom1").value == ''
 								|| document.getElementById("predict").value == '') {
 							alert("Please enter values");
@@ -400,7 +396,7 @@ footer {
 									function() {
 										loadColumns("http://localhost:8080/Prediction/prediction/member/getCols");
 										
-										
+										chart.zoomToIndexes( chart.dataProvider.length - 20, chart.dataProvider.length - 1 );
 
 									});
 
@@ -551,13 +547,13 @@ footer {
 
 									chart.addListener( "dataUpdated", zoomChart );
 									zoomChart();
-
+									chart.autoMargins = false;
 									function generateChartData ( response ) {
 										return response;
 									}
 
 									function zoomChart () {
-										chart.zoomToIndexes( chart.dataProvider.length - 20, chart.dataProvider.length - 1 );
+										chart.zoomToIndexes( chart.dataProvider.length - 50, chart.dataProvider.length - 1 );
 
 									}
 								}

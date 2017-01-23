@@ -47,6 +47,7 @@ public class MeterGraphValues {
 			else
 				toDate = new Timestamp(format1.parse(dateTo).getTime());
 		} catch (Exception e1) {
+			e1.printStackTrace();
 			throw new PException("Invalid Date !!!");
 		}
 		ChartDB chartDB = new ChartDB(request);

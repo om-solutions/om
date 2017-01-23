@@ -85,6 +85,7 @@ public class DBConnection {
 			Connection conn = DriverManager.getConnection(url + dbInstanceName, userName, password);
 			return conn;
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new PException("Unabel to get Connection !!!");
 		}
 
@@ -106,6 +107,7 @@ public class DBConnection {
 
 			return count > 0 ? "true" : "false";
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new PException("Unable to insert record into table !!!");
 		}
 
@@ -183,7 +185,7 @@ public class DBConnection {
 			stmt.executeUpdate(query);
 
 		} catch (PException | SQLException e) {
-			System.out.println(e);
+			e.printStackTrace();
 			throw new PException(e.getMessage());
 		}
 	}
@@ -219,6 +221,7 @@ public class DBConnection {
 			// return jArray.toString();
 			return status;
 		} catch (SQLException e) {
+			e.printStackTrace();
 			throw new PException("Invalid User !!!");
 		}
 
@@ -243,6 +246,7 @@ public class DBConnection {
 
 			return count > 0 ? "true" : "false";
 		} catch (SQLException e) {
+			e.printStackTrace();
 			throw new PException(" Uable to register !!!");
 		}
 	}
@@ -262,6 +266,7 @@ public class DBConnection {
 			}
 			return jArray.toString();
 		} catch (SQLException e) {
+			e.printStackTrace();
 			throw new PException("Unable to get database list !!!");
 		}
 	}
@@ -282,6 +287,7 @@ public class DBConnection {
 			}
 			return jArray.toString();
 		} catch (SQLException e) {
+			e.printStackTrace();
 			throw new PException("Uable to get table list !!!");
 		}
 	}
@@ -306,6 +312,7 @@ public class DBConnection {
 			}
 			return jArray.toString();
 		} catch (SQLException e) {
+			e.printStackTrace();
 			throw new PException(" Uable to get column list !!!");
 		}
 
@@ -344,6 +351,7 @@ public class DBConnection {
 			conn.close();
 			return true;
 		} catch (SQLException e) {
+			e.printStackTrace();
 			throw new PException(" Uable to set column list !!!");
 		}
 	}

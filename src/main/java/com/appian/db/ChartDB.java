@@ -115,6 +115,7 @@ public class ChartDB {
 			Connection conn = DriverManager.getConnection(url + dbInstanceName, userName, password);
 			return conn;
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new PException("Unable to connect Chart Database !!!");
 		}
 	}
@@ -137,6 +138,7 @@ public class ChartDB {
 			conn.close();
 			return times;
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new PException("Unable to get Actual Timestamps !!!");
 		}
 	}
@@ -171,6 +173,7 @@ public class ChartDB {
 			conn.close();
 			return values;
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new PException("Unable to get Actua lValues And Set Normalization Factors !!!");
 		}
 	}
@@ -195,6 +198,7 @@ public class ChartDB {
 			}
 			conn.close();
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new PException("Unable to save Predicted Values !!!");
 		}
 	}
@@ -271,6 +275,7 @@ public class ChartDB {
 			}
 			return predictedValuesMap;
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new PException("Unable to get Predicted Values !!!");
 		}
 
@@ -350,6 +355,7 @@ public class ChartDB {
 			return predictedValuesMap;
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new PException("Unable to get Predicted Values !!!");
 		}
 	}
@@ -467,6 +473,7 @@ public class ChartDB {
 			conn.close();
 			return jArray.toString();
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new PException("ERROR : Uable to get Meter Graph Values");
 		}
 
@@ -539,6 +546,7 @@ public class ChartDB {
 			conn.close();
 			return jArray.toString();
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new PException("Unable to get Meter Graph With Predict Values !!!");
 		}
 	}
@@ -568,6 +576,7 @@ public class ChartDB {
 			return jArray.toString();
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new PException("Unable to get Columns !!!");
 		}
 	}
