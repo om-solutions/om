@@ -55,8 +55,11 @@
 		<div id="selection" class="tab-pane fade in active">
 			<br>
 			<div class="container text-center">
-				<div class="alert alert-success" style="text-align: center;">
+				<div class="alert alert-info" style="text-align: center;" id="alt">
 					<%=session.getAttribute("status") == null ? "" : session.getAttribute("status")%></div>
+				<%
+					session.removeAttribute("status");
+				%>
 			</div>
 
 			<div class="container text-center">
@@ -343,13 +346,6 @@
 
 
 
-
-	<script>
-window.onload = function() {
-		alert(session.getAttribute("status"));
-		session.setAttribute("status","");
-    }
-</script>
 
 	<script type="text/javascript">
 	
