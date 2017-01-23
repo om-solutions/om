@@ -19,6 +19,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.appian.db.ChartDB;
 import com.appian.db.DBConnection;
+import com.appian.exception.PException;
 import com.appian.nn.Network;
 
 @Path("/predict")
@@ -31,7 +32,7 @@ public class PredictValues {
 	@Path("/predictbetween")
 	public TreeMap<Timestamp, Double> Predict(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
-			@DefaultValue("") @QueryParam("dateTo") String dateTo) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+			@DefaultValue("") @QueryParam("dateTo") String dateTo) throws PException {
 		Timestamp fromDate;
 		Timestamp toDate;
 		try {
@@ -55,15 +56,11 @@ public class PredictValues {
 		 */
 		ChartDB chartDB = new ChartDB(request);
 		TreeMap<Timestamp, Double> values = null;
-		try {
-			values = chartDB.getPredictedValues(fromDate, toDate, network);
-			if (values != null && values.size() > 0)
-				chartDB.savePredictedValues(values);
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | SQLException e) {
-			e.printStackTrace();
-			/* network.lock.unlock(); */
-			return null;
-		}
+
+		values = chartDB.getPredictedValues(fromDate, toDate, network);
+		if (values != null && values.size() > 0)
+			chartDB.savePredictedValues(values);
+
 		/* network.lock.unlock(); */
 		return values;
 	}
@@ -72,7 +69,7 @@ public class PredictValues {
 	@Path("/predictnvalues")
 	public TreeMap<Timestamp, Double> PredictNValues(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
-			@DefaultValue("5") @QueryParam("numberOfValues") Integer numberOfValues) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+			@DefaultValue("5") @QueryParam("numberOfValues") Integer numberOfValues) throws PException {
 		Timestamp fromDate;
 		try {
 			if ("".equals(dateFrom))
@@ -91,16 +88,10 @@ public class PredictValues {
 		 */
 		ChartDB chartDB = new ChartDB(request);
 		TreeMap<Timestamp, Double> values = null;
-		try {
-			values = chartDB.getPredictedValues(fromDate, numberOfValues, network);
-			if (values != null && values.size() > 0)
-				chartDB.savePredictedValues(values);
-		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			/* network.lock.unlock(); */
-			return null;
-		}
+
+		values = chartDB.getPredictedValues(fromDate, numberOfValues, network);
+		if (values != null && values.size() > 0)
+			chartDB.savePredictedValues(values);
 		/* network.lock.unlock(); */
 		return values;
 	}

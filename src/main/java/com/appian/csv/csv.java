@@ -15,6 +15,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.appian.db.ChartDB;
 import com.appian.db.DBConnection;
+import com.appian.exception.PException;
 
 @Path("/csv")
 @Produces(MediaType.APPLICATION_JSON)
@@ -28,8 +29,7 @@ public class csv {
 	@Path("/upload")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String Login(@Context HttpServletRequest request, @DefaultValue("0") @QueryParam("username") String username,
-			@DefaultValue("0") @QueryParam("password") String password) throws ParseException, InstantiationException,
-			IllegalAccessException, ClassNotFoundException, SQLException {
+			@DefaultValue("0") @QueryParam("password") String password) throws PException {
 		DBConnection dbConnection = new DBConnection(request);
 		String status = null;
 		status = dbConnection.validateUser(username, password);

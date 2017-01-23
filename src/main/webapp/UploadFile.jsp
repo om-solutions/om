@@ -13,6 +13,7 @@
 <%@ page
 	import="org.apache.commons.fileupload.servlet.ServletFileUpload"%>
 
+<%@ page import="com.appian.exception.PException"%>
 
 
 <%
@@ -64,12 +65,11 @@
 </script>
 <%
 	} catch (Exception ex) {
-		if(ex.getCause().toString().contains("already"))
-		
-		//	out.println("Error --> " + ex);
+		System.out.println("99999 : " + ex);
+		session.setAttribute("status", ex.getMessage());
 %><script type="text/javascript">
-		window.location.href = "admin.jsp?status="+;
-	</script>
+	window.location.href = "admin.jsp";
+</script>
 <%
 	}
 %>

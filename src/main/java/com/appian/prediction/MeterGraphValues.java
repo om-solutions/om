@@ -5,7 +5,6 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
@@ -17,7 +16,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.appian.db.ChartDB;
-import com.appian.db.DBConnection;
+import com.appian.exception.PException;
 import com.appian.nn.Network;
 
 @Path("/graph")
@@ -32,8 +31,8 @@ public class MeterGraphValues {
 	@Path("/meter")
 	public String Predict(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
-			@DefaultValue("") @QueryParam("value") String dateTo) throws ParseException, InstantiationException,
-			IllegalAccessException, ClassNotFoundException, SQLException {
+			@DefaultValue("") @QueryParam("value") String dateTo)
+			throws PException, InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		Timestamp fromDate;
 		Timestamp toDate;
 
@@ -47,9 +46,8 @@ public class MeterGraphValues {
 				toDate = new Timestamp(new Date().getTime());
 			else
 				toDate = new Timestamp(format1.parse(dateTo).getTime());
-		} catch (ParseException e1) {
-			e1.printStackTrace();
-			return null;
+		} catch (Exception e1) {
+			throw new PException("Invalid Date !!!");
 		}
 		ChartDB chartDB = new ChartDB(request);
 		String meterJSONData = null;
@@ -65,7 +63,7 @@ public class MeterGraphValues {
 	@Path("/changeColumn")
 	public String changeColumn(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("predicted") String predicted,
-			@DefaultValue("") @QueryParam("proved") String proved) throws InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
+			@DefaultValue("") @QueryParam("proved") String proved) throws PException {
 		Network network = (Network) request.getSession().getAttribute("NeuralNetwork");
 		/*
 		 * try { if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS)) return
@@ -106,8 +104,7 @@ public class MeterGraphValues {
 	@Path("/meter2")
 	public String Predict2(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
-			@DefaultValue("") @QueryParam("value") String predict) throws ParseException, InstantiationException,
-			IllegalAccessException, ClassNotFoundException, SQLException {
+			@DefaultValue("") @QueryParam("value") String predict) throws PException {
 		System.out.println("!!! " + predict);
 
 		Timestamp fromDate;

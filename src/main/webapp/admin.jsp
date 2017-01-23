@@ -56,7 +56,7 @@
 			<br>
 			<div class="container text-center">
 				<div class="alert alert-success" style="text-align: center;">
-					<%=request.getParameter("status") == null ? "" : request.getParameter("status")%></div>
+					<%=session.getAttribute("status") == null ? "" : session.getAttribute("status")%></div>
 			</div>
 
 			<div class="container text-center">
@@ -110,6 +110,7 @@
 				System.out.println(" - - >" + (session.getAttribute("userid")));%>
 					loadDatabase( "http://localhost:8080/Prediction/prediction/admin/database" );
 				<%}%>
+				
 					} );
 
 					function loadDatabase ( url ) {
@@ -343,11 +344,16 @@
 
 
 
-
-
-
+	<script>
+window.onload = function() {
+		alert(session.getAttribute("status"));
+		session.setAttribute("status","");
+    }
+</script>
 
 	<script type="text/javascript">
+	
+	
     $(function () {
         $('button').on('click', function () {
             $data = {

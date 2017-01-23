@@ -15,6 +15,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.appian.db.ChartDB;
 import com.appian.db.DBConnection;
+import com.appian.exception.PException;
 import com.appian.prediction.POJO.Column;
 import com.google.gson.Gson;
 
@@ -26,8 +27,7 @@ public class Member {
 	@Path("/getCols")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String getCols(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("columns") String columns)
-			throws ParseException, InstantiationException, IllegalAccessException, ClassNotFoundException,
-			SQLException {
+			throws PException {
 		System.out.println("getCols : " + columns);
 		ChartDB chartDB = new ChartDB(request);
 		String cloumnList = chartDB.getColumns();

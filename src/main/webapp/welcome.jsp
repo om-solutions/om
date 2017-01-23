@@ -451,7 +451,7 @@ footer {
 						}
 					}
 
-					function loadChart(url, CurrentDate, PreMonthDate,colA,colB) {
+					function loadChart(url, CurrentDate, PreMonthDate) {
 				<%if ((session.getAttribute("userid") == null) || (session.getAttribute("userid") == "")) {%>
 					alert("Please Login!!!");
 						window.location = "Plogin.jsp";
@@ -474,7 +474,7 @@ footer {
 						var tableName =  '<%=tableName%>';
 						$.ajax( {
 							url : url,
-							data : 'dateFrom=' + CurrentDate + '&value=' + PreMonthDate + '&ColA=' + colA + '&colB=' + colB,
+							data : 'dateFrom=' + CurrentDate + '&value=' + PreMonthDate,
 							beforeSend : function ( request ) {
 								request.setRequestHeader( "Authorization", "Negotiate" );
 							},
