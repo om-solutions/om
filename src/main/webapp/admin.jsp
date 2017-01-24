@@ -61,6 +61,59 @@
 					session.removeAttribute("status");
 				%>
 			</div>
+			<div class="container text-center">
+				<div class="row-left">
+					<div class="col-sm-4 left">
+						<h5>Database URL</h5>
+					</div>
+					<div class="col-sm-4 left">
+						<input type="text" class="form-control" id="url">
+					</div>
+				</div>
+			</div>
+			<div class="container text-center">
+				<div class="row-left">
+					<div class="col-sm-4 left">
+						<h5>DB Instance</h5>
+					</div>
+					<div class="col-sm-4 left">
+						<input type="text" class="form-control" id="dbInstanceName">
+					</div>
+				</div>
+			</div>
+			<div class="container text-center">
+				<div class="row-left">
+					<div class="col-sm-4 left">
+						<h5>User Name</h5>
+					</div>
+					<div class="col-sm-4 left">
+						<input type="text" class="form-control" id="userName">
+					</div>
+				</div>
+			</div>
+			<div class="container text-center">
+				<div class="row-left">
+					<div class="col-sm-4">
+						<h5>Password</h5>
+					</div>
+					<div class="col-sm-4">
+						<input type="password" class="form-control" id="password">
+					</div>
+				</div>
+
+			</div>
+
+			<div class="container text-center">
+				<div class="row-left">
+
+					<div class="col-sm-8 left">
+						<button type="button" class="btn btn-success" id="getCon"
+							name="getCon" onclick="connectDB()">Connect</button>
+					</div>
+				</div>
+
+			</div>
+
 
 			<div class="container text-center">
 				<div class="row-left">
@@ -91,181 +144,227 @@
 					<div class="row">
 
 						<script>
-					
-				<%int var = 1;
+							
+						<%int var = 1;
 			out.println(var < 10 ? "0" + var : var);%>
-					$( '#tableSelector' ).change( function () {
-						var selectedTable = $( this ).find( "option:selected" ).text();
-						var selectedDb = $( '#dbSelector' ).find( "option:selected" ).text();
-						loadColumns( "http://localhost:8080/Prediction/prediction/admin/columns?dbName=" + selectedDb + "&tableName=" + selectedTable );
-					} );
-					$( '#dbSelector' ).change( function () {
-						var selectedText = $( this ).find( "option:selected" ).text();
-						loadTable( "http://localhost:8080/Prediction/prediction/admin/table?dbName=" + selectedText );
-						$( "#tableSelector" ).empty();
-					} );
+							$( '#tableSelector' ).change( function () {
+								$( "#btSave" ).addClass( "disabled" );
+								var selectedTable = $( this ).find( "option:selected" ).text();
+								var selectedDb = $( '#dbSelector' ).find( "option:selected" ).text();
+								loadColumns( "http://localhost:8080/Prediction/prediction/admin/columns?dbName=" + selectedDb + "&tableName=" + selectedTable );
+							} );
+							$( '#dbSelector' ).change( function () {
+								var selectedText = $( this ).find( "option:selected" ).text();
+								loadTable( "http://localhost:8080/Prediction/prediction/admin/table?dbName=" + selectedText );
+								$( "#tableSelector" ).empty();
+							} );
 
-					$( document ).ready( function () {
-				<%if ((session.getAttribute("userid") == null) || (session.getAttribute("userid") == "")) {%>
-					alert( "Please Login!!!" );
-						window.location = "Plogin.jsp";
-				<%} else {
+							$( document ).ready( function () {
+						<%if ((session.getAttribute("userid") == null) || (session.getAttribute("userid") == "")) {%>
+							alert( "Please Login!!!" );
+								window.location = "Plogin.jsp";
+						<%} else {
 				System.out.println(" - - >" + (session.getAttribute("userid")));%>
-					loadDatabase( "http://localhost:8080/Prediction/prediction/admin/database" );
-				<%}%>
-				
-					} );
+							loadConnection("http://localhost:8080/Prediction/prediction/admin/getCon");
+						<%}%>
+							} );
 
-					function loadDatabase ( url ) {
-						$.ajax( {
-							url : url,
-							type : 'GET',
-							dataType : 'json',
-							success : function ( response ) {
-								//alert(JSON.stringify(response));
-								for ( var i = 0; i < response.length; i++ ) {
-									var obj = response[ i ];
-									for ( var key in obj ) {
-										var attrName = key;
-										var attrValue = obj[ key ];
-										//alert(attrValue);
-										$( '#dbSelector' ).append( $( '<option>', {
-											value : attrValue,
-											text : attrValue
-										} ) );
 
-									}
-								}
+							function loadConnection () {
+								$( '#dbSelector' ).children().remove();
+								$.ajax( {
+									url : "http://localhost:8080/Prediction/prediction/admin/loadCon",
+									type : 'GET',
+									dataType : 'json',
+									success : function (response) {
+										
+										for ( var i = 0; i < response.length; i++ ) {
+											//alert("1221212");
+											var obj = response[ i ];
+											document.getElementById( 'url' ).value = obj[ "url" ];
+											document.getElementById( 'dbInstanceName' ).value = obj[ "dbInstanceName" ];
+											document.getElementById( 'userName' ).value = obj[ "userName" ];
+											document.getElementById( 'password' ).value = obj[ "password" ];
 
-							},
-							error : function ( error ) {
-								alert( "Try again" );
-							},
-						} );
-					}
-
-					function loadTable ( url ) {
-						$.ajax( {
-							url : url,
-							type : 'GET',
-							dataType : 'json',
-							success : function ( response ) {
-								//alert(JSON.stringify(response));
-								for ( var i = 0; i < response.length; i++ ) {
-									var obj = response[ i ];
-									for ( var key in obj ) {
-										var attrName = key;
-										var attrValue = obj[ key ];
-										//alert(attrValue);
-										$( '#tableSelector' ).append( $( '<option>', {
-											value : attrValue,
-											text : attrValue
-										} ) );
-
-									}
-								}
-
-							},
-							error : function ( error ) {
-								alert( "Try again" );
-							},
-						} );
-					}
-
-					function loadColumns ( url ) {
-						$.ajax( {
-							url : url,
-							type : 'GET',
-							dataType : 'json',
-							success : function ( response ) {
-								//alert(JSON.stringify(response));
-								$( "#POIBody" ).children().remove();
-								for ( var i = 0; i < response.length; i++ ) {
-									//alert("1221212");
-									var obj = response[ i ];
-									var columnName = obj[ "columnName" ];
-									var dataType = obj[ "dataType" ];
-									var isNull = obj[ "isNull" ];
-									addRow( columnName, dataType, isNull );
-
-								}
-
-							},
-							error : function ( error ) {
-								alert( "Try again" );
-							},
-						} );
-					}
-					function addRow ( columnName, dataType, isNull ) {
-						if ( dataType === 'real' || dataType === 'int' || dataType === 'float' || dataType === 'datetime' )
-							if ( dataType === 'datetime' ) {
-								$( "#POITable" ).append(
-										'<tr><td style="text-align: left;"></td><td style="text-align: left;">' + columnName + '</td> <td style="text-align: left;">' + dataType + '</td><td style="text-align: left;" >' + isNull
-												+ '</td><td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="radio" checked="checked" name="chartDT" value='+columnName+' ></div></tr>' );
-								$( "#btSave" ).removeClass( "disabled" )
-							} else {
-								$( "#POITable" ).append(
-										'<tr><td style="text-align: left;"><input class="messageCheckbox" type="checkbox" value='+columnName+' id='+columnName+'></td><td style="text-align: left;">' + columnName + '</td> <td style="text-align: left;">' + dataType
-												+ '</td><td style="text-align: left;" >' + isNull + '</td><td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="radio" name="chartDT" value='+columnName+' ></div></tr>' );
+										}
+									},
+									error : function ( error ) {
+										alert( "Unable to load Connection !!!" );
+									},
+								} );
 							}
 
-					}
-					function insRow () {
-						var x = document.getElementById( 'POITable' );
-						// deep clone the targeted row
-						var new_row = x.rows[ 1 ].cloneNode( true );
-						// get the total number of rows
-						var len = x.rows.length;
-						// set the innerHTML of the first row 
-						new_row.cells[ 0 ].innerHTML = len;
+							function connectDB () {
+								$( '#dbSelector' ).children().remove();
+								$.ajax( {
+									url : "http://localhost:8080/Prediction/prediction/admin/dbCon?url=" + document.getElementById( 'url' ).value 
+											+ "&dbInstanceName=" + document.getElementById( 'dbInstanceName' ).value 
+											+ "&userName=" + document.getElementById( 'userName' ).value 
+											+ "&password="+ document.getElementById( 'password' ).value,
+									type : 'GET',
+									dataType : 'json',
+									success : function () {
+										//alert(JSON.stringify(response));
+										loadDatabase( "http://localhost:8080/Prediction/prediction/admin/database" );
 
-						// grab the input from the first cell and update its ID and value
-						var inp1 = new_row.cells[ 1 ].getElementsByTagName( 'input' )[ 0 ];
-						inp1.id += len;
-						inp1.value = '';
+									},
+									error : function ( error ) {
+										alert( "Unable to connect to database !!!" );
+									},
+								} );
+							}
 
-						// grab the input from the first cell and update its ID and value
-						var inp2 = new_row.cells[ 2 ].getElementsByTagName( 'input' )[ 0 ];
-						inp2.id += len;
-						inp2.value = '';
+							function loadDatabase ( url ) {
+								$.ajax( {
+									url : url,
+									type : 'GET',
+									dataType : 'json',
+									success : function ( response ) {
+										//alert(JSON.stringify(response));
+										$( '#dbSelector' ).children().remove();
+										for ( var i = 0; i < response.length; i++ ) {
+											var obj = response[ i ];
+											for ( var key in obj ) {
+												var attrName = key;
+												var attrValue = obj[ key ];
+												//alert(attrValue);
+												$( '#dbSelector' ).append( $( '<option>', {
+													value : attrValue,
+													text : attrValue
+												} ) );
 
-						// append the new row to the table
-						x.appendChild( new_row );
-					}
-					function saveColumns () {
-						var allColumns = "";
-						var dbName = "";
-						var tableName = "";
+											}
+										}
 
-						var dbName = $( '#dbSelector' ).find( "option:selected" ).text();
-						var tableName = $( '#tableSelector' ).find( "option:selected" ).text();
+									},
+									error : function ( error ) {
+										alert( "Unable to load database !!!" );
+									},
+								} );
+							}
 
-						$( "input[type=checkbox]:checked" ).each( function () {
-							if ( allColumns == "" )
-								allColumns = $( this ).val();
-							else
-								allColumns += ',' + $( this ).val();
-						} );
+							function loadTable ( url ) {
+								$.ajax( {
+									url : url,
+									type : 'GET',
+									dataType : 'json',
+									success : function ( response ) {
+										//alert(JSON.stringify(response));
+										for ( var i = 0; i < response.length; i++ ) {
+											var obj = response[ i ];
+											for ( var key in obj ) {
+												var attrName = key;
+												var attrValue = obj[ key ];
+												//alert(attrValue);
+												$( '#tableSelector' ).append( $( '<option>', {
+													value : attrValue,
+													text : attrValue
+												} ) );
 
-						var chartDT = $( 'input[name=chartDT]:checked' ).val();
+											}
+										}
 
-						if ( chartDT == null ) {
-							alert( "Plese Select Date\Time Cloumn !!!" );
-						} else {
-							$.ajax( {
-								url : "http://localhost:8080/Prediction/prediction/admin/saveCols?columns=" + allColumns + "&dbName=" + dbName + "&tableName=" + tableName + "&chartDT=" + chartDT,
-								type : 'GET',
-								success : function ( response ) {
-									alert( response );
-								},
-								error : function ( error ) {
-									alert( "Try again : " + JSON.stringify( error ) );
-								},
-							} );
-						}
+									},
+									error : function ( error ) {
+										alert( "Unable to load tables" );
+									},
+								} );
+							}
 
-					}
-				</script>
+							function loadColumns ( url ) {
+								$.ajax( {
+									url : url,
+									type : 'GET',
+									dataType : 'json',
+									success : function ( response ) {
+										//alert(JSON.stringify(response));
+										$( "#POIBody" ).children().remove();
+										for ( var i = 0; i < response.length; i++ ) {
+											//alert("1221212");
+											var obj = response[ i ];
+											var columnName = obj[ "columnName" ];
+											var dataType = obj[ "dataType" ];
+											var isNull = obj[ "isNull" ];
+											addRow( columnName, dataType, isNull );
+
+										}
+
+									},
+									error : function ( error ) {
+										alert( "Unable to retrieve column list !!!" );
+									},
+								} );
+							}
+							function addRow ( columnName, dataType, isNull ) {
+								if ( dataType === 'real' || dataType === 'int' || dataType === 'float' || dataType === 'datetime' )
+									if ( dataType === 'datetime' ) {
+										$( "#POITable" ).append(
+												'<tr><td style="text-align: left;"></td><td style="text-align: left;">' + columnName + '</td> <td style="text-align: left;">' + dataType + '</td><td style="text-align: left;" >' + isNull
+														+ '</td><td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="radio" checked="checked" name="chartDT" value='+columnName+' ></div></tr>' );
+										$( "#btSave" ).removeClass( "disabled" );
+									} else {
+										$( "#POITable" ).append(
+												'<tr><td style="text-align: left;"><input class="messageCheckbox" type="checkbox" value='+columnName+' id='+columnName+'></td><td style="text-align: left;">' + columnName + '</td> <td style="text-align: left;">' + dataType
+														+ '</td><td style="text-align: left;" >' + isNull + '</td><td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="radio" name="chartDT" value='+columnName+' ></div></tr>' );
+									}
+
+							}
+							function insRow () {
+								var x = document.getElementById( 'POITable' );
+								// deep clone the targeted row
+								var new_row = x.rows[ 1 ].cloneNode( true );
+								// get the total number of rows
+								var len = x.rows.length;
+								// set the innerHTML of the first row 
+								new_row.cells[ 0 ].innerHTML = len;
+
+								// grab the input from the first cell and update its ID and value
+								var inp1 = new_row.cells[ 1 ].getElementsByTagName( 'input' )[ 0 ];
+								inp1.id += len;
+								inp1.value = '';
+
+								// grab the input from the first cell and update its ID and value
+								var inp2 = new_row.cells[ 2 ].getElementsByTagName( 'input' )[ 0 ];
+								inp2.id += len;
+								inp2.value = '';
+
+								// append the new row to the table
+								x.appendChild( new_row );
+							}
+							function saveColumns () {
+								var allColumns = "";
+								var dbName = "";
+								var tableName = "";
+
+								var dbName = $( '#dbSelector' ).find( "option:selected" ).text();
+								var tableName = $( '#tableSelector' ).find( "option:selected" ).text();
+
+								$( "input[type=checkbox]:checked" ).each( function () {
+									if ( allColumns == "" )
+										allColumns = $( this ).val();
+									else
+										allColumns += ',' + $( this ).val();
+								} );
+
+								var chartDT = $( 'input[name=chartDT]:checked' ).val();
+
+								if ( chartDT == null ) {
+									alert( "Plese Select Date\Time Cloumn !!!" );
+								} else {
+									$.ajax( {
+										url : "http://localhost:8080/Prediction/prediction/admin/saveCols?columns=" + allColumns + "&dbName=" + dbName + "&tableName=" + tableName + "&chartDT=" + chartDT,
+										type : 'GET',
+										success : function ( response ) {
+											alert( response );
+										},
+										error : function ( error ) {
+											alert( "Try again : " + JSON.stringify( error ) );
+										},
+									} );
+								}
+
+							}
+						</script>
 					</div>
 				</div>
 			</div>
@@ -342,33 +441,6 @@
 
 	</div>
 
-
-
-
-
-
-	<script type="text/javascript">
-	
-	
-    $(function () {
-        $('button').on('click', function () {
-            $data = {
-                autoCheck: $('#autoCheck').is(':checked') ? 32 : false,
-                size: $('#size').val(), 
-                bgColor: $('#bgColor').val(),
-                bgOpacity: $('#bgOpacity').val(), 
-                fontColor: $('#fontColor').val(),
-                title: $('#title').val(),
-                isOnly: !$('#isOnly').is(':checked')
-            };
-            switch ($(this).data('target')){
-                    $('form').loader($data);
-               
-
-            }
-        });
-    })
-</script>
 </body>
 </html>
 

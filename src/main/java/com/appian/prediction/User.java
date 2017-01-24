@@ -31,7 +31,7 @@ public class User {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String Login(@Context HttpServletRequest request, @DefaultValue("0") @QueryParam("username") String username,
 			@DefaultValue("0") @QueryParam("password") String password) throws PException {
-		DBConnection dbConnection = new DBConnection(request);
+		DBConnection dbConnection = new DBConnection();
 		String status = null;
 		status = dbConnection.validateUser(username, password);
 		System.out.println("Login() : " + status);
@@ -57,7 +57,7 @@ public class User {
 	@Path("/register")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String Register(@Context HttpServletRequest request) throws PException {
-		DBConnection dbConnection = new DBConnection(request);
+		DBConnection dbConnection = new DBConnection();
 		String msg = null;
 
 		String name = request.getParameter("name");

@@ -8,28 +8,22 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-
-import javax.servlet.http.HttpServletRequest;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.appian.exception.PException;
-import com.appian.nn.Network;
 
 public class DBConnection {
-	protected static String url = "jdbc:sqlserver://localhost:1433";
-	protected static String dbInstanceName = ";databaseName=Danpac;instance=SQLEXPRESS";
+	static String url = "jdbc:sqlserver://localhost:1433";
+	static String dbInstanceName = ";databaseName=Danpac;instance=SQLEXPRESS";
 	protected static String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-	protected static String userName = "sa";
-	protected static String password = "root";
-	protected static String chartDT;
-	protected static String dbName;
-	protected static String tableName;
+	static String userName = "sa";
+	static String password = "root";
+	static String chartDT;
+	static String dbName;
+	static String tableName;
 
 	private static String oldValues = "10";
 	private ArrayList<Timestamp> times = new ArrayList<Timestamp>();
@@ -58,31 +52,10 @@ public class DBConnection {
 		this.times = times;
 	}
 
-	public DBConnection(HttpServletRequest request) {
-		String predicted = (String) request.getSession().getAttribute("predicted");
-		String proved = (String) request.getSession().getAttribute("proved");
-		String chartDT = (String) request.getSession().getAttribute("chartDT");
-		String dbName = (String) request.getSession().getAttribute("dbName");
-		String tableName = (String) request.getSession().getAttribute("tableName");
-		/*
-		 * try { chartDB = new ChartDB(); } catch (InstantiationException |
-		 * IllegalAccessException | ClassNotFoundException | SQLException e) {
-		 * // TODO Auto-generated catch block e.printStackTrace(); }
-		 * this.predictedColumnName = predicted == null ?
-		 * chartDB.getColumns().split(",")[0] : predicted; this.provedColumnName
-		 * = proved == null ? chartDB.getColumns().split(",")[0] : proved;
-		 * this.chartDT = chartDT == null ? "" : chartDT; this.dbName = dbName
-		 * == null ? "" : dbName; this.tableName = tableName == null ? "" :
-		 * tableName;
-		 */
-
-		System.out.println("DBConnection -> dbName : " + dbName + ", tableName : " + tableName);
-	}
-
 	public static Connection getConnection() throws PException {
 		try {
 			Class.forName(driver).newInstance();
-			Connection conn = DriverManager.getConnection(url + dbInstanceName, userName, password);
+			Connection conn = DriverManager.getConnection(getUrl() + getDbInstanceName(), getUserName(), getPassword());
 			return conn;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -333,10 +306,10 @@ public class DBConnection {
 					ps.setString(3, columns);
 					ps.setString(4, chartDT);
 					ps.setTimestamp(5, new Timestamp(new Date().getTime()));
-					ps.setString(6, DBConnection.url);
-					ps.setString(7, DBConnection.dbInstanceName);
-					ps.setString(8, DBConnection.userName);
-					ps.setString(9, DBConnection.password);
+					ps.setString(6, DBConnection.getUrl());
+					ps.setString(7, DBConnection.getDbInstanceName());
+					ps.setString(8, DBConnection.getUserName());
+					ps.setString(9, DBConnection.getPassword());
 					ps.execute();
 					ps.close();
 				} catch (Exception e) {
@@ -354,6 +327,62 @@ public class DBConnection {
 			e.printStackTrace();
 			throw new PException(" Uable to set column list !!!");
 		}
+	}
+
+	public static String getUrl() {
+		return url;
+	}
+
+	public static void setUrl(String url) {
+		DBConnection.url = url;
+	}
+
+	public static String getTableName() {
+		return tableName;
+	}
+
+	public static void setTableName(String tableName) {
+		DBConnection.tableName = tableName;
+	}
+
+	public static String getDbName() {
+		return dbName;
+	}
+
+	public static void setDbName(String dbName) {
+		DBConnection.dbName = dbName;
+	}
+
+	public static String getDbInstanceName() {
+		return dbInstanceName;
+	}
+
+	public static void setDbInstanceName(String dbInstanceName) {
+		DBConnection.dbInstanceName = dbInstanceName;
+	}
+
+	public static String getUserName() {
+		return userName;
+	}
+
+	public static void setUserName(String userName) {
+		DBConnection.userName = userName;
+	}
+
+	public static String getChartDT() {
+		return chartDT;
+	}
+
+	public static void setChartDT(String chartDT) {
+		DBConnection.chartDT = chartDT;
+	}
+
+	public static String getPassword() {
+		return password;
+	}
+
+	public static void setPassword(String password) {
+		DBConnection.password = password;
 	}
 
 }

@@ -395,8 +395,6 @@ footer {
 							.ready(
 									function() {
 										loadColumns("http://localhost:8080/Prediction/prediction/member/getCols");
-										
-										chart.zoomToIndexes( chart.dataProvider.length - 20, chart.dataProvider.length - 1 );
 
 									});
 
