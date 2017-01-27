@@ -551,7 +551,7 @@ footer {
 									}
 
 									function zoomChart () {
-										chart.zoomToIndexes( chart.dataProvider.length - 50, chart.dataProvider.length - 1 );
+										chart.zoomToIndexes( chart.dataProvider.length - 400, chart.dataProvider.length - 1 );
 
 									}
 								}
