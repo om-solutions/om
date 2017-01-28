@@ -291,7 +291,8 @@ public class DBConnection {
 
 	}
 
-	public Boolean setColumns(String dbName, String tableName, String columns, String chartDT) throws PException {
+	public Boolean setColumns(String dbName, String tableName, String columns, String chartDT, String user)
+			throws PException {
 		try {
 
 			Connection conn = DBConnection.getConnection();
@@ -300,7 +301,7 @@ public class DBConnection {
 				System.out.println("Not Blank+columns");
 				try {
 					ps = conn.prepareStatement(
-							"insert into Danpac.dbo.masterData (dbName,tableName,columnsName,chartDT,dt,url,dbInstanceName,userName,password) values (?,?,?,?,?,?,?,?,?)");
+							"insert into Danpac.dbo.masterData (dbName,tableName,columnsName,chartDT,dt,url,dbInstanceName,userName,password,user) values (?,?,?,?,?,?,?,?,?,?)");
 					ps.setString(1, dbName);
 					ps.setString(2, tableName);
 					ps.setString(3, columns);
@@ -310,6 +311,7 @@ public class DBConnection {
 					ps.setString(7, DBConnection.getDbInstanceName());
 					ps.setString(8, DBConnection.getUserName());
 					ps.setString(9, DBConnection.getPassword());
+					ps.setString(9, user);
 					ps.execute();
 					ps.close();
 				} catch (Exception e) {

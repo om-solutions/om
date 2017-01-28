@@ -30,7 +30,7 @@ public class Member {
 			throws PException {
 		System.out.println("getCols : " + columns);
 		ChartDB chartDB = new ChartDB(request);
-		String cloumnList = chartDB.getColumns();
+		String cloumnList = chartDB.getColumns((String)request.getSession().getAttribute("pUser"));
 		if (!cloumnList.isEmpty()) {
 			request.getSession().setAttribute("chartDT", ChartDB.chartDT);
 			request.getSession().setAttribute("columns", ChartDB.columns);

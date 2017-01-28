@@ -39,13 +39,14 @@ public class ChartDB {
 		try {
 			Connection connection = DBConnection.getConnection();
 			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData order by dt desc ";
-			System.out.println("SQL : " + sql);
+			System.out.println("SQL1 : " + sql);
 			PreparedStatement psDBList;
 
 			psDBList = connection.prepareStatement(sql);
 
 			ResultSet rsDBList = psDBList.executeQuery();
 			if (rsDBList.next()) {
+				System.out.println("if rsDBList");
 				ChartDB.url = rsDBList.getString("url");
 				ChartDB.columns = rsDBList.getString("columnsName");
 				ChartDB.tableName = rsDBList.getString("tableName");
@@ -56,6 +57,7 @@ public class ChartDB {
 				ChartDB.userName = rsDBList.getString("userName");
 				ChartDB.password = rsDBList.getString("password");
 			} else {
+				System.out.println("ELSE rsDBList");
 				ChartDB.url = DBConnection.url;
 				// this.columns = DBConnection.columns;
 				ChartDB.tableName = DBConnection.tableName;
@@ -90,7 +92,7 @@ public class ChartDB {
 
 	public ChartDB(HttpServletRequest request) throws PException {
 
-		this();
+		// this();
 		String predicted = (String) request.getSession().getAttribute("predicted");
 		String proved = (String) request.getSession().getAttribute("proved");
 		String chartDT = (String) request.getSession().getAttribute("chartDT");
@@ -174,7 +176,7 @@ public class ChartDB {
 			return values;
 		} catch (Exception e) {
 			e.printStackTrace();
-			throw new PException("Unable to get Actua lValues And Set Normalization Factors !!!");
+			throw new PException("Unable to get Actual Values And Set Normalization Factors !!!");
 		}
 	}
 
@@ -551,16 +553,21 @@ public class ChartDB {
 		}
 	}
 
-	public String getColumns() throws PException {
+	public String getColumns(String pUser) throws PException {
 		try {
 			Connection connection = ChartDB.getConnection();
-			String sql = "select  url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData order by dt desc ";
+			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData where puser='"
+					+ pUser + "' order by dt desc ";
 
 			System.out.println("SQL : " + sql);
 			PreparedStatement psDBList = connection.prepareStatement(sql);
+			System.out.println("1");
 			ResultSet rsDBList = psDBList.executeQuery();
+			System.out.println("2");
 			JSONArray jArray = new JSONArray();
+			System.out.println("3");
 			if (rsDBList.next()) {
+				System.out.println("4");
 				JSONObject json = new JSONObject();
 				json.put("url", rsDBList.getString("url"));
 				json.put("dbInstanceName", rsDBList.getString("dbInstanceName"));
@@ -571,8 +578,20 @@ public class ChartDB {
 				json.put("userName", rsDBList.getString("userName"));
 				json.put("password", rsDBList.getString("password"));
 				jArray.put(json);
-				System.out.println("JSON : " + jArray.toString());
+				System.out.println(" IF JSON : " + jArray.toString());
+			} else {
+				System.out.println("5");
+				JSONObject json = new JSONObject();
+				json.put("url", DBConnection.url);
+				json.put("dbInstanceName", DBConnection.dbInstanceName);
+				json.put("dbName", DBConnection.dbName);
+				json.put("tableName", DBConnection.tableName);
+				json.put("userName", DBConnection.userName);
+				json.put("password", DBConnection.password);
+				jArray.put(json);
+				System.out.println("ELSE JSON : " + jArray.toString());
 			}
+			System.out.println("JSON : " + jArray.toString());
 			return jArray.toString();
 
 		} catch (Exception e) {

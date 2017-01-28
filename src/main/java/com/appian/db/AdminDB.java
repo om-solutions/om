@@ -158,7 +158,8 @@ public class AdminDB {
 
 	}
 
-	public Boolean setColumns(String dbName, String tableName, String columns, String chartDT) throws PException {
+	public Boolean setColumns(String dbName, String tableName, String columns, String chartDT, String user)
+			throws PException {
 		try {
 
 			Connection conn = AdminDB.getConnection();
@@ -166,8 +167,9 @@ public class AdminDB {
 			if (!columns.trim().isEmpty() || !tableName.trim().isEmpty() || !dbName.trim().isEmpty()) {
 				System.out.println("Not Blank+columns");
 				try {
+					System.out.println("User -- > " + user);
 					ps = conn.prepareStatement(
-							"insert into Danpac.dbo.masterData (dbName,tableName,columnsName,chartDT,dt,url,dbInstanceName,userName,password) values (?,?,?,?,?,?,?,?,?)");
+							"insert into Danpac.dbo.masterData (dbName,tableName,columnsName,chartDT,dt,url,dbInstanceName,userName,password,puser) values (?,?,?,?,?,?,?,?,?,?)");
 					ps.setString(1, dbName);
 					ps.setString(2, tableName);
 					ps.setString(3, columns);
@@ -177,6 +179,7 @@ public class AdminDB {
 					ps.setString(7, AdminDB.dbInstanceName);
 					ps.setString(8, AdminDB.userName);
 					ps.setString(9, AdminDB.password);
+					ps.setString(10, user);
 					ps.execute();
 					ps.close();
 				} catch (Exception e) {

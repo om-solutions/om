@@ -34,7 +34,7 @@ public class csv {
 		String status = null;
 		status = dbConnection.validateUser(username, password);
 		System.out.println("Authentication : " + status);
-		request.getSession().setAttribute("user", username);
+		request.getSession().setAttribute("pUser", username);
 
 		ChartDB chartDB = new ChartDB();
 		if (chartDB != null) {

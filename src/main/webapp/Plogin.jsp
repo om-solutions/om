@@ -67,7 +67,8 @@
 							<label> <input type="checkbox" id="asAdmin"
 								name="asAdmin" data-size="small" value="Credit"
 								data-on-text="Credit" data-on-color="success"
-								data-off-text="Cash" data-off-color="warning" tabindex="13">As a admin
+								data-off-text="Cash" data-off-color="warning" tabindex="13">As
+								a admin
 							</label>
 						</div>
 
@@ -98,72 +99,44 @@
 		<!-- JavaScript jQuery code from Bootply.com editor  -->
 
 		<script type='text/javascript'>
-			$(document)
-					.ready(
-							function() {
+			$( document ).ready( function () {
 
-								$("#buttonLogin1")
-										.click(
-												function(e) {
+				$( "#buttonLogin1" ).click( function ( e ) {
 
-													console
-															.log("button clicked");
-													$
-															.ajax({
-																url : 'http://localhost:8080/Prediction/prediction/user/login?username='
-																		+ document
-																				.getElementById("username").value
-																		+ '&password='
-																		+ document
-																				.getElementById("password").value,
-																beforeSend : function(
-																		request) {
-																	console
-																			.log("before send");
-																	request
-																			.setRequestHeader(
-																					"Authorization",
-																					"Negotiate");
-																},
-																type : 'GET',
-																dataType : 'text',
-																success : function(
-																		response) {
+					console.log( "button clicked" );
+					$.ajax( {
+						url : 'http://localhost:8080/Prediction/prediction/user/login?username=' + document.getElementById( "username" ).value + '&password=' + document.getElementById( "password" ).value,
+						beforeSend : function ( request ) {
+							console.log( "before send" );
+							request.setRequestHeader( "Authorization", "Negotiate" );
+						},
+						type : 'GET',
+						dataType : 'text',
+						success : function ( response ) {
 
-																	console
-																			.log(response);
-																	if (response == "True") {
+							console.log( response );
+							if ( response == "True" ) {
 
-																		if ($(
-																				"#asAdmin")
-																				.prop(
-																						"checked") == true) {
-																			sessionStorage
-																					.setItem(
-																							'userid',
-																							'userid');
+								if ( $( "#asAdmin" ).prop( "checked" ) == true ) {
+									sessionStorage.setItem( 'userid', 'userid' );
 		<%session.setAttribute("userid", "user");%>
 			window.location.href = "http://localhost:8080/Prediction/admin.jsp";
-																		} else {
-																			sessionStorage
-																					.setItem(
-																							'userid',
-																							'userid');
+								} else {
+									sessionStorage.setItem( 'userid', 'userid' );
 		<%session.setAttribute("userid", "user");%>
 			window.location.href = "http://localhost:8080/Prediction/welcome.jsp";
 
-																		}
-																	} else
-																		alert("Try again");
+								}
+							} else
+								alert( "Try again" );
 
-																},
-																error : function(
-																		error) {
-																	alert("API failure ");
-																}
-															})
-												});
-							});
+						},
+						error : function ( error ) {
+							alert( "API failure " );
+						}
+					} )
+				} );
+			} );
 		</script>
 
 		<style>

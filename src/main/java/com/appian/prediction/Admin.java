@@ -64,6 +64,21 @@ public class Admin {
 				json.put("userName", rsDBList.getString("userName"));
 				jArray.put(json);
 			}
+			else{
+
+				System.out.println("5");
+				JSONObject json = new JSONObject();
+				json.put("url", DBConnection.getUrl());
+				json.put("dbInstanceName", DBConnection.getDbInstanceName());
+				json.put("dbName", DBConnection.getDbName());
+				json.put("tableName", DBConnection.getTableName());
+				json.put("userName", DBConnection.getUserName());
+				json.put("password", DBConnection.getPassword());
+				jArray.put(json);
+				System.out.println("ELSE JSON : " + jArray.toString());
+			
+			}
+			
 			return jArray.toString();
 
 		} catch (SQLException e) {
@@ -117,7 +132,7 @@ public class Admin {
 			@DefaultValue("") @QueryParam("chartDT") String chartDT) throws PException {
 		// System.out.println("columns : " + columns);
 		// AdminDB dbConnection = new AdminDB(request);
-		if (adminDb.setColumns(dbName, tableName, columns, chartDT)) {
+		if (adminDb.setColumns(dbName, tableName, columns, chartDT,(String) request.getSession().getAttribute("pUser"))) {
 			System.out.println("Saved!!!!!!!!!!");
 			return "List saved successful";
 		} else {

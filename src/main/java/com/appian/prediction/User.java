@@ -35,7 +35,7 @@ public class User {
 		String status = null;
 		status = dbConnection.validateUser(username, password);
 		System.out.println("Login() : " + status);
-		request.getSession().setAttribute("user", username);
+		request.getSession().setAttribute("pUser", username);
 
 		ChartDB chartDB = new ChartDB();
 		if (chartDB != null) {
@@ -68,7 +68,7 @@ public class User {
 		if (password.equals(confirm)) {
 			msg = dbConnection.register(name, email, username, password);
 		}
-		request.getSession().setAttribute("user", username);
+		request.getSession().setAttribute("pUser", username);
 
 		return msg;
 	}
