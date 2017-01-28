@@ -1,3 +1,4 @@
+<%@page import="javassist.bytecode.stackmap.BasicBlock.Catch"%>
 <%@page import="java.util.ArrayList"%>
 <%@page import="com.appian.db.DBConnection"%>
 <%@ page import="java.sql.*"%>
@@ -42,16 +43,29 @@
 
 			if (crunchifyCSV != null) {
 				String lines[] = crunchifyCSV.split("\\r?\\n");
+				System.out.println("lines.length : " + lines.length);
 				for (int j = 0; j < lines.length; j++) {
 					if (j == 0) {
 						String[] headerData = lines[j].split("\\s*,\\s*");
 						String[] rowData = lines[j + 1].split("\\s*,\\s*");
-
-						DBConnection.createReplaceTable(fileName, headerData, rowData);
+						try {
+							DBConnection.createReplaceTable(fileName, headerData, rowData);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 
 					} else {
 						String[] rowData = lines[j].split("\\s*,\\s*");
-						DBConnection.insertRowTable(rowData);
+						try {
+							DBConnection.insertRowTable(rowData);
+						} catch (Exception e) {
+							try {
+							DBConnection.updateRowTable(rowData);}
+							catch(Exception ex)							
+							{
+								
+							}
+						}
 					}
 				}
 

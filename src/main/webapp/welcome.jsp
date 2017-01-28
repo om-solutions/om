@@ -184,10 +184,10 @@ footer {
 														function(e) {														
 															$
 																	.ajax({
-																		url : 'http://localhost:8080/Prediction/prediction/graph/changeColumn?predicted='
+																		url : 'http://localhost:8080/Prediction/prediction/graph/changeColumn?columnA='
 																				+ document
 																						.getElementById("predictedColumn").value
-																				+ '&proved='
+																				+ '&columnB='
 																				+ document
 																						.getElementById("provedColumn").value,
 																		beforeSend : function(
@@ -225,10 +225,10 @@ footer {
 										.log("column button clicked");
 								$
 										.ajax({
-											url : 'http://localhost:8080/Prediction/prediction/graph/changeColumn?predicted='
+											url : 'http://localhost:8080/Prediction/prediction/graph/changeColumn?columnA='
 													+ document
 															.getElementById("predictedColumn").value
-													+ '&proved='
+													+ '&columnB='
 													+ document
 															.getElementById("provedColumn").value,
 											beforeSend : function(
@@ -475,7 +475,7 @@ footer {
 							type : 'GET',
 							dataType : 'json',
 							success : function ( response ) {
-								//alert(JSON.stringify(response));
+								alert( JSON.stringify( response ) );
 								if ( response.length == 0 ) {
 									alert( "No Value Available !!!" );
 								} else {
@@ -504,7 +504,23 @@ footer {
 													"axisThickness" : 2,
 													"axisAlpha" : 1,
 													"position" : "right"
-												}
+												}, {
+													"id" : "v3",
+													"axisColor" : "#8B4513",
+													"axisThickness" : 2,
+													"gridAlpha" : 0,
+													"offset" : 50,
+													"axisAlpha" : 1,
+													"position" : "left"
+												}, {
+													"id" : "v4",
+													"axisColor" : " #ff3300",
+													"axisThickness" : 2,
+													"gridAlpha" : 0,
+													"offset" : 50,
+													"axisAlpha" : 1,
+													"position" : "right"
+												},
 										],
 										"graphs" : [
 												{
@@ -522,10 +538,29 @@ footer {
 													"bullet" : "square",
 													"bulletBorderThickness" : 1,
 													"hideBulletsCount" : 30,
+													"title" : "_" + document.getElementById( "predictedColumn" ).value,
+													"valueField" : "_" + document.getElementById( "predictedColumn" ).value,
+													"fillAlphas" : 0
+												}, {
+													"valueAxis" : "v3",
+													"lineColor" : "#8B4513",
+													"bullet" : "square",
+													"bulletBorderThickness" : 1,
+													"hideBulletsCount" : 30,
 													"title" : document.getElementById( "provedColumn" ).value,
 													"valueField" : document.getElementById( "provedColumn" ).value,
 													"fillAlphas" : 0
+												}, {
+													"valueAxis" : "v4",
+													"lineColor" : "#ff3300",
+													"bullet" : "square",
+													"bulletBorderThickness" : 1,
+													"hideBulletsCount" : 30,
+													"title" : "_" + document.getElementById( "provedColumn" ).value,
+													"valueField" : "_" + document.getElementById( "provedColumn" ).value,
+													"fillAlphas" : 0
 												}
+
 										],
 										"chartScrollbar" : {},
 										"chartCursor" : {
@@ -551,7 +586,7 @@ footer {
 									}
 
 									function zoomChart () {
-										chart.zoomToIndexes( chart.dataProvider.length - 400, chart.dataProvider.length - 1 );
+										chart.zoomToIndexes( chart.dataProvider.length - 300, chart.dataProvider.length - 1 );
 
 									}
 								}

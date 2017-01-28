@@ -1,9 +1,10 @@
 package com.appian.prediction;
 
-import java.sql.SQLException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
@@ -48,8 +49,16 @@ public class User {
 			request.getSession().setAttribute("userName", chartDB.userName);
 			request.getSession().setAttribute("url", chartDB.url);
 		}
-		TrainNetwork trainNetwork = new TrainNetwork();
-		trainNetwork.Train(request, format.format(new Date(0)), format.format(new Date()));
+
+		List<String> items = Arrays.asList(chartDB.columns.split(","));
+		Iterator<String> i = items.iterator();
+		while (i.hasNext()) {
+			String column = i.next();
+			TrainNetwork trainNetwork = new TrainNetwork();
+			trainNetwork.Train(request, format.format(new Date(0)), format.format(new Date()), column);
+			chartDB.map.put(column, trainNetwork);
+		}
+
 		return status;
 	}
 

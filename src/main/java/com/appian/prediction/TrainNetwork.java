@@ -30,7 +30,8 @@ public class TrainNetwork {
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	public String Train(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("dateFrom") String dateFrom,
-			@DefaultValue("") @QueryParam("dateTo") String dateTo) throws PException {
+			@DefaultValue("") @QueryParam("dateTo") String dateTo,
+			@DefaultValue("") @QueryParam("coloumn") String coloumn) throws PException {
 		Timestamp fromDate;
 		Timestamp toDate;
 
@@ -63,7 +64,7 @@ public class TrainNetwork {
 		network.clearTrainingSet();
 		ChartDB chartDB = new ChartDB(request);
 		try {
-			ArrayList<Double> values = chartDB.getActualValuesAndSetNormalizationFactors(network, fromDate, toDate);
+			ArrayList<Double> values = chartDB.getActualValuesAndSetNormalizationFactors(network, fromDate, toDate,coloumn);
 			ArrayList<Integer> missingValues = network.trainNetworkFromData(values);
 			HashMap<Integer, Double> predicted = network.addMissingValues(values, missingValues);
 		} catch (Exception e) {

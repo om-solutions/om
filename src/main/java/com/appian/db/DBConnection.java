@@ -28,13 +28,13 @@ public class DBConnection {
 	private static String oldValues = "10";
 	private ArrayList<Timestamp> times = new ArrayList<Timestamp>();
 	private ArrayList<Double> values = new ArrayList<Double>();
-	private String provedColumnName = "k_factor";
-	private String predictedColumnName = "k_factor";
 	// private ChartDB chartDB;
 
 	private static String csvTableName;
 	private static String insertQuery;
 	private static int columnCount;
+	private static String updateQuery;
+	private static int whereClouseIndex;
 
 	public ArrayList<Double> getValues() {
 		return values;
@@ -64,11 +64,49 @@ public class DBConnection {
 
 	}
 
+	public static String updateRowTable(String[] rowData) throws PException {
+		Connection conn;
+		int count = 0;
+
+		try {
+			conn = DBConnection.getConnection();
+			System.out.println("! Updated");
+			PreparedStatement ps = conn.prepareStatement(updateQuery);
+			System.out.println("!! Updated");
+			String whereClauseValue = null;
+			int j = 0;
+			System.out.println("columnCount : " + columnCount);
+			for (int i = 0; i < columnCount; i++) {
+				if (whereClouseIndex == i) {
+					whereClauseValue = rowData[i].toString();
+				} else {
+					ps.setString(i + 1, rowData[i].toString());
+					j++;
+				}
+			}
+			System.out.println("!!! Updated : " + whereClauseValue);
+			ps.setString(j, whereClauseValue);
+			count = ps.executeUpdate();
+			ps.close();
+			conn.close();
+			// return jArray.toString();
+			System.out.println("Updated");
+			return count > 0 ? "true" : "false";
+		} catch (SQLException e) {
+
+			e.printStackTrace();
+			throw new PException("Unable to insert / update record into table !!!");
+
+		}
+
+	}
+
 	public static String insertRowTable(String[] rowData) throws PException {
 		Connection conn;
 		int count = 0;
-		conn = DBConnection.getConnection();
+
 		try {
+			conn = DBConnection.getConnection();
 			PreparedStatement ps = conn.prepareStatement(insertQuery);
 			for (int i = 0; i < columnCount; i++) {
 				ps.setString(i + 1, rowData[i].toString());
@@ -77,11 +115,12 @@ public class DBConnection {
 			ps.close();
 			conn.close();
 			// return jArray.toString();
-
+			System.out.println("Inserted");
 			return count > 0 ? "true" : "false";
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
-			throw new PException("Unable to insert record into table !!!");
+			throw new PException("Unable to insert / update record into table !!!");
+
 		}
 
 	}
@@ -92,6 +131,8 @@ public class DBConnection {
 		System.out.println("fileName : " + csvTableName);
 		String query = "CREATE TABLE " + csvTableName + " ( ";
 		insertQuery = " insert into " + csvTableName;
+		updateQuery = " update " + csvTableName + " SET  ";
+		String whereClouse = "";
 		String insertColumns = " ( ";
 		String insertValues = " ( ";
 		columnCount = rowData.length;
@@ -108,39 +149,47 @@ public class DBConnection {
 					query += " " + header + " real ";
 					insertColumns += header;
 					insertValues += " ? ";
+					updateQuery += header + " = ? ";
 				} else {
 					query += ", " + header + " real ";
 					insertColumns += ", " + header;
 					insertValues += ", ? ";
+					updateQuery += "," + header + " = ? ";
 				}
-			} else if (rowData[i].toString().contains(":") && (rowData[i].toString().contains("/")
-					|| rowData[i].toString().contains(".") || rowData[i].toString().contains("-"))) {
+			} else if (rowData[i].toString().contains("/") || rowData[i].toString().contains(":")
+					|| rowData[i].toString().contains("-")) {
 				if (i == 0) {
 					query += " " + header + " datetime UNIQUE ";
 					insertColumns += header;
 					insertValues += " ? ";
+					whereClouse = " where " + header + " = ? ";
+					whereClouseIndex = i;
 				} else {
 					query += ", " + header + " datetime  UNIQUE";
 					insertColumns += ", " + header;
 					insertValues += ", ? ";
+					whereClouse = " where " + header + " = ? ";
+					whereClouseIndex = i;
 				}
 			} else {
 				if (i == 0) {
 					query += " " + header + " varchar(MAX)  ";
 					insertColumns += header;
 					insertValues += " ? ";
+					updateQuery += header + " = ? ";
 				} else {
 					query += ", " + header + " varchar(MAX)  ";
 					insertColumns += ", " + header;
 					insertValues += ", ? ";
+					updateQuery += "," + header + " = ? ";
 				}
 
 			}
 
 		}
-
+		updateQuery += whereClouse;
 		insertQuery += insertColumns + " ) values " + insertValues + " ) ";
-		System.out.println("$$$ " + insertQuery);
+		System.out.println("$$$ " + updateQuery);
 		query += " ) ";
 
 		Statement stmt;

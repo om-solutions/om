@@ -15,9 +15,14 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import com.appian.db.ChartDB;
 import com.appian.exception.PException;
 import com.appian.nn.Network;
+import com.google.gson.JsonArray;
 
 @Path("/graph")
 @Produces(MediaType.APPLICATION_JSON)
@@ -50,32 +55,68 @@ public class MeterGraphValues {
 			e1.printStackTrace();
 			throw new PException("Invalid Date !!!");
 		}
+		PredictValues predictValues = new PredictValues();
+		predictValues.Predict(request, dateFrom, dateTo);
+
 		ChartDB chartDB = new ChartDB(request);
-		String meterJSONData = null;
+		JSONArray meterJSONData = new JSONArray();
+		JSONArray meterJSONColumnA = null;
+		JSONArray meterJSONColumnB = null;
+
 		System.out.println("2 : " + dateFrom.toString() + " : " + dateTo.toString());
+		JSONArray jArray = new JSONArray();
+		JSONObject json = new JSONObject();
+		meterJSONColumnA = chartDB.getMeterGraphValues(fromDate, toDate,
+				(String) request.getSession().getAttribute("columnA"));
+		meterJSONColumnB = chartDB.getMeterGraphValues(fromDate, toDate,
+				(String) request.getSession().getAttribute("columnB"));
+		int length = meterJSONColumnA.length() < meterJSONColumnB.length() ? meterJSONColumnB.length()
+				: meterJSONColumnA.length();
+		System.out.println("!!!!!!!!!! : " + length);
+		while (length > 0) {
+			JSONObject jsonObject = new JSONObject();
+			jsonObject = mergeJSONObjects(meterJSONColumnA.getJSONObject(length - 1),
+					meterJSONColumnB.getJSONObject(length - 1));
+			System.out.println(jsonObject.toString());
+			meterJSONData.put(jsonObject);
+			length--;
+		}
 
-		meterJSONData = chartDB.getMeterGraphValues(fromDate, toDate);
-		System.out.println(meterJSONData);
+		System.out.println(meterJSONData.length());
 
-		return meterJSONData;
+		return meterJSONData.toString();
+	}
+
+	public static JSONObject mergeJSONObjects(JSONObject json1, JSONObject json2) {
+		JSONObject mergedJSON = new JSONObject();
+		try {
+			mergedJSON = new JSONObject(json1, JSONObject.getNames(json1));
+			for (String crunchifyKey : JSONObject.getNames(json2)) {
+				mergedJSON.put(crunchifyKey, json2.get(crunchifyKey));
+			}
+
+		} catch (JSONException e) {
+			throw new RuntimeException("JSON Exception" + e);
+		}
+		return mergedJSON;
 	}
 
 	@GET
 	@Path("/changeColumn")
 	public String changeColumn(@Context HttpServletRequest request,
-			@DefaultValue("") @QueryParam("predicted") String predicted,
-			@DefaultValue("") @QueryParam("proved") String proved) throws PException {
+			@DefaultValue("") @QueryParam("columnA") String columnA,
+			@DefaultValue("") @QueryParam("columnB") String columnB) throws PException {
 		Network network = (Network) request.getSession().getAttribute("NeuralNetwork");
 		/*
 		 * try { if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS)) return
 		 * null; } catch (InterruptedException e1) { return null; }
 		 */
-		if (predicted.equals(request.getSession().getAttribute("predicted"))
-				&& proved.equals(request.getSession().getAttribute("proved")))
+		if (columnA.equals(request.getSession().getAttribute("columnA"))
+				&& columnB.equals(request.getSession().getAttribute("columnB")))
 			return "true";
 
-		request.getSession().setAttribute("predicted", predicted);
-		request.getSession().setAttribute("proved", proved);
+		request.getSession().setAttribute("columnA", columnA);
+		request.getSession().setAttribute("columnB", columnB);
 		/*
 		 * request.getSession().setAttribute("dbName", predicted);
 		 * request.getSession().setAttribute("tableName", predicted);
@@ -97,7 +138,8 @@ public class MeterGraphValues {
 
 		/* network.lock.unlock(); */
 		TrainNetwork trainNetwork = new TrainNetwork();
-		trainNetwork.Train(request, "", "");
+		trainNetwork.Train(request, "", "", columnA);
+		trainNetwork.Train(request, "", "", columnB);
 		return "true";
 	}
 
@@ -119,12 +161,30 @@ public class MeterGraphValues {
 			e1.printStackTrace();
 			return null;
 		}
+
+		PredictValues predictValues = new PredictValues();
+		predictValues.PredictNValues(request, dateFrom, Integer.parseInt(predict));
+
 		ChartDB chartDB = new ChartDB(request);
 		String meterJSONData = null;
 		System.out.println("!!!" + fromDate + " : " + predict);
-		meterJSONData = chartDB.getMeterGraphWithPredictValues(fromDate, predict);
+		// meterJSONData = chartDB.getMeterGraphWithPredictValues(fromDate,
+		// predict);
+
+		JSONArray jArray = new JSONArray();
+		JSONObject json = new JSONObject();
+		meterJSONData = chartDB.getMeterGraphWithPredictValues(fromDate, predict,
+				(String) request.getSession().getAttribute("columnA"));
+		json.put((String) request.getSession().getAttribute("columnA"), meterJSONData);
+		meterJSONData = chartDB.getMeterGraphWithPredictValues(fromDate, predict,
+				(String) request.getSession().getAttribute("columnB"));
+		json.put((String) request.getSession().getAttribute("columnB"), meterJSONData);
 		System.out.println(meterJSONData);
-		return meterJSONData;
+
+		jArray.put(json);
+
+		System.out.println(jArray);
+		return jArray.toString();
 	}
 
 }
