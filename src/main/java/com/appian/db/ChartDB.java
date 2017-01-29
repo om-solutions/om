@@ -132,10 +132,11 @@ public class ChartDB {
 		try {
 			ArrayList<Timestamp> times = new ArrayList<Timestamp>();
 			Connection conn = ChartDB.getConnection();
-			PreparedStatement ps = conn.prepareStatement("SELECT " + chartDT + ",coalesce(tab1." + columnName + ",tab2."
-					+ columnName + ") as val1 FROM " + dbName + ".dbo." + tableName + " as tab1  FULL OUTER JOIN "
-					+ dbName + ".dbo._" + tableName + " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + "  where "
-					+ chartDT + ">? and " + chartDT + "<? order by " + chartDT + "");
+			PreparedStatement ps = conn.prepareStatement("SELECT tab1." + chartDT + ",coalesce(tab1." + columnName
+					+ ",tab2." + columnName + ") as val1 FROM " + dbName + ".dbo." + tableName
+					+ " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1." + chartDT
+					+ "=tab2." + chartDT + "  where tab1." + chartDT + ">? and tab1." + chartDT + "<? order by tab1."
+					+ chartDT + "");
 			ps.setTimestamp(1, fromDate);
 			ps.setTimestamp(2, toDate);
 			ResultSet rs = ps.executeQuery();
@@ -208,9 +209,27 @@ public class ChartDB {
 			}
 			conn.close();
 		} catch (Exception e) {
+			createTableCopy(tableName);
 			e.printStackTrace();
-			throw new PException("Unable to save Predicted Values !!!");
 		}
+	}
+
+	public boolean createTableCopy(String table) throws PException {
+		try {
+
+			Connection connection = DBConnection.getConnection();
+			String sql = "SELECT * INTO danpac.dbo._" + table + " FROM danpac.dbo." + table + " WHERE 1=2;'";
+
+			System.out.println("SQL : " + sql);
+			PreparedStatement psDBList = connection.prepareStatement(sql);
+			psDBList.executeQuery();
+
+			return true;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new PException(" Unable to create copy of table !!!");
+		}
+
 	}
 
 	public java.util.TreeMap<Timestamp, Double> getPredictedValues(Timestamp fromDate, Timestamp toDate,
@@ -324,11 +343,11 @@ public class ChartDB {
 		try {
 			Connection conn = ChartDB.getConnection();
 			PreparedStatement preparedStatement = conn.prepareStatement(
-					"select top " + network.slidingWindowSize + " * from (select " + chartDT + ",coalesce(tab1."
+					"select top " + network.slidingWindowSize + " * from (select tab1." + chartDT + ",coalesce(tab1."
 							+ column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo." + tableName
 							+ " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1."
 							+ chartDT + "=tab2." + chartDT + " where tab1." + chartDT + " <? and coalesce(tab1."
-							+ column + "," + column + ") is not null ) as  a order by " + chartDT + " desc;");
+							+ column + ",tab2." + column + ") is not null ) as  a order by " + chartDT + " desc;");
 			preparedStatement.setTimestamp(1, fromDate);
 			ResultSet prevValRs = preparedStatement.executeQuery();
 			ArrayList<Timestamp> previousValues = new ArrayList<Timestamp>();
@@ -348,10 +367,10 @@ public class ChartDB {
 			});
 			Long avgDelay = findAvgDelay(previousValues);
 
-			PreparedStatement getValues = conn.prepareStatement("select top " + numberOfValues + " * from (select "
+			PreparedStatement getValues = conn.prepareStatement("select top " + numberOfValues + " * from (select tab1."
 					+ chartDT + ",coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo."
 					+ tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1."
-					+ chartDT + "=tab2." + chartDT + " where tab1." + chartDT + ">?) as a order by tab1." + chartDT
+					+ chartDT + "=tab2." + chartDT + " where tab1." + chartDT + ">?) as a order by a." + chartDT
 					+ "");
 			getValues.setTimestamp(1, fromDate);
 			ResultSet valuesSet = getValues.executeQuery();

@@ -23,7 +23,7 @@ import com.appian.nn.Network;
 @Produces(MediaType.APPLICATION_JSON)
 public class PredictValues {
 
-	SimpleDateFormat format = new SimpleDateFormat("yyyy-MMM-dd hh:mm:ss");
+	SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy hh:mm:ss");
 
 	@GET
 	@Path("/predictbetween")
@@ -33,7 +33,7 @@ public class PredictValues {
 		Timestamp fromDate;
 		Timestamp toDate;
 		try {
-			if ("".equals(dateFrom))
+			if ("".equals(dateFrom) || "".equals(null))
 				fromDate = new Timestamp(0);
 			else
 				fromDate = new Timestamp(format.parse(dateFrom).getTime());
@@ -42,12 +42,14 @@ public class PredictValues {
 				toDate = new Timestamp(new Date().getTime());
 			else
 				toDate = new Timestamp(format.parse(dateTo).getTime());
-
 			System.out.println(fromDate + " : " + toDate);
 		} catch (ParseException e1) {
 			e1.printStackTrace();
 			return null;
 		}
+		System.out.println(fromDate + " : " + toDate);
+		System.out.println("!!--> " + dateFrom + " : " + dateFrom);
+		System.out.println("!!--> " + fromDate + " : " + toDate);
 		Network network = (Network) request.getSession().getAttribute("NeuralNetwork");
 		/*
 		 * try { if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS)) return
@@ -58,11 +60,14 @@ public class PredictValues {
 
 		values = chartDB.getPredictedValues(fromDate, toDate, network,
 				(String) request.getSession().getAttribute("columnA"));
+		System.out.println("columnA - Values : " + values.toString());
+
 		if (values != null && values.size() > 0)
 			chartDB.savePredictedValues(values, (String) request.getSession().getAttribute("columnA"));
 
 		values = chartDB.getPredictedValues(fromDate, toDate, network,
 				(String) request.getSession().getAttribute("columnB"));
+		System.out.println("columnB - Values : " + values.toString());
 		if (values != null && values.size() > 0)
 			chartDB.savePredictedValues(values, (String) request.getSession().getAttribute("columnB"));
 

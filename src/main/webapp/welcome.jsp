@@ -520,7 +520,7 @@ footer {
 													"offset" : 50,
 													"axisAlpha" : 1,
 													"position" : "right"
-												},
+												}
 										],
 										"graphs" : [
 												{
@@ -535,7 +535,7 @@ footer {
 												}, {
 													"valueAxis" : "v2",
 													"lineColor" : "#00FF00",
-													"bullet" : "square",
+													"bullet" : "round",
 													"bulletBorderThickness" : 1,
 													"hideBulletsCount" : 30,
 													"title" : "_" + document.getElementById( "predictedColumn" ).value,
@@ -544,7 +544,7 @@ footer {
 												}, {
 													"valueAxis" : "v3",
 													"lineColor" : "#8B4513",
-													"bullet" : "square",
+													"bullet" : "round",
 													"bulletBorderThickness" : 1,
 													"hideBulletsCount" : 30,
 													"title" : document.getElementById( "provedColumn" ).value,
@@ -553,7 +553,7 @@ footer {
 												}, {
 													"valueAxis" : "v4",
 													"lineColor" : "#ff3300",
-													"bullet" : "square",
+													"bullet" : "triangleUp",
 													"bulletBorderThickness" : 1,
 													"hideBulletsCount" : 30,
 													"title" : "_" + document.getElementById( "provedColumn" ).value,
@@ -586,7 +586,7 @@ footer {
 									}
 
 									function zoomChart () {
-										chart.zoomToIndexes( chart.dataProvider.length - 300, chart.dataProvider.length - 1 );
+										chart.zoomToIndexes( chart.dataProvider.length - 20, chart.dataProvider.length - 1 );
 
 									}
 								}

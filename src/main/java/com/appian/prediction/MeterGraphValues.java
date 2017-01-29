@@ -28,8 +28,6 @@ import com.google.gson.JsonArray;
 @Produces(MediaType.APPLICATION_JSON)
 public class MeterGraphValues {
 
-	SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-
 	SimpleDateFormat format1 = new SimpleDateFormat("dd-MMM-yyyy hh:mm:ss");
 
 	@GET
@@ -64,8 +62,7 @@ public class MeterGraphValues {
 		JSONArray meterJSONColumnB = null;
 
 		System.out.println("2 : " + dateFrom.toString() + " : " + dateTo.toString());
-		JSONArray jArray = new JSONArray();
-		JSONObject json = new JSONObject();
+
 		meterJSONColumnA = chartDB.getMeterGraphValues(fromDate, toDate,
 				(String) request.getSession().getAttribute("columnA"));
 		meterJSONColumnB = chartDB.getMeterGraphValues(fromDate, toDate,
