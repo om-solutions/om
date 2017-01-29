@@ -1,6 +1,7 @@
 package com.appian.db;
 
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,7 +10,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
@@ -156,6 +156,13 @@ public class ChartDB {
 	public ArrayList<Double> getActualValuesAndSetNormalizationFactors(Network network, Timestamp fromDate,
 			Timestamp toDate, String Column) throws PException {
 		try {
+			DatabaseMetaData md = getConnection().getMetaData();
+			ResultSet rs11 = md.getTables(null, null, "_" + tableName, null);
+			if (!rs11.next()) {
+				System.out.println("$$$$$$$$$$$");
+				createTableCopy(tableName);
+			}
+
 			times = new ArrayList<Timestamp>();
 			Connection conn = ChartDB.getConnection();
 			String query = "SELECT tab1." + chartDT + ",coalesce(tab1." + Column + ",tab2." + Column + ") as val1 FROM "
@@ -218,7 +225,7 @@ public class ChartDB {
 		try {
 
 			Connection connection = DBConnection.getConnection();
-			String sql = "SELECT * INTO danpac.dbo._" + table + " FROM danpac.dbo." + table + " WHERE 1=2;'";
+			String sql = "SELECT * INTO danpac.dbo._" + table + " FROM danpac.dbo." + table + " WHERE 1=2;";
 
 			System.out.println("SQL : " + sql);
 			PreparedStatement psDBList = connection.prepareStatement(sql);
@@ -370,8 +377,7 @@ public class ChartDB {
 			PreparedStatement getValues = conn.prepareStatement("select top " + numberOfValues + " * from (select tab1."
 					+ chartDT + ",coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo."
 					+ tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1."
-					+ chartDT + "=tab2." + chartDT + " where tab1." + chartDT + ">?) as a order by a." + chartDT
-					+ "");
+					+ chartDT + "=tab2." + chartDT + " where tab1." + chartDT + ">?) as a order by a." + chartDT + "");
 			getValues.setTimestamp(1, fromDate);
 			ResultSet valuesSet = getValues.executeQuery();
 			double nextVal;
@@ -479,6 +485,13 @@ public class ChartDB {
 			// System.out.println("3 : " + fromDate + " : " + toDate);
 
 			JSONArray jArray = new JSONArray();
+
+			DatabaseMetaData md = getConnection().getMetaData();
+			ResultSet rs11 = md.getTables(null, null, "_" + tableName, null);
+			if (!rs11.next()) {
+				System.out.println("$$$$$$$$$$$");
+				createTableCopy(tableName);
+			}
 
 			if (fromDate != null) {
 				PreparedStatement oldValues;
