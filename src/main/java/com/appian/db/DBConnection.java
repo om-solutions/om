@@ -156,8 +156,8 @@ public class DBConnection {
 					insertValues += ", ? ";
 					updateQuery += "," + header + " = ? ";
 				}
-			} else if (rowData[i].toString().contains("/") || rowData[i].toString().contains(":")
-					|| rowData[i].toString().contains("-")) {
+			} else if ((rowData[i].toString().contains("/") && rowData[i].toString().contains(":"))
+					|| (rowData[i].toString().contains(":") && rowData[i].toString().contains("-"))) {
 				if (i == 0) {
 					query += " " + header + " datetime UNIQUE ";
 					insertColumns += header;
@@ -339,7 +339,6 @@ public class DBConnection {
 		}
 
 	}
-
 
 	public Boolean setColumns(String dbName, String tableName, String columns, String chartDT, String user)
 			throws PException {

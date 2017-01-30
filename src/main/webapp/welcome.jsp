@@ -490,7 +490,6 @@ footer {
 											"useGraphSettings" : true
 										},
 										"dataProvider" : chartData,
-										"synchronizeGrid" : true,
 										"valueAxes" : [
 												{
 													"id" : "v1",
@@ -564,7 +563,8 @@ footer {
 										],
 										"chartScrollbar" : {},
 										"chartCursor" : {
-											"cursorPosition" : "mouse"
+										"cursorPosition" : "mouse",
+										"categoryBalloonDateFormat": "YYYY-MM-DD HH:NN:SS",
 										},
 										"categoryField" : chartDT,
 										"categoryAxis" : {
@@ -573,8 +573,9 @@ footer {
 											"minorGridEnabled" : true
 										},
 										"export" : {
-											"enabled" : true,
-											"position" : "bottom-right"
+											"enabled" : true,											
+											"dateFormat": "YYYY-MM-DD HH:NN:SS",
+												"position" : "bottom-right"
 										}
 									} );
 

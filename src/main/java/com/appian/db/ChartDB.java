@@ -132,11 +132,11 @@ public class ChartDB {
 		try {
 			ArrayList<Timestamp> times = new ArrayList<Timestamp>();
 			Connection conn = ChartDB.getConnection();
-			PreparedStatement ps = conn.prepareStatement("SELECT tab1." + chartDT + ",coalesce(tab1." + columnName
-					+ ",tab2." + columnName + ") as val1 FROM " + dbName + ".dbo." + tableName
-					+ " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1." + chartDT
-					+ "=tab2." + chartDT + "  where tab1." + chartDT + ">? and tab1." + chartDT + "<? order by tab1."
-					+ chartDT + "");
+			PreparedStatement ps = conn.prepareStatement("SELECT coalesce(tab1." + chartDT + ",tab2." + chartDT
+					+ ") as dt ,coalesce(tab1." + columnName + ",tab2." + columnName + ") as val1 FROM " + dbName
+					+ ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName
+					+ " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + "  where tab1." + chartDT + ">? and tab1."
+					+ chartDT + "<? order by dt ");
 			ps.setTimestamp(1, fromDate);
 			ps.setTimestamp(2, toDate);
 			ResultSet rs = ps.executeQuery();
@@ -165,10 +165,10 @@ public class ChartDB {
 
 			times = new ArrayList<Timestamp>();
 			Connection conn = ChartDB.getConnection();
-			String query = "SELECT tab1." + chartDT + ",coalesce(tab1." + Column + ",tab2." + Column + ") as val1 FROM "
-					+ dbName + ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName
-					+ " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + " where tab1." + chartDT + ">=? and tab1."
-					+ chartDT + "<=? order by tab1." + chartDT + "";
+			String query = "SELECT coalesce(tab1." + chartDT + ",tab2." + chartDT + ") as dt ,coalesce(tab1." + Column
+					+ ",tab2." + Column + ") as val1 FROM " + dbName + ".dbo." + tableName
+					+ " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1." + chartDT
+					+ "=tab2." + chartDT + " where tab1." + chartDT + ">=? and tab1." + chartDT + "<=? order by dt ";
 			System.out.println("[getActualValuesAndSetNormalizationFactors] : " + query);
 			PreparedStatement ps = conn.prepareStatement(query);
 			ps.setTimestamp(1, fromDate);
@@ -243,11 +243,11 @@ public class ChartDB {
 			Network network, String column) throws PException {
 		try {
 			Connection conn = ChartDB.getConnection();
-			String query = "select top " + network.slidingWindowSize + " * from (select tab1." + chartDT
-					+ ",coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo." + tableName
-					+ " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1." + chartDT
-					+ "=tab2." + chartDT + " where tab1." + chartDT + " <? and coalesce(tab1." + column + ",tab2."
-					+ column + ") is not null ) as  a order by a." + chartDT + " desc;";
+			String query = "select top " + network.slidingWindowSize + " * from (select coalesce(tab1." + chartDT
+					+ ",tab2." + chartDT + ") as dt ,coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM "
+					+ dbName + ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName
+					+ " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + " where tab1." + chartDT
+					+ " <? and coalesce(tab1." + column + ",tab2." + column + ") is not null ) as  a order by dt desc;";
 			PreparedStatement preparedStatement = conn.prepareStatement(query);
 			System.out.println("--> " + query);
 			System.out.println("--> " + fromDate);
@@ -262,11 +262,12 @@ public class ChartDB {
 				previousValuesList[i--] = network.normalizeValue(rs.getDouble(2));
 			}
 			if (previousValues.isEmpty()) {
-				String query1 = "select top " + network.slidingWindowSize + " * from (select tab1." + chartDT
-						+ ",coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo."
-						+ tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName
-						+ " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + " where coalesce(tab1." + column
-						+ ",tab2." + column + ") is not null ) as  a order by a." + chartDT + " desc;";
+				String query1 = "select top " + network.slidingWindowSize + " * from (select coalesce(tab1." + chartDT
+						+ ",tab2." + chartDT + ") as dt ,coalesce(tab1." + column + ",tab2." + column
+						+ ") as val1 FROM " + dbName + ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName
+						+ ".dbo._" + tableName + " as tab2  ON tab1." + chartDT + "=tab2." + chartDT
+						+ " where coalesce(tab1." + column + ",tab2." + column
+						+ ") is not null ) as  a order by dt desc;";
 				PreparedStatement preparedStatement1 = conn.prepareStatement(query1);
 				System.out.println("--> " + query1);
 				System.out.println("--> " + fromDate);
@@ -293,11 +294,11 @@ public class ChartDB {
 			System.out.println(previousValues.size());
 			Long avgDelay = findAvgDelay(previousValues);
 
-			PreparedStatement getValues = conn
-					.prepareStatement("select tab1." + chartDT + ",coalesce(tab1." + column + ",tab2." + column
-							+ ") as val1 FROM " + dbName + ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName
-							+ ".dbo._" + tableName + " as tab2  ON tab1." + chartDT + "=tab2." + chartDT
-							+ " where tab1." + chartDT + ">? and tab1." + chartDT + "<? order by tab1." + chartDT + "");
+			PreparedStatement getValues = conn.prepareStatement("select coalesce(tab1." + chartDT + ",tab2." + chartDT
+					+ ") as dt ,coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo."
+					+ tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1."
+					+ chartDT + "=tab2." + chartDT + " where tab1." + chartDT + ">? and tab1." + chartDT
+					+ "<? order by dt ");
 			getValues.setTimestamp(1, fromDate);
 			getValues.setTimestamp(2, toDate);
 			ResultSet valuesSet = getValues.executeQuery();
@@ -349,12 +350,12 @@ public class ChartDB {
 			Network network, String column) throws PException {
 		try {
 			Connection conn = ChartDB.getConnection();
-			PreparedStatement preparedStatement = conn.prepareStatement(
-					"select top " + network.slidingWindowSize + " * from (select tab1." + chartDT + ",coalesce(tab1."
-							+ column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo." + tableName
-							+ " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1."
-							+ chartDT + "=tab2." + chartDT + " where tab1." + chartDT + " <? and coalesce(tab1."
-							+ column + ",tab2." + column + ") is not null ) as  a order by " + chartDT + " desc;");
+			PreparedStatement preparedStatement = conn.prepareStatement("select top " + network.slidingWindowSize
+					+ " * from (select coalesce(tab1." + chartDT + ",tab2." + chartDT + ") as dt ,coalesce(tab1."
+					+ column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo." + tableName
+					+ " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1." + chartDT
+					+ "=tab2." + chartDT + " where tab1." + chartDT + " <? and coalesce(tab1." + column + ",tab2."
+					+ column + ") is not null ) as  a order by dt desc;");
 			preparedStatement.setTimestamp(1, fromDate);
 			ResultSet prevValRs = preparedStatement.executeQuery();
 			ArrayList<Timestamp> previousValues = new ArrayList<Timestamp>();
@@ -374,10 +375,11 @@ public class ChartDB {
 			});
 			Long avgDelay = findAvgDelay(previousValues);
 
-			PreparedStatement getValues = conn.prepareStatement("select top " + numberOfValues + " * from (select tab1."
-					+ chartDT + ",coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo."
-					+ tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1."
-					+ chartDT + "=tab2." + chartDT + " where tab1." + chartDT + ">?) as a order by a." + chartDT + "");
+			PreparedStatement getValues = conn.prepareStatement("select top " + numberOfValues
+					+ " * from (select coalesce(tab1." + chartDT + ",tab2." + chartDT + ") as dt ,coalesce(tab1."
+					+ column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo." + tableName
+					+ " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1." + chartDT
+					+ "=tab2." + chartDT + " where tab1." + chartDT + ">?) as a order by dt ");
 			getValues.setTimestamp(1, fromDate);
 			ResultSet valuesSet = getValues.executeQuery();
 			double nextVal;

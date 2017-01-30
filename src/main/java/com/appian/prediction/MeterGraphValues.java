@@ -41,7 +41,7 @@ public class MeterGraphValues {
 
 		try {
 			if (dateFrom == null || "".equals(dateFrom) || dateFrom.equals("null"))
-				fromDate = new Timestamp(0);
+				fromDate = new Timestamp(new Date().getTime());
 			else
 				fromDate = new Timestamp(format1.parse(dateFrom).getTime());
 
@@ -67,7 +67,7 @@ public class MeterGraphValues {
 				(String) request.getSession().getAttribute("columnA"));
 		meterJSONColumnB = chartDB.getMeterGraphValues(fromDate, toDate,
 				(String) request.getSession().getAttribute("columnB"));
-		int length = meterJSONColumnA.length() < meterJSONColumnB.length() ? meterJSONColumnB.length()
+		int length = meterJSONColumnA.length() > meterJSONColumnB.length() ? meterJSONColumnB.length()
 				: meterJSONColumnA.length();
 		System.out.println("!!!!!!!!!! : " + length);
 		while (length > 0) {

@@ -33,7 +33,7 @@ public class PredictValues {
 		Timestamp fromDate;
 		Timestamp toDate;
 		try {
-			if ("".equals(dateFrom) || "".equals(null))
+			if ("".equals(dateFrom) )
 				fromDate = new Timestamp(0);
 			else
 				fromDate = new Timestamp(format.parse(dateFrom).getTime());
