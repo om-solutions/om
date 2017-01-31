@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.NavigableMap;
 import java.util.TreeMap;
 
 import javax.servlet.http.HttpServletRequest;
@@ -27,7 +28,7 @@ public class PredictValues {
 
 	@GET
 	@Path("/predictbetween")
-	public TreeMap<Timestamp, Double> Predict(@Context HttpServletRequest request,
+	public NavigableMap<Timestamp, Double> Predict(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
 			@DefaultValue("") @QueryParam("dateTo") String dateTo) throws PException {
 		Timestamp fromDate;
@@ -64,10 +65,9 @@ public class PredictValues {
 		 * null; } catch (InterruptedException e1) { return null; }
 		 */
 		ChartDB chartDB = new ChartDB(request);
-		TreeMap<Timestamp, Double> values = null;
+		NavigableMap<Timestamp, Double> values = null;
 
-		values = chartDB.getPredictedValues(fromDate, toDate, networkA,
-				(String) request.getSession().getAttribute("columnA"));
+		chartDB.getPredictedValues(fromDate, toDate, networkA,(String) request.getSession().getAttribute("columnA"));
 		System.out.println("columnA - Values : " + values.toString());
 
 		if (values != null && values.size() > 0)

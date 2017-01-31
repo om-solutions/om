@@ -9,9 +9,11 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -20,7 +22,6 @@ import org.json.JSONObject;
 
 import com.appian.exception.PException;
 import com.appian.nn.Network;
-import com.appian.prediction.TrainNetwork;
 
 public class ChartDB {
 	public String url;
@@ -38,7 +39,7 @@ public class ChartDB {
 	public String tableName;
 	public String columns;
 
-	public static HashMap<String, Network> map = new HashMap<>();
+	public static ConcurrentHashMap <String, Network> map = new ConcurrentHashMap <>();
 
 	public void getDBValues() throws PException {
 		try {
@@ -219,7 +220,7 @@ public class ChartDB {
 		}
 	}
 
-	public void savePredictedValues(TreeMap<Timestamp, Double> values2, String column) throws PException {
+	public void savePredictedValues(NavigableMap<Timestamp, Double> values2, String column) throws PException {
 		try {
 			Connection conn = getConnection();
 
@@ -262,7 +263,7 @@ public class ChartDB {
 
 	}
 
-	public java.util.TreeMap<Timestamp, Double> getPredictedValues(Timestamp fromDate, Timestamp toDate,
+	public NavigableMap<Timestamp, Double> getPredictedValues(Timestamp fromDate, Timestamp toDate,
 			Network network, String column) throws PException {
 		try {
 			Connection conn = getConnection();
@@ -330,7 +331,7 @@ public class ChartDB {
 			Long previousTime = findPrevTime(fromDate, previousValuesList, network,
 					previousValues.get(previousValues.size() - 1).getTime(), avgDelay);
 
-			TreeMap<Timestamp, Double> predictedValuesMap = new TreeMap<Timestamp, Double>();
+			NavigableMap<Timestamp, Double> predictedValuesMap = new ConcurrentSkipListMap<Timestamp, Double>();
 			while (valuesSet.next()) {
 				while (valuesSet.getTimestamp(1).getTime() - previousTime > 2 * avgDelay) {
 					nextVal = network.nextVal(previousValuesList);
@@ -353,6 +354,7 @@ public class ChartDB {
 				network.getNeuralNetwork().learn(network.trainingSet);
 				previousTime = valuesSet.getTimestamp(1).getTime();
 				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
+				System.out.println("--- > "+nextVal);
 			}
 
 			while (toDate.getTime() - previousTime > 2 * avgDelay) {
@@ -360,6 +362,7 @@ public class ChartDB {
 				previousValuesList = this.shiftAllLeft(previousValuesList, network.normalizeValue(nextVal));
 				previousTime = previousTime + avgDelay;
 				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
+				System.out.println("--- > "+nextVal);
 			}
 			return predictedValuesMap;
 		} catch (Exception e) {
