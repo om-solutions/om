@@ -23,28 +23,28 @@ import com.appian.nn.Network;
 import com.appian.prediction.TrainNetwork;
 
 public class ChartDB {
-	public static String url;
-	public static String dbInstanceName;
+	public String url;
+	public String dbInstanceName;
 	private static String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-	public static String userName;
-	public static String password;
+	public String userName;
+	public String password;
 	private static String oldValues = "10";
 	private ArrayList<Timestamp> times = new ArrayList<Timestamp>();
 	private ArrayList<Double> values = new ArrayList<Double>();
 	private String columnName;
 	// private String predictedColumnName;
-	public static String chartDT;
-	public static String dbName;
-	public static String tableName;
-	public static String columns;
+	public String chartDT;
+	public String dbName;
+	public String tableName;
+	public String columns;
 
-	public static HashMap<String, TrainNetwork> map = new HashMap<>();
+	public static HashMap<String, Network> map = new HashMap<>();
 
-	public ChartDB() throws PException {
+	public void getDBValues() throws PException {
 		try {
 			Connection connection = DBConnection.getConnection();
 			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData order by dt desc ";
-			System.out.println("SQL1 : " + sql);
+			System.out.println("Inside ChartDB() : " + sql);
 			PreparedStatement psDBList;
 
 			psDBList = connection.prepareStatement(sql);
@@ -52,25 +52,24 @@ public class ChartDB {
 			ResultSet rsDBList = psDBList.executeQuery();
 			if (rsDBList.next()) {
 				System.out.println("if rsDBList");
-				ChartDB.url = rsDBList.getString("url");
-				ChartDB.columns = rsDBList.getString("columnsName");
-				ChartDB.tableName = rsDBList.getString("tableName");
-				ChartDB.dbName = rsDBList.getString("dbname");
-				ChartDB.chartDT = rsDBList.getString("chartDT");
-				ChartDB.dbInstanceName = ";databaseName=" + rsDBList.getString("dbInstanceName")
-						+ ";instance=SQLEXPRESS";
-				ChartDB.userName = rsDBList.getString("userName");
-				ChartDB.password = rsDBList.getString("password");
+				url = rsDBList.getString("url");
+				columns = rsDBList.getString("columnsName");
+				tableName = rsDBList.getString("tableName");
+				dbName = rsDBList.getString("dbname");
+				chartDT = rsDBList.getString("chartDT");
+				dbInstanceName = ";databaseName=" + rsDBList.getString("dbInstanceName") + ";instance=SQLEXPRESS";
+				userName = rsDBList.getString("userName");
+				password = rsDBList.getString("password");
 			} else {
 				System.out.println("ELSE rsDBList");
-				ChartDB.url = DBConnection.url;
+				url = DBConnection.url;
 				// this.columns = DBConnection.columns;
-				ChartDB.tableName = DBConnection.tableName;
-				ChartDB.dbName = DBConnection.dbName;
-				ChartDB.chartDT = DBConnection.chartDT;
-				ChartDB.dbInstanceName = DBConnection.dbInstanceName;
-				ChartDB.userName = DBConnection.userName;
-				ChartDB.password = DBConnection.password;
+				tableName = DBConnection.tableName;
+				dbName = DBConnection.dbName;
+				chartDT = DBConnection.chartDT;
+				dbInstanceName = DBConnection.dbInstanceName;
+				userName = DBConnection.userName;
+				password = DBConnection.password;
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -96,24 +95,48 @@ public class ChartDB {
 	}
 
 	public ChartDB(HttpServletRequest request) throws PException {
+		
+		String tempurl = (String) request.getSession().getAttribute("url");
+		if (tempurl == null || tempurl.isEmpty()) {
+			getDBValues();
+			request.getSession().setAttribute("url", url);
+			request.getSession().setAttribute("columns", columns);
+			request.getSession().setAttribute("tableName", tableName);
+			request.getSession().setAttribute("dbName", dbName);
+			request.getSession().setAttribute("chartDT", chartDT);
+			request.getSession().setAttribute("dbInstanceName", dbInstanceName);
+			request.getSession().setAttribute("userName", userName);
+			request.getSession().setAttribute("password", password);
+			request.getSession().setAttribute("columnA", columns.split(",")[0]);
+			request.getSession().setAttribute("columnB", columns.split(",")[1]);
+			
+		} else {
+			url = (String) request.getSession().getAttribute("url");
+			columns = (String) request.getSession().getAttribute("columns");
+			tableName = (String) request.getSession().getAttribute("tableName");
+			dbName = (String) request.getSession().getAttribute("dbName");
+			chartDT = (String) request.getSession().getAttribute("chartDT");
+			dbInstanceName = (String) request.getSession().getAttribute("dbInstanceName");
+			userName = (String) request.getSession().getAttribute("userName");
+			password = (String) request.getSession().getAttribute("password");
+			String predicted = (String) request.getSession().getAttribute("predicted");
+			String proved = (String) request.getSession().getAttribute("proved");
+			String chartDT = (String) request.getSession().getAttribute("chartDT");
+			String dbName = (String) request.getSession().getAttribute("dbName");
+			String tableName = (String) request.getSession().getAttribute("tableName");
+			this.columnName = predicted == null ? columns.split(",")[0] : predicted;
+		}
 
-		// this();
-		String predicted = (String) request.getSession().getAttribute("predicted");
-		String proved = (String) request.getSession().getAttribute("proved");
-		String chartDT = (String) request.getSession().getAttribute("chartDT");
-		String dbName = (String) request.getSession().getAttribute("dbName");
-		String tableName = (String) request.getSession().getAttribute("tableName");
-		this.columnName = predicted == null ? ChartDB.columns.split(",")[0] : predicted;
 		// this.provedColumnName = proved == null ?
 		// ChartDB.columns.split(",")[0] : proved;
-		ChartDB.chartDT = chartDT == null ? "" : chartDT;
-		ChartDB.dbName = dbName == null ? "" : dbName;
-		ChartDB.tableName = tableName == null ? "" : tableName;
+		chartDT = chartDT == null ? "" : chartDT;
+		dbName = dbName == null ? "" : dbName;
+		tableName = tableName == null ? "" : tableName;
 
 		System.out.println("DBConnection -> dbName : " + dbName + ", tableName : " + tableName);
 	}
 
-	public static Connection getConnection() throws PException {
+	public Connection getConnection() throws PException {
 		try {
 			System.out.println("URL : " + url + " : " + ",\nColumn : " + columns + ",\nTableName : " + tableName
 					+ "\nDBName : " + dbName + "\nChartDT : " + chartDT + "\ndbInstanceName : " + dbInstanceName
@@ -131,7 +154,7 @@ public class ChartDB {
 	public ArrayList<Timestamp> getActualTimestamps(Timestamp fromDate, Timestamp toDate) throws PException {
 		try {
 			ArrayList<Timestamp> times = new ArrayList<Timestamp>();
-			Connection conn = ChartDB.getConnection();
+			Connection conn = getConnection();
 			PreparedStatement ps = conn.prepareStatement("SELECT coalesce(tab1." + chartDT + ",tab2." + chartDT
 					+ ") as dt ,coalesce(tab1." + columnName + ",tab2." + columnName + ") as val1 FROM " + dbName
 					+ ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName
@@ -164,7 +187,7 @@ public class ChartDB {
 			}
 
 			times = new ArrayList<Timestamp>();
-			Connection conn = ChartDB.getConnection();
+			Connection conn = getConnection();
 			String query = "SELECT coalesce(tab1." + chartDT + ",tab2." + chartDT + ") as dt ,coalesce(tab1." + Column
 					+ ",tab2." + Column + ") as val1 FROM " + dbName + ".dbo." + tableName
 					+ " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1." + chartDT
@@ -198,7 +221,7 @@ public class ChartDB {
 
 	public void savePredictedValues(TreeMap<Timestamp, Double> values2, String column) throws PException {
 		try {
-			Connection conn = ChartDB.getConnection();
+			Connection conn = getConnection();
 
 			ArrayList<Timestamp> times = getActualTimestamps(values2.firstKey(), values2.lastKey());
 			PreparedStatement ps;
@@ -242,7 +265,7 @@ public class ChartDB {
 	public java.util.TreeMap<Timestamp, Double> getPredictedValues(Timestamp fromDate, Timestamp toDate,
 			Network network, String column) throws PException {
 		try {
-			Connection conn = ChartDB.getConnection();
+			Connection conn = getConnection();
 			String query = "select top " + network.slidingWindowSize + " * from (select coalesce(tab1." + chartDT
 					+ ",tab2." + chartDT + ") as dt ,coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM "
 					+ dbName + ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName
@@ -349,7 +372,7 @@ public class ChartDB {
 	public java.util.TreeMap<Timestamp, Double> getPredictedValues(Timestamp fromDate, Integer numberOfValues,
 			Network network, String column) throws PException {
 		try {
-			Connection conn = ChartDB.getConnection();
+			Connection conn = getConnection();
 			PreparedStatement preparedStatement = conn.prepareStatement("select top " + network.slidingWindowSize
 					+ " * from (select coalesce(tab1." + chartDT + ",tab2." + chartDT + ") as dt ,coalesce(tab1."
 					+ column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo." + tableName
@@ -462,7 +485,7 @@ public class ChartDB {
 
 	public JSONArray getMeterGraphValues(Timestamp fromDate, Timestamp toDate, String column) throws PException {
 		try {
-			Connection conn = ChartDB.getConnection();
+			Connection conn = getConnection();
 			PreparedStatement ps;
 
 			if (fromDate == null && toDate == null) {
@@ -568,7 +591,7 @@ public class ChartDB {
 
 	public String getMeterGraphWithPredictValues(Timestamp fromDate, String predict, String column) throws PException {
 		try {
-			Connection conn = ChartDB.getConnection();
+			Connection conn = getConnection();
 			String querry = "SELECT TOP " + predict + " tab1." + chartDT + ",tab1." + column + " as val1,tab2." + column
 					+ " as val2 FROM [" + dbName + "].[dbo].[" + tableName + "] as tab1 FULL OUTER join [" + dbName
 					+ "].[dbo].[_" + tableName + "] as tab2 on tab1." + chartDT + "=tab1." + chartDT + " where "
@@ -641,7 +664,7 @@ public class ChartDB {
 
 	public String getColumns(String pUser) throws PException {
 		try {
-			Connection connection = ChartDB.getConnection();
+			Connection connection = getConnection();
 			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData where puser='"
 					+ pUser + "' order by dt desc ";
 

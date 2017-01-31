@@ -67,7 +67,7 @@ public class MeterGraphValues {
 				(String) request.getSession().getAttribute("columnA"));
 		meterJSONColumnB = chartDB.getMeterGraphValues(fromDate, toDate,
 				(String) request.getSession().getAttribute("columnB"));
-		int length = meterJSONColumnA.length() > meterJSONColumnB.length() ? meterJSONColumnB.length()
+		int length = meterJSONColumnA.length() < meterJSONColumnB.length() ? meterJSONColumnB.length()
 				: meterJSONColumnA.length();
 		System.out.println("!!!!!!!!!! : " + length);
 		while (length > 0) {
@@ -114,29 +114,7 @@ public class MeterGraphValues {
 
 		request.getSession().setAttribute("columnA", columnA);
 		request.getSession().setAttribute("columnB", columnB);
-		/*
-		 * request.getSession().setAttribute("dbName", predicted);
-		 * request.getSession().setAttribute("tableName", predicted);
-		 * request.getSession().setAttribute("chartDT", predicted);
-		 */
-		/*
-		 * switch (column) { case "Pressure":
-		 * request.getSession().setAttribute("predicted", "PPressure");
-		 * request.getSession().setAttribute("proved", "MPressure"); break; case
-		 * "Temprature": request.getSession().setAttribute("predicted",
-		 * "PTemp"); request.getSession().setAttribute("proved", "MTemp");
-		 * break; case "K_Factor":
-		 * request.getSession().setAttribute("predicted", "Predicted_K_Factor");
-		 * request.getSession().setAttribute("proved", "Proved_K_Factor");
-		 * break; default: request.getSession().setAttribute("predicted",
-		 * "PPressure"); request.getSession().setAttribute("proved",
-		 * "MPressure"); }
-		 */
-
-		/* network.lock.unlock(); */
-		TrainNetwork trainNetwork = new TrainNetwork();
-		trainNetwork.Train(request, "", "", columnA);
-		trainNetwork.Train(request, "", "", columnB);
+		
 		return "true";
 	}
 

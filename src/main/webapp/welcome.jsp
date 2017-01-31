@@ -154,7 +154,7 @@ footer {
 
 				<!-- Chart code -->
 
-				<script>
+				<script type="text/javascript">
 					$(document)
 							.ready(
 									function() {
@@ -178,10 +178,21 @@ footer {
 															format : 'DD-MMM-YYYY hh:mm:ss',
 
 														});
+										
+										function removeOptions(selectbox)
+										{
+											var i;
+											for(i=provedColumn.options.length-1;i>=0;i--)
+											{
+											if(provedColumn.options[i].selected)
+											selectbox.remove(i);
+											}
+										}
 
 										$("#predictedColumn")
 												.change(
-														function(e) {														
+														function(e) {	
+															removeOptions(this);
 															$
 																	.ajax({
 																		url : 'http://localhost:8080/Prediction/prediction/graph/changeColumn?columnA='
@@ -217,6 +228,16 @@ footer {
 																	})
 														});
 									});
+					
+					function removeOptions(selectbox)
+					{
+						var i;
+						for(i=predictedColumn.options.length-1;i>=0;i--)
+						{
+						if(predictedColumn.options[i].selected)
+						selectbox.remove(i);
+						}
+					}
 					
 					$("#provedColumn")
 					.change(
@@ -563,8 +584,8 @@ footer {
 										],
 										"chartScrollbar" : {},
 										"chartCursor" : {
-										"cursorPosition" : "mouse",
-										"categoryBalloonDateFormat": "YYYY-MM-DD HH:NN:SS",
+											"cursorPosition" : "mouse",
+											"categoryBalloonDateFormat" : "YYYY-MM-DD HH:NN:SS",
 										},
 										"categoryField" : chartDT,
 										"categoryAxis" : {
@@ -573,9 +594,9 @@ footer {
 											"minorGridEnabled" : true
 										},
 										"export" : {
-											"enabled" : true,											
-											"dateFormat": "YYYY-MM-DD HH:NN:SS",
-												"position" : "bottom-right"
+											"enabled" : true,
+											"dateFormat" : "YYYY-MM-DD HH:NN:SS",
+											"position" : "bottom-right"
 										}
 									} );
 

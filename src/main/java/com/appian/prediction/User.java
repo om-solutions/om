@@ -38,25 +38,27 @@ public class User {
 		System.out.println("Login() : " + status);
 		request.getSession().setAttribute("pUser", username);
 
-		ChartDB chartDB = new ChartDB();
+		ChartDB chartDB = new ChartDB(request);
 		if (chartDB != null) {
-			request.getSession().setAttribute("chartDT", chartDB.chartDT);
+			/*request.getSession().setAttribute("chartDT", chartDB.chartDT);
 			request.getSession().setAttribute("columns", chartDB.columns);
 			request.getSession().setAttribute("dbName", chartDB.dbName);
 			request.getSession().setAttribute("tableName", chartDB.tableName);
 			request.getSession().setAttribute("dbInstanceName", chartDB.dbInstanceName);
 			request.getSession().setAttribute("password", chartDB.password);
 			request.getSession().setAttribute("userName", chartDB.userName);
-			request.getSession().setAttribute("url", chartDB.url);
+			request.getSession().setAttribute("url", chartDB.url);*/
 		}
 
 		List<String> items = Arrays.asList(chartDB.columns.split(","));
 		Iterator<String> i = items.iterator();
 		while (i.hasNext()) {
+
 			String column = i.next();
+
 			TrainNetwork trainNetwork = new TrainNetwork();
-			trainNetwork.Train(request, format.format(new Date(0)), format.format(new Date()), column);
-			chartDB.map.put(column, trainNetwork);
+			if(!chartDB.map.containsKey(chartDB.tableName+column))
+				trainNetwork.Train(request, format.format(new Date(0)), format.format(new Date()), column,chartDB.tableName);
 		}
 
 		return status;

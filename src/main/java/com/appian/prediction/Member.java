@@ -32,7 +32,7 @@ public class Member {
 		ChartDB chartDB = new ChartDB(request);
 		String cloumnList = chartDB.getColumns((String) request.getSession().getAttribute("pUser"));
 		if (!cloumnList.isEmpty()) {
-			request.getSession().setAttribute("chartDT", ChartDB.chartDT);
+			/*request.getSession().setAttribute("chartDT", ChartDB.chartDT);
 			request.getSession().setAttribute("columns", ChartDB.columns);
 			request.getSession().setAttribute("dbName", ChartDB.dbName);
 			request.getSession().setAttribute("tableName", ChartDB.tableName);
@@ -42,7 +42,7 @@ public class Member {
 			request.getSession().setAttribute("url", ChartDB.url);
 
 			request.getSession().setAttribute("columnA", ChartDB.columns.split(",")[0]);
-			request.getSession().setAttribute("columnB", ChartDB.columns.split(",")[0]);
+			request.getSession().setAttribute("columnB", ChartDB.columns.split(",")[0]);*/
 
 			System.out.println("Clolumn List " + cloumnList);
 			return cloumnList;

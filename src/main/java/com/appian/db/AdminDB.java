@@ -120,10 +120,11 @@ public class AdminDB {
 			ResultSet rsDBList = psDBList.executeQuery();
 			JSONArray jArray = new JSONArray();
 			while (rsDBList.next()) {
-				JSONObject json = new JSONObject();
-
-				json.put("tableName", rsDBList.getString("TABLE_NAME"));
-				jArray.put(json);
+				if (!rsDBList.getString("TABLE_NAME").startsWith("_")) {
+					JSONObject json = new JSONObject();
+					json.put("tableName", rsDBList.getString("TABLE_NAME"));
+					jArray.put(json);
+				}
 			}
 			return jArray.toString();
 		} catch (SQLException e) {

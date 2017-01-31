@@ -28,7 +28,7 @@ public class csv {
 	@GET
 	@Path("/upload")
 	@Produces(MediaType.TEXT_PLAIN)
-	public String Login(@Context HttpServletRequest request, @DefaultValue("0") @QueryParam("username") String username,
+	public String Upload(@Context HttpServletRequest request, @DefaultValue("0") @QueryParam("username") String username,
 			@DefaultValue("0") @QueryParam("password") String password) throws PException {
 		DBConnection dbConnection = new DBConnection();
 		String status = null;
@@ -36,16 +36,17 @@ public class csv {
 		System.out.println("Authentication : " + status);
 		request.getSession().setAttribute("pUser", username);
 
-		ChartDB chartDB = new ChartDB();
+		ChartDB chartDB = new ChartDB(request);
 		if (chartDB != null) {
-			request.getSession().setAttribute("chartDT", ChartDB.chartDT);
+			/*request.getSession().setAttribute("chartDT", ChartDB.chartDT);
 			request.getSession().setAttribute("columns", ChartDB.columns);
 			request.getSession().setAttribute("dbName", ChartDB.dbName);
 			request.getSession().setAttribute("tableName", ChartDB.tableName);
 			request.getSession().setAttribute("dbInstanceName", ChartDB.dbInstanceName);
 			request.getSession().setAttribute("password", ChartDB.password);
 			request.getSession().setAttribute("userName", ChartDB.userName);
-			request.getSession().setAttribute("url", ChartDB.url);
+			request.getSession().setAttribute("url", ChartDB.url);*/
+			System.out.println("Upload --> "+request.getSession().getAttribute("url").toString());
 		}
 		/// TrainNetwork trainNetwork = new TrainNetwork();
 		// trainNetwork.Train(request, format.format(new Date(0)),

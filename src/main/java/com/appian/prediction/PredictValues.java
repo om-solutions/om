@@ -33,12 +33,12 @@ public class PredictValues {
 		Timestamp fromDate;
 		Timestamp toDate;
 		try {
-			if ("".equals(dateFrom) )
+			if (dateFrom == null || "".equals(dateFrom) || dateFrom.equals("null"))
 				fromDate = new Timestamp(0);
 			else
 				fromDate = new Timestamp(format.parse(dateFrom).getTime());
 
-			if ("".equals(dateTo))
+			if (dateTo == null || "".equals(dateTo) || dateTo.equals("null"))
 				toDate = new Timestamp(new Date().getTime());
 			else
 				toDate = new Timestamp(format.parse(dateTo).getTime());
@@ -50,7 +50,15 @@ public class PredictValues {
 		System.out.println(fromDate + " : " + toDate);
 		System.out.println("!!--> " + dateFrom + " : " + dateFrom);
 		System.out.println("!!--> " + fromDate + " : " + toDate);
-		Network network = (Network) request.getSession().getAttribute("NeuralNetwork");
+		String networkName = (String) request.getSession().getAttribute("tableName")
+				+ (String) request.getSession().getAttribute("columnA");
+
+		Network networkA = ChartDB.map.get(networkName);
+
+		networkName = (String) request.getSession().getAttribute("tableName")
+				+ (String) request.getSession().getAttribute("columnB");
+
+		Network networkB = ChartDB.map.get(networkName);
 		/*
 		 * try { if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS)) return
 		 * null; } catch (InterruptedException e1) { return null; }
@@ -58,20 +66,19 @@ public class PredictValues {
 		ChartDB chartDB = new ChartDB(request);
 		TreeMap<Timestamp, Double> values = null;
 
-		values = chartDB.getPredictedValues(fromDate, toDate, network,
+		values = chartDB.getPredictedValues(fromDate, toDate, networkA,
 				(String) request.getSession().getAttribute("columnA"));
 		System.out.println("columnA - Values : " + values.toString());
 
 		if (values != null && values.size() > 0)
 			chartDB.savePredictedValues(values, (String) request.getSession().getAttribute("columnA"));
 
-		values = chartDB.getPredictedValues(fromDate, toDate, network,
+		values = chartDB.getPredictedValues(fromDate, toDate, networkB,
 				(String) request.getSession().getAttribute("columnB"));
 		System.out.println("columnB - Values : " + values.toString());
 		if (values != null && values.size() > 0)
 			chartDB.savePredictedValues(values, (String) request.getSession().getAttribute("columnB"));
 
-		/* network.lock.unlock(); */
 		return values;
 	}
 
@@ -92,7 +99,12 @@ public class PredictValues {
 			e1.printStackTrace();
 			return null;
 		}
-		Network network = (Network) request.getSession().getAttribute("NeuralNetwork");
+		String networkName = (String) request.getSession().getAttribute("tableName")
+				+ (String) request.getSession().getAttribute("columnA");
+		Network networkA = ChartDB.map.get(networkName);
+		networkName = (String) request.getSession().getAttribute("tableName")
+				+ (String) request.getSession().getAttribute("columnB");
+		Network networkB = ChartDB.map.get(networkName);
 		/*
 		 * try { if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS)) return
 		 * null; } catch (InterruptedException e1) { return null; }
@@ -100,12 +112,12 @@ public class PredictValues {
 		ChartDB chartDB = new ChartDB(request);
 		TreeMap<Timestamp, Double> values = null;
 
-		values = chartDB.getPredictedValues(fromDate, numberOfValues, network,
+		values = chartDB.getPredictedValues(fromDate, numberOfValues, networkA,
 				(String) request.getSession().getAttribute("columnA"));
 		if (values != null && values.size() > 0)
 			chartDB.savePredictedValues(values, (String) request.getSession().getAttribute("columnA"));
 
-		values = chartDB.getPredictedValues(fromDate, numberOfValues, network,
+		values = chartDB.getPredictedValues(fromDate, numberOfValues, networkB,
 				(String) request.getSession().getAttribute("columnB"));
 		if (values != null && values.size() > 0)
 			chartDB.savePredictedValues(values, (String) request.getSession().getAttribute("columnB"));
