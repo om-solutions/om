@@ -26,4 +26,7 @@
 		<servlet-name>Jersey REST Service</servlet-name>
 		<url-pattern>/prediction/*</url-pattern>
 	</servlet-mapping>
+	<listener>
+        <listener-class>com.appian.prediction.PredictionLoader</listener-class>
+    </listener>
 </web-app>

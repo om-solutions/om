@@ -34,8 +34,12 @@ public class TrainNetwork {
 			@DefaultValue("") @QueryParam("coloumn") String coloumn, String tableName) throws PException {
 		Timestamp fromDate;
 		Timestamp toDate;
-
-		Network network = (Network) request.getSession().getAttribute("NeuralNetwork");
+		Network network = null;
+		try {
+			network = (Network) request.getSession().getAttribute("NeuralNetwork");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		try {
 			if ("".equals(dateFrom))
@@ -53,21 +57,27 @@ public class TrainNetwork {
 			return "Dates not in correct format";
 		}
 		if (network == null) {
+			
 			network = new Network(slidingWindowSize);
 			/*
 			 * try { if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS))
 			 * return "Cannot obtain lock"; } catch (InterruptedException e2) {
 			 * return "Cannot obtain lock"; }
 			 */
+			try {
 			request.getSession().setAttribute("NeuralNetwork", network);
+			} catch (Exception e) {
+			e.printStackTrace();
+			}
 		}
 		network.clearTrainingSet();
 		ChartDB chartDB = new ChartDB(request);
 		try {
-			ArrayList<Double> values = chartDB.getActualValuesAndSetNormalizationFactors(network, fromDate, toDate,coloumn);
+			ArrayList<Double> values = chartDB.getActualValuesAndSetNormalizationFactors(network, fromDate, toDate,
+					coloumn);
 			ArrayList<Integer> missingValues = network.trainNetworkFromData(values);
 			HashMap<Integer, Double> predicted = network.addMissingValues(values, missingValues);
-			chartDB.map.put(tableName+coloumn, network);
+			chartDB.map.put(tableName + coloumn, network);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -50,16 +50,7 @@ public class User {
 			request.getSession().setAttribute("url", chartDB.url);*/
 		}
 
-		List<String> items = Arrays.asList(chartDB.columns.split(","));
-		Iterator<String> i = items.iterator();
-		while (i.hasNext()) {
 
-			String column = i.next();
-
-			TrainNetwork trainNetwork = new TrainNetwork();
-			if(!chartDB.map.containsKey(chartDB.tableName+column))
-				trainNetwork.Train(request, format.format(new Date(0)), format.format(new Date()), column,chartDB.tableName);
-		}
 
 		return status;
 	}
