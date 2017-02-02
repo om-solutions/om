@@ -102,10 +102,14 @@
 			$( document ).ready( function () {
 
 				$( "#buttonLogin1" ).click( function ( e ) {
+					var admin = false;
+					if ( $( "#asAdmin" ).prop( "checked" ) == true ) {
+						admin = true;
+					}
 
 					console.log( "button clicked" );
 					$.ajax( {
-						url : 'http://localhost:8080/Prediction/prediction/user/login?username=' + document.getElementById( "username" ).value + '&password=' + document.getElementById( "password" ).value,
+						url : 'http://localhost:8080/Prediction/prediction/user/login?admin=' + admin + '&username=' + document.getElementById( "username" ).value + '&password=' + document.getElementById( "password" ).value,
 						beforeSend : function ( request ) {
 							console.log( "before send" );
 							request.setRequestHeader( "Authorization", "Negotiate" );
@@ -128,7 +132,7 @@
 
 								}
 							} else
-								alert( "Try again" );
+								alert( response );
 
 						},
 						error : function ( error ) {

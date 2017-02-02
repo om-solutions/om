@@ -39,7 +39,7 @@ public class ChartDB {
 	public String tableName;
 	public String columns;
 
-	public static ConcurrentHashMap <String, Network> map = new ConcurrentHashMap <>();
+	public static ConcurrentHashMap<String, Network> map = new ConcurrentHashMap<>();
 
 	public void getDBValues() throws PException {
 		try {
@@ -96,21 +96,22 @@ public class ChartDB {
 	}
 
 	public ChartDB(HttpServletRequest request) throws PException {
-		
+
 		String tempurl = (String) request.getSession().getAttribute("url");
 		if (tempurl == null || tempurl.isEmpty()) {
 			getDBValues();
 			request.getSession().setAttribute("url", url);
-			request.getSession().setAttribute("columns", columns);
 			request.getSession().setAttribute("tableName", tableName);
 			request.getSession().setAttribute("dbName", dbName);
 			request.getSession().setAttribute("chartDT", chartDT);
 			request.getSession().setAttribute("dbInstanceName", dbInstanceName);
 			request.getSession().setAttribute("userName", userName);
 			request.getSession().setAttribute("password", password);
-			request.getSession().setAttribute("columnA", columns.split(",")[0]);
-			request.getSession().setAttribute("columnB", columns.split(",")[1]);
-			
+			if (columns!= null) {
+				request.getSession().setAttribute("columns", columns);
+				request.getSession().setAttribute("columnA", columns.split(",")[0]);
+				request.getSession().setAttribute("columnB", columns.split(",")[1]);
+			}
 		} else {
 			url = (String) request.getSession().getAttribute("url");
 			columns = (String) request.getSession().getAttribute("columns");
@@ -125,6 +126,7 @@ public class ChartDB {
 			String chartDT = (String) request.getSession().getAttribute("chartDT");
 			String dbName = (String) request.getSession().getAttribute("dbName");
 			String tableName = (String) request.getSession().getAttribute("tableName");
+			System.out.println("ChartDB --> Columns : "+columns);
 			this.columnName = predicted == null ? columns.split(",")[0] : predicted;
 		}
 
@@ -263,8 +265,8 @@ public class ChartDB {
 
 	}
 
-	public NavigableMap<Timestamp, Double> getPredictedValues(Timestamp fromDate, Timestamp toDate,
-			Network network, String column) throws PException {
+	public NavigableMap<Timestamp, Double> getPredictedValues(Timestamp fromDate, Timestamp toDate, Network network,
+			String column) throws PException {
 		try {
 			Connection conn = getConnection();
 			String query = "select top " + network.slidingWindowSize + " * from (select coalesce(tab1." + chartDT
@@ -354,7 +356,7 @@ public class ChartDB {
 				network.getNeuralNetwork().learn(network.trainingSet);
 				previousTime = valuesSet.getTimestamp(1).getTime();
 				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
-				System.out.println("--- > "+nextVal);
+				System.out.println("--- > " + nextVal);
 			}
 
 			while (toDate.getTime() - previousTime > 2 * avgDelay) {
@@ -362,7 +364,7 @@ public class ChartDB {
 				previousValuesList = this.shiftAllLeft(previousValuesList, network.normalizeValue(nextVal));
 				previousTime = previousTime + avgDelay;
 				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
-				System.out.println("--- > "+nextVal);
+				System.out.println("--- > " + nextVal);
 			}
 			return predictedValuesMap;
 		} catch (Exception e) {

@@ -31,26 +31,34 @@ public class User {
 	@Path("/login")
 	@Produces(MediaType.TEXT_PLAIN)
 	public String Login(@Context HttpServletRequest request, @DefaultValue("0") @QueryParam("username") String username,
-			@DefaultValue("0") @QueryParam("password") String password) throws PException {
+			@DefaultValue("0") @QueryParam("password") String password,
+			@DefaultValue("0") @QueryParam("admin") Boolean isAdmin) throws PException {
 		DBConnection dbConnection = new DBConnection();
 		String status = null;
-		status = dbConnection.validateUser(username, password);
+		if (isAdmin)
+			status = dbConnection.validateAdmin(username, password);
+		else
+			{status = dbConnection.validateUser(username, password);
+			ChartDB chartDB = new ChartDB(request);
+			}
 		System.out.println("Login() : " + status);
 		request.getSession().setAttribute("pUser", username);
 
-		ChartDB chartDB = new ChartDB(request);
-		if (chartDB != null) {
-			/*request.getSession().setAttribute("chartDT", chartDB.chartDT);
-			request.getSession().setAttribute("columns", chartDB.columns);
-			request.getSession().setAttribute("dbName", chartDB.dbName);
-			request.getSession().setAttribute("tableName", chartDB.tableName);
-			request.getSession().setAttribute("dbInstanceName", chartDB.dbInstanceName);
-			request.getSession().setAttribute("password", chartDB.password);
-			request.getSession().setAttribute("userName", chartDB.userName);
-			request.getSession().setAttribute("url", chartDB.url);*/
-		}
-
-
+		
+		//if (chartDB != null) {
+			/*
+			 * request.getSession().setAttribute("chartDT", chartDB.chartDT);
+			 * request.getSession().setAttribute("columns", chartDB.columns);
+			 * request.getSession().setAttribute("dbName", chartDB.dbName);
+			 * request.getSession().setAttribute("tableName",
+			 * chartDB.tableName);
+			 * request.getSession().setAttribute("dbInstanceName",
+			 * chartDB.dbInstanceName);
+			 * request.getSession().setAttribute("password", chartDB.password);
+			 * request.getSession().setAttribute("userName", chartDB.userName);
+			 * request.getSession().setAttribute("url", chartDB.url);
+			 */
+		//}
 
 		return status;
 	}

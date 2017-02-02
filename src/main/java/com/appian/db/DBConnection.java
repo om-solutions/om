@@ -211,7 +211,7 @@ public class DBConnection {
 		}
 	}
 
-	public String validateUser(String username, String password) throws PException {
+	public String validateAdmin(String username, String password) throws PException {
 		try {
 			Connection conn = DBConnection.getConnection();
 			// System.out.println(username + ":" + password);
@@ -247,6 +247,44 @@ public class DBConnection {
 		}
 
 	}
+	
+	public String validateUser(String username, String password) throws PException {
+		try {
+			Connection conn = DBConnection.getConnection();
+			// System.out.println(username + ":" + password);
+			PreparedStatement ps = conn.prepareStatement("SELECT * FROM Danpac.dbo.members inner join Danpac.dbo.masterData on uname=pUser where uname=? and pass=? ;");
+			ps.setString(1, username);
+			ps.setString(2, password);
+			ResultSet rs = ps.executeQuery();
+			values = new ArrayList<Double>();
+			String status;
+			JSONArray jArray = new JSONArray();
+			if (rs.next()) {
+				/*
+				 * JSONObject json = new JSONObject(); json.put("username",
+				 * username); json.put("flag", true); jArray.put(json);
+				 */
+				status = "True";
+			} else {
+				/*
+				 * JSONObject json = new JSONObject(); json.put("flag", false);
+				 * jArray.put(json);
+				 */
+				status = "Please login as a admin first ";
+			}
+
+			ps.close();
+			rs.close();
+			conn.close();
+			// return jArray.toString();
+			return status;
+		} catch (SQLException e) {
+			//e.printStackTrace();
+			throw new PException("Invalid User !!!");
+		}
+
+	}
+
 
 	public String register(String name, String email, String username, String password) throws PException {
 		try {
