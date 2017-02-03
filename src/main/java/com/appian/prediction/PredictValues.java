@@ -67,17 +67,19 @@ public class PredictValues {
 		ChartDB chartDB = new ChartDB(request);
 		NavigableMap<Timestamp, Double> values = null;
 
-		chartDB.getPredictedValues(fromDate, toDate, networkA,(String) request.getSession().getAttribute("columnA"));
-		System.out.println("columnA - Values : " + values.toString());
+		chartDB.getPredictedValues(fromDate, toDate, networkA, (String) request.getSession().getAttribute("columnA"));
+		// System.out.println("columnA - Values : " + values.toString());
 
 		if (values != null && values.size() > 0)
-			chartDB.savePredictedValues(values, (String) request.getSession().getAttribute("columnA"));
-
+			chartDB.savePredictedValues(values, (String) request.getSession().getAttribute("columnA"),
+					(String) request.getSession().getAttribute("tableName"));
+		System.out.println(networkB.slidingWindowSize + " : network B : " + networkB.toString());
 		values = chartDB.getPredictedValues(fromDate, toDate, networkB,
 				(String) request.getSession().getAttribute("columnB"));
 		System.out.println("columnB - Values : " + values.toString());
 		if (values != null && values.size() > 0)
-			chartDB.savePredictedValues(values, (String) request.getSession().getAttribute("columnB"));
+			chartDB.savePredictedValues(values, (String) request.getSession().getAttribute("columnB"),
+					(String) request.getSession().getAttribute("tableName"));
 
 		return values;
 	}
@@ -115,12 +117,14 @@ public class PredictValues {
 		values = chartDB.getPredictedValues(fromDate, numberOfValues, networkA,
 				(String) request.getSession().getAttribute("columnA"));
 		if (values != null && values.size() > 0)
-			chartDB.savePredictedValues(values, (String) request.getSession().getAttribute("columnA"));
+			chartDB.savePredictedValues(values, (String) request.getSession().getAttribute("columnA"),
+					(String) request.getSession().getAttribute("tableName"));
 
 		values = chartDB.getPredictedValues(fromDate, numberOfValues, networkB,
 				(String) request.getSession().getAttribute("columnB"));
 		if (values != null && values.size() > 0)
-			chartDB.savePredictedValues(values, (String) request.getSession().getAttribute("columnB"));
+			chartDB.savePredictedValues(values, (String) request.getSession().getAttribute("columnB"),
+					(String) request.getSession().getAttribute("tableName"));
 		/* network.lock.unlock(); */
 		return values;
 	}

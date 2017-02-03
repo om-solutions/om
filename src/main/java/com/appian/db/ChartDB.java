@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Context;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -41,10 +42,10 @@ public class ChartDB {
 
 	public static ConcurrentHashMap<String, Network> map = new ConcurrentHashMap<>();
 
-	public void getDBValues() throws PException {
+	public void getDBValues(HttpServletRequest request) throws PException {
 		try {
 			Connection connection = DBConnection.getConnection();
-			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData order by dt desc ";
+			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData ";
 			System.out.println("Inside ChartDB() : " + sql);
 			PreparedStatement psDBList;
 
@@ -95,11 +96,25 @@ public class ChartDB {
 		this.times = times;
 	}
 
+	public ChartDB(JSONObject jobj) {
+		url = (String) jobj.getString("url");
+		columns = (String) jobj.getString("columns");
+		tableName = (String) jobj.getString("tableName");
+		dbName = (String) jobj.getString("dbName");
+		dbInstanceName = (String) jobj.getString("dbInstanceName");
+		userName = (String) jobj.getString("userName");
+		password = (String) jobj.getString("password");
+		chartDT = (String) jobj.getString("chartDT");
+		dbName = (String) jobj.getString("dbName");
+		System.out.println("ChartDB --> Columns : " + columns);
+
+	}
+
 	public ChartDB(HttpServletRequest request) throws PException {
 
 		String tempurl = (String) request.getSession().getAttribute("url");
 		if (tempurl == null || tempurl.isEmpty()) {
-			getDBValues();
+			getDBValues(request);
 			request.getSession().setAttribute("url", url);
 			request.getSession().setAttribute("tableName", tableName);
 			request.getSession().setAttribute("dbName", dbName);
@@ -107,7 +122,7 @@ public class ChartDB {
 			request.getSession().setAttribute("dbInstanceName", dbInstanceName);
 			request.getSession().setAttribute("userName", userName);
 			request.getSession().setAttribute("password", password);
-			if (columns!= null) {
+			if (columns != null) {
 				request.getSession().setAttribute("columns", columns);
 				request.getSession().setAttribute("columnA", columns.split(",")[0]);
 				request.getSession().setAttribute("columnB", columns.split(",")[1]);
@@ -126,7 +141,7 @@ public class ChartDB {
 			String chartDT = (String) request.getSession().getAttribute("chartDT");
 			String dbName = (String) request.getSession().getAttribute("dbName");
 			String tableName = (String) request.getSession().getAttribute("tableName");
-			System.out.println("ChartDB --> Columns : "+columns);
+			System.out.println("ChartDB --> Columns : " + columns);
 			this.columnName = predicted == null ? columns.split(",")[0] : predicted;
 		}
 
@@ -154,7 +169,7 @@ public class ChartDB {
 		}
 	}
 
-	public ArrayList<Timestamp> getActualTimestamps(Timestamp fromDate, Timestamp toDate) throws PException {
+	public ArrayList<Timestamp> getActualTimestamps(Timestamp fromDate, Timestamp toDate,String tableName) throws PException {
 		try {
 			ArrayList<Timestamp> times = new ArrayList<Timestamp>();
 			Connection conn = getConnection();
@@ -182,12 +197,6 @@ public class ChartDB {
 	public ArrayList<Double> getActualValuesAndSetNormalizationFactors(Network network, Timestamp fromDate,
 			Timestamp toDate, String Column) throws PException {
 		try {
-			DatabaseMetaData md = getConnection().getMetaData();
-			ResultSet rs11 = md.getTables(null, null, "_" + tableName, null);
-			if (!rs11.next()) {
-				System.out.println("$$$$$$$$$$$");
-				createTableCopy(tableName);
-			}
 
 			times = new ArrayList<Timestamp>();
 			Connection conn = getConnection();
@@ -204,7 +213,9 @@ public class ChartDB {
 			Double value;
 			while (rs.next()) {
 				times.add(rs.getTimestamp(1));
+				System.out.println("times : " + times);
 				value = rs.getDouble(2);
+				System.out.println("times : " + times + " , value : " + value);
 				values.add(value);
 				if (network.max < value)
 					network.max = value;
@@ -222,11 +233,11 @@ public class ChartDB {
 		}
 	}
 
-	public void savePredictedValues(NavigableMap<Timestamp, Double> values2, String column) throws PException {
+	public void savePredictedValues(NavigableMap<Timestamp, Double> values2, String column, String tableName) throws PException {
 		try {
 			Connection conn = getConnection();
 
-			ArrayList<Timestamp> times = getActualTimestamps(values2.firstKey(), values2.lastKey());
+			ArrayList<Timestamp> times = getActualTimestamps(values2.firstKey(), values2.lastKey(),tableName);
 			PreparedStatement ps;
 			for (Entry<Timestamp, Double> e : values2.entrySet()) {
 				if (times.contains(e.getKey()))
@@ -242,27 +253,8 @@ public class ChartDB {
 			}
 			conn.close();
 		} catch (Exception e) {
-			createTableCopy(tableName);
 			e.printStackTrace();
 		}
-	}
-
-	public boolean createTableCopy(String table) throws PException {
-		try {
-
-			Connection connection = DBConnection.getConnection();
-			String sql = "SELECT * INTO danpac.dbo._" + table + " FROM danpac.dbo." + table + " WHERE 1=2;";
-
-			System.out.println("SQL : " + sql);
-			PreparedStatement psDBList = connection.prepareStatement(sql);
-			psDBList.executeQuery();
-
-			return true;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new PException(" Unable to create copy of table !!!");
-		}
-
 	}
 
 	public NavigableMap<Timestamp, Double> getPredictedValues(Timestamp fromDate, Timestamp toDate, Network network,
@@ -494,17 +486,20 @@ public class ChartDB {
 			PreparedStatement ps;
 
 			if (fromDate == null && toDate == null) {
-				String query = "SELECT tab1." + chartDT + ",tab1." + column + " as predicted,tab2." + column
-						+ " as proved from " + dbName + ".dbo." + tableName + " as tab1 full outer join " + tableName
-						+ " as tab2 on tab1." + chartDT + "=tab2." + chartDT + " order by tab1." + chartDT + "";
+				String query = "SELECT coalesce(tab1." + chartDT + ",tab2." + chartDT + ") as dt ,ISNULL(tab1." + column
+						+ ",0) as predicted,ISNULL(tab2." + column + ",0) as proved from " + dbName + ".dbo."
+						+ tableName + " as tab1 full outer join " + tableName + " as tab2 on tab1." + chartDT + "=tab2."
+						+ chartDT + " order by dt desc ";
 				System.out.println("[getMeterGraphValues] : from\\to date is null Query : " + query);
 				ps = conn.prepareStatement(query);
 				System.out.println("---> : " + query);
 			} else {
-				String query = "SELECT tab1." + chartDT + ",tab1." + column + " as val1, tab2." + column
-						+ " as val2  FROM  [" + dbName + "].[dbo].[" + tableName + "] as tab1 FULL OUTER join ["
-						+ dbName + "].[dbo].[_" + tableName + "] as tab2 on tab1." + chartDT + "=tab2." + chartDT
-						+ " where tab1." + chartDT + ">? and tab1." + chartDT + "<? order by tab1." + chartDT + "";
+				String query = "SELECT coalesce(tab1." + chartDT + ",tab2." + chartDT + ") as dt ,ISNULL(tab1." + column
+						+ ",0) as val1, ISNULL(tab2." + column + ",0) as val2  FROM  [" + dbName + "].[dbo].["
+						+ tableName + "] as tab1 FULL OUTER join [" + dbName + "].[dbo].[_" + tableName
+						+ "] as tab2 on tab1." + chartDT + "=tab2." + chartDT + " where coalesce(tab1." + chartDT
+						+ ",tab2." + chartDT + ") > ? and coalesce(tab1." + chartDT + ",tab2." + chartDT
+						+ ") <? order by dt desc ";
 				System.out.println("[getMeterGraphValues] : from \\ to date Not null Query : " + query);
 				ps = conn.prepareStatement(query);
 
@@ -512,25 +507,18 @@ public class ChartDB {
 				ps.setTimestamp(2, toDate);
 				System.out.println("---> : " + query);
 			}
-			// System.out.println("3 : " + fromDate + " : " + toDate);
+			System.out.println("3 : " + fromDate + " : " + toDate);
 
 			JSONArray jArray = new JSONArray();
-
-			DatabaseMetaData md = getConnection().getMetaData();
-			ResultSet rs11 = md.getTables(null, null, "_" + tableName, null);
-			if (!rs11.next()) {
-				System.out.println("$$$$$$$$$$$");
-				createTableCopy(tableName);
-			}
 
 			if (fromDate != null) {
 				PreparedStatement oldValues;
 				ResultSet rsOld = null;
-				String query = "select * from (SELECT top " + ChartDB.oldValues + " tab1." + chartDT + ",tab1." + column
-						+ " as val1 , tab2." + column + " as val2 FROM [" + dbName + "].[dbo].[" + tableName
-						+ "] as tab1 FULL OUTER join [" + dbName + "].[dbo].[_" + tableName + "] as tab2 on tab1."
-						+ chartDT + "=tab2." + chartDT + " where tab1." + chartDT + "<? order by tab1." + chartDT
-						+ " desc) a order by a." + chartDT + "";
+				String query = "select * from (SELECT top " + ChartDB.oldValues + " coalesce(tab1." + chartDT + ",tab2."
+						+ chartDT + ") as dt,ISNULL(tab1." + column + ",0) as val1 , ISNULL(tab2." + column
+						+ ",0) as val2 FROM [" + dbName + "].[dbo].[" + tableName + "] as tab1 FULL OUTER join ["
+						+ dbName + "].[dbo].[_" + tableName + "] as tab2 on tab1." + chartDT + "=tab2." + chartDT
+						+ " where tab1." + chartDT + "<? order by dt desc) a order by  dt desc";
 				oldValues = conn.prepareStatement(query);
 				oldValues.setTimestamp(1, fromDate);
 				System.out.println("[getMeterGraphValues] : " + query);
@@ -539,15 +527,18 @@ public class ChartDB {
 					String timestamp = rsOld.getString(1);
 					Float actual = rsOld.getString(2) != null ? Float.valueOf(rsOld.getString(2)) : 0f;
 					Float predicted = rsOld.getString(3) != null ? Float.valueOf(rsOld.getString(3)) : 0f;
+					System.out.println("actual : " + actual + ", predicted" + predicted);
 
 					if (actual == null || predicted == null || actual.equals(0f)) {
 					} else
 						Math.abs(((actual - predicted) / actual) * 100);
 					JSONObject json = new JSONObject();
-
+					System.out.println(
+							timestamp + " : actual : " + actual.toString() + ", predicted" + predicted.toString());
 					json.put(chartDT, timestamp);
 					json.put(column, actual == 0f ? null : actual.toString());
-					json.put("_" + column + column, predicted == 0f ? null : predicted.toString());
+					json.put("_" + column, predicted == 0f ? null : predicted.toString());
+					System.out.println("json : " + json.toString());
 					// json.put("error", error != null ? error.toString() :
 					// null);
 					// System.out.println("[getMeterGraphValues] : JSON1 : " +
@@ -572,10 +563,10 @@ public class ChartDB {
 				// + actual + ", predicted : " + predicted);
 				json.put(chartDT, timestamp);
 				json.put(column, actual == 0f ? null : actual.toString());
-				json.put("_" + column, predicted.toString());
+				json.put("_" + column, predicted == 0f ? null : predicted.toString());
 				// json.put("error", error != null ? error.toString() : null);
 
-				// System.out.println("json2 : " + json.toString());
+				System.out.println("json2 : " + json.toString());
 				jArray.put(json);
 				// System.out.println("[getMeterGraphValues] : JSON2 : " +
 				// json.toString());
@@ -623,17 +614,20 @@ public class ChartDB {
 					String timestamp = rsOld.getString(1);
 					Float actual = rsOld.getString(2) != null ? Float.valueOf(rsOld.getString(2)) : 0f;
 					Float predicted = rsOld.getString(3) != null ? Float.valueOf(rsOld.getString(3)) : 0f;
-
+					System.out.println(column + " -> actual : " + actual + ", predicted : " + predicted);
 					if (actual == null || predicted == null || actual.equals(0f)) {
 					} else
 						Math.abs(((actual - predicted) / actual) * 100);
 					JSONObject json = new JSONObject();
 
+					System.out.println(column + " -> actual.toString() : " + actual.toString()
+							+ ", predicted.toString() : " + predicted.toString());
 					json.put(chartDT, timestamp);
 					json.put(column, actual == 0f ? null : actual.toString());
 					json.put("_" + column, predicted == 0f ? null : predicted.toString());
 					// json.put("error", error != null ? error.toString() :
 					// null);
+
 					jArray.put(json);
 				}
 			}
@@ -667,7 +661,7 @@ public class ChartDB {
 		}
 	}
 
-	public String getColumns(String pUser) throws PException {
+	public String getColumns(@Context HttpServletRequest request, String pUser) throws PException {
 		try {
 			Connection connection = getConnection();
 			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData where puser='"
@@ -681,7 +675,7 @@ public class ChartDB {
 			JSONArray jArray = new JSONArray();
 			System.out.println("3");
 			if (rsDBList.next()) {
-				System.out.println("4");
+				System.out.println("4 - IF");
 				JSONObject json = new JSONObject();
 				json.put("url", rsDBList.getString("url"));
 				json.put("dbInstanceName", rsDBList.getString("dbInstanceName"));
@@ -692,9 +686,26 @@ public class ChartDB {
 				json.put("userName", rsDBList.getString("userName"));
 				json.put("password", rsDBList.getString("password"));
 				jArray.put(json);
+
+				request.getSession().setAttribute("url", rsDBList.getString("url"));
+				request.getSession().setAttribute("tableName", rsDBList.getString("tableName"));
+				request.getSession().setAttribute("dbName", rsDBList.getString("dbName"));
+				request.getSession().setAttribute("chartDT", rsDBList.getString("chartDt"));
+				request.getSession().setAttribute("dbInstanceName", rsDBList.getString("dbInstanceName"));
+				request.getSession().setAttribute("userName", rsDBList.getString("userName"));
+				request.getSession().setAttribute("password", rsDBList.getString("password"));
+				request.getSession().setAttribute("columns", rsDBList.getString("columnsName"));
+				columns= rsDBList.getString("columnsName");
+				request.getSession().setAttribute("pUser", pUser);
+				if (columns != null) {
+					request.getSession().setAttribute("columns", columns);
+					request.getSession().setAttribute("columnA", columns.split(",")[0]);
+					request.getSession().setAttribute("columnB", columns.split(",")[1]);
+				}
+
 				System.out.println(" IF JSON : " + jArray.toString());
 			} else {
-				System.out.println("5");
+				System.out.println("5 - Else getColumns");
 				JSONObject json = new JSONObject();
 				json.put("url", DBConnection.url);
 				json.put("dbInstanceName", DBConnection.dbInstanceName);

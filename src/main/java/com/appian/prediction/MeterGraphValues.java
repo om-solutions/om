@@ -38,23 +38,31 @@ public class MeterGraphValues {
 			throws PException, InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		Timestamp fromDate;
 		Timestamp toDate;
-
+		boolean flag = true;
 		try {
-			if (dateFrom == null || "".equals(dateFrom) || dateFrom.equals("null"))
-				fromDate = new Timestamp(new Date().getTime());
+			if (dateFrom == null || "".equals(dateFrom) || dateFrom.equals("null")) {
+				fromDate = new Timestamp(0);
+				flag = false;
+			}
+
 			else
 				fromDate = new Timestamp(format1.parse(dateFrom).getTime());
 
-			if (dateTo == null || "".equals(dateTo) || dateTo.equals("null"))
+			if (dateTo == null || "".equals(dateTo) || dateTo.equals("null")) {
 				toDate = new Timestamp(new Date().getTime());
-			else
+				flag = false;
+			} else {
 				toDate = new Timestamp(format1.parse(dateTo).getTime());
+			}
 		} catch (Exception e1) {
 			e1.printStackTrace();
 			throw new PException("Invalid Date !!!");
 		}
-		PredictValues predictValues = new PredictValues();
-		predictValues.Predict(request, dateFrom, dateTo);
+
+		if (flag) {
+			PredictValues predictValues = new PredictValues();
+			predictValues.Predict(request, dateFrom, dateTo);
+		}
 
 		ChartDB chartDB = new ChartDB(request);
 		JSONArray meterJSONData = new JSONArray();
@@ -65,8 +73,11 @@ public class MeterGraphValues {
 
 		meterJSONColumnA = chartDB.getMeterGraphValues(fromDate, toDate,
 				(String) request.getSession().getAttribute("columnA"));
+		System.out.println("MeterJSON Column A : " + meterJSONColumnA.toString());
+
 		meterJSONColumnB = chartDB.getMeterGraphValues(fromDate, toDate,
 				(String) request.getSession().getAttribute("columnB"));
+		System.out.println("MeterJSON Column B : " + meterJSONColumnB.toString());
 		int length = meterJSONColumnA.length() < meterJSONColumnB.length() ? meterJSONColumnB.length()
 				: meterJSONColumnA.length();
 		System.out.println("!!!!!!!!!! : " + length);
@@ -114,7 +125,7 @@ public class MeterGraphValues {
 
 		request.getSession().setAttribute("columnA", columnA);
 		request.getSession().setAttribute("columnB", columnB);
-		
+
 		return "true";
 	}
 

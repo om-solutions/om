@@ -179,20 +179,11 @@ footer {
 
 														});
 										
-										function removeOptions(selectbox)
-										{
-											var i;
-											for(i=provedColumn.options.length-1;i>=0;i--)
-											{
-											if(provedColumn.options[i].selected)
-											selectbox.remove(i);
-											}
-										}
-
+									
 										$("#predictedColumn")
 												.change(
 														function(e) {	
-															removeOptions(this);
+													
 															$
 																	.ajax({
 																		url : 'http://localhost:8080/Prediction/prediction/graph/changeColumn?columnA='
@@ -229,15 +220,7 @@ footer {
 														});
 									});
 					
-					function removeOptions(selectbox)
-					{
-						var i;
-						for(i=predictedColumn.options.length-1;i>=0;i--)
-						{
-						if(predictedColumn.options[i].selected)
-						selectbox.remove(i);
-						}
-					}
+					
 					
 					$("#provedColumn")
 					.change(
@@ -496,7 +479,7 @@ footer {
 							type : 'GET',
 							dataType : 'json',
 							success : function ( response ) {
-								alert( JSON.stringify( response ) );
+								//alert( JSON.stringify( response ) );
 								if ( response.length == 0 ) {
 									alert( "No Value Available !!!" );
 								} else {
@@ -504,6 +487,7 @@ footer {
 									chartData = generateChartData( response );
 									//alert(response);
 									//chart.addListener("rendered", zoomChart);
+									
 									var chart = AmCharts.makeChart( "chartdiv", {
 										"type" : "serial",
 										"theme" : "light",
@@ -511,6 +495,7 @@ footer {
 											"useGraphSettings" : true
 										},
 										"dataProvider" : chartData,
+										"synchronizeGrid" : true,
 										"valueAxes" : [
 												{
 													"id" : "v1",
@@ -585,7 +570,7 @@ footer {
 										"chartScrollbar" : {},
 										"chartCursor" : {
 											"cursorPosition" : "mouse",
-											"categoryBalloonDateFormat" : "YYYY-MM-DD HH:NN:SS",
+											"categoryBalloonDateFormat" : "YYYY-MM-DD HH:NN:SS"
 										},
 										"categoryField" : chartDT,
 										"categoryAxis" : {
@@ -602,13 +587,13 @@ footer {
 
 									chart.addListener( "dataUpdated", zoomChart );
 									zoomChart();
-									chart.autoMargins = false;
+									
 									function generateChartData ( response ) {
 										return response;
 									}
 
 									function zoomChart () {
-										chart.zoomToIndexes( chart.dataProvider.length - 20, chart.dataProvider.length - 1 );
+										chart.zoomToIndexes( chart.dataProvider.length - 40, chart.dataProvider.length - 1 );
 
 									}
 								}

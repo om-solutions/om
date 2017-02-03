@@ -183,6 +183,12 @@ public class AdminDB {
 					ps.setString(10, user);
 					ps.execute();
 					ps.close();
+
+					try {
+						createTableCopy(tableName);
+					} catch (Exception e) {
+					}
+
 				} catch (Exception e) {
 					e.printStackTrace();
 					return false;
@@ -198,6 +204,24 @@ public class AdminDB {
 			e.printStackTrace();
 			throw new PException(" Uable to set column list !!!");
 		}
+	}
+
+	public boolean createTableCopy(String table) throws PException {
+		try {
+
+			Connection connection = DBConnection.getConnection();
+			String sql = "SELECT * INTO danpac.dbo._" + table + " FROM danpac.dbo." + table + " WHERE 1=2;";
+
+			System.out.println("SQL : " + sql);
+			PreparedStatement psDBList = connection.prepareStatement(sql);
+			psDBList.execute();
+
+			return true;
+		} catch (SQLException e) {
+			// e.printStackTrace();
+			throw new PException(" Unable to create copy of table !!!");
+		}
+
 	}
 
 }
