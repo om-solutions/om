@@ -93,7 +93,7 @@ public class UploadServlet extends HttpServlet {
       out.println("</body>");
       out.println("</html>");
    }catch(Exception ex) {
-       System.out.println(ex);
+       //System.out.println(ex);
    }
    }
    public void doGet(HttpServletRequest request, 

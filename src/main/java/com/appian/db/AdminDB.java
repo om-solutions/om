@@ -76,7 +76,7 @@ public class AdminDB {
 		 * tableName;
 		 */
 
-		System.out.println("DBConnection -> url : " + url + ", dbInstanceName : " + dbInstanceName);
+		//System.out.println("DBConnection -> url : " + url + ", dbInstanceName : " + dbInstanceName);
 	}
 
 	public static Connection getConnection() throws PException {
@@ -140,7 +140,7 @@ public class AdminDB {
 			String sql = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + table
 					+ "' ORDER BY ORDINAL_POSITION ";
 
-			System.out.println("SQL : " + sql);
+			//System.out.println("SQL : " + sql);
 			PreparedStatement psDBList = connection.prepareStatement(sql);
 			ResultSet rsDBList = psDBList.executeQuery();
 			JSONArray jArray = new JSONArray();
@@ -166,9 +166,9 @@ public class AdminDB {
 			Connection conn = AdminDB.getConnection();
 			PreparedStatement ps;
 			if (!columns.trim().isEmpty() || !tableName.trim().isEmpty() || !dbName.trim().isEmpty()) {
-				System.out.println("Not Blank+columns");
+				//System.out.println("Not Blank+columns");
 				try {
-					System.out.println("User -- > " + user);
+					//System.out.println("User -- > " + user);
 					ps = conn.prepareStatement(
 							"insert into Danpac.dbo.masterData (dbName,tableName,columnsName,chartDT,dt,url,dbInstanceName,userName,password,puser) values (?,?,?,?,?,?,?,?,?,?)");
 					ps.setString(1, dbName);
@@ -195,7 +195,7 @@ public class AdminDB {
 				}
 
 			} else {
-				System.out.println("Blank");
+				//System.out.println("Blank");
 				return false;
 			}
 			conn.close();
@@ -212,7 +212,7 @@ public class AdminDB {
 			Connection connection = DBConnection.getConnection();
 			String sql = "SELECT * INTO danpac.dbo._" + table + " FROM danpac.dbo." + table + " WHERE 1=2;";
 
-			System.out.println("SQL : " + sql);
+			//System.out.println("SQL : " + sql);
 			PreparedStatement psDBList = connection.prepareStatement(sql);
 			psDBList.execute();
 

@@ -2,9 +2,15 @@ package com.appian.prediction;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
@@ -22,7 +28,6 @@ import org.json.JSONObject;
 import com.appian.db.ChartDB;
 import com.appian.exception.PException;
 import com.appian.nn.Network;
-import com.google.gson.JsonArray;
 
 @Path("/graph")
 @Produces(MediaType.APPLICATION_JSON)
@@ -69,28 +74,48 @@ public class MeterGraphValues {
 		JSONArray meterJSONColumnA = null;
 		JSONArray meterJSONColumnB = null;
 
-		System.out.println("2 : " + dateFrom.toString() + " : " + dateTo.toString());
-
-		meterJSONColumnA = chartDB.getMeterGraphValues(fromDate, toDate,
-				(String) request.getSession().getAttribute("columnA"));
-		System.out.println("MeterJSON Column A : " + meterJSONColumnA.toString());
-
-		meterJSONColumnB = chartDB.getMeterGraphValues(fromDate, toDate,
-				(String) request.getSession().getAttribute("columnB"));
-		System.out.println("MeterJSON Column B : " + meterJSONColumnB.toString());
-		int length = meterJSONColumnA.length() < meterJSONColumnB.length() ? meterJSONColumnB.length()
-				: meterJSONColumnA.length();
-		System.out.println("!!!!!!!!!! : " + length);
-		while (length > 0) {
-			JSONObject jsonObject = new JSONObject();
-			jsonObject = mergeJSONObjects(meterJSONColumnA.getJSONObject(length - 1),
-					meterJSONColumnB.getJSONObject(length - 1));
-			System.out.println(jsonObject.toString());
-			meterJSONData.put(jsonObject);
-			length--;
+		System.out.println(
+				"[MeterGraphValues][Predict] From Date : " + dateFrom.toString() + ",  To Date : " + dateTo.toString());
+		boolean singleColumn = false;
+		String columnA = (String) request.getSession().getAttribute("columnA");
+		String columnB = (String) request.getSession().getAttribute("columnB");
+		System.out.println("[<eterGraph][Predict] : columnA : " + columnA + ", columnB : " + columnB);
+		if (columnA.equals(columnB)) {
+			singleColumn = true;
 		}
 
-		System.out.println(meterJSONData.length());
+		meterJSONColumnA = chartDB.getMeterGraphValues(fromDate, toDate,
+				(String) request.getSession().getAttribute("columnA"), singleColumn);
+		System.out.println("[MeterGraphValues][Predict]  MeterJSON Column A : " + meterJSONColumnA.toString());
+		if (!singleColumn) {
+			meterJSONColumnB = chartDB.getMeterGraphValues(fromDate, toDate,
+					(String) request.getSession().getAttribute("columnB"), singleColumn);
+
+			int length = meterJSONColumnA.length() < meterJSONColumnB.length() ? meterJSONColumnB.length()
+					: meterJSONColumnA.length();
+			System.out.println("[MeterGraphValues][Predict]  meterJSON ColumnB : " + meterJSONColumnB.toString());
+			while (length > 0) {
+				JSONObject jsonObject = new JSONObject();
+				jsonObject = mergeJSONObjects(meterJSONColumnA.getJSONObject(length - 1),
+						meterJSONColumnB.getJSONObject(length - 1));
+				// System.out.println(jsonObject.toString());
+				meterJSONData.put(jsonObject);
+				length--;
+			}
+
+		} else {
+			meterJSONData = meterJSONColumnA;
+		}
+		// System.out.println("MeterJSON Column B : " +
+		// meterJSONColumnB.toString());
+
+		// System.out.println(meterJSONData.length());
+
+		System.out.println("[MeterGraphValues][Predict] " + meterJSONData);
+		System.out.println("[MeterGraphValues][Predict] meterJSONColumnA length :  " + meterJSONColumnA.length());
+		// System.out.println("[MeterGraphValues][Predict] meterJSONColumnB
+		// length : " + meterJSONColumnB.length());
+		System.out.println("[MeterGraphValues][Predict] meterJSONData length :  " + meterJSONData.length());
 
 		return meterJSONData.toString();
 	}
@@ -134,7 +159,7 @@ public class MeterGraphValues {
 	public String Predict2(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
 			@DefaultValue("") @QueryParam("value") String predict) throws PException {
-		System.out.println("!!! " + predict);
+		// System.out.println("!!! " + predict);
 
 		Timestamp fromDate;
 		Timestamp toDate;
@@ -147,30 +172,49 @@ public class MeterGraphValues {
 			e1.printStackTrace();
 			return null;
 		}
-
+		System.out.println("!!!" + fromDate + " : " + predict);
 		PredictValues predictValues = new PredictValues();
 		predictValues.PredictNValues(request, dateFrom, Integer.parseInt(predict));
 
 		ChartDB chartDB = new ChartDB(request);
-		String meterJSONData = null;
-		System.out.println("!!!" + fromDate + " : " + predict);
-		// meterJSONData = chartDB.getMeterGraphWithPredictValues(fromDate,
-		// predict);
 
-		JSONArray jArray = new JSONArray();
-		JSONObject json = new JSONObject();
-		meterJSONData = chartDB.getMeterGraphWithPredictValues(fromDate, predict,
-				(String) request.getSession().getAttribute("columnA"));
-		json.put((String) request.getSession().getAttribute("columnA"), meterJSONData);
-		meterJSONData = chartDB.getMeterGraphWithPredictValues(fromDate, predict,
-				(String) request.getSession().getAttribute("columnB"));
-		json.put((String) request.getSession().getAttribute("columnB"), meterJSONData);
-		System.out.println(meterJSONData);
+		JSONArray meterJSONData = new JSONArray();
+		JSONArray meterJSONColumnA = null;
+		JSONArray meterJSONColumnB = null;
+		boolean singleColumn = false;
+		String columnA = (String) request.getSession().getAttribute("columnA");
+		String columnB = (String) request.getSession().getAttribute("columnB");
+		System.out.println("[MeterGraph][Predict] : columnA : " + columnA + ", columnB : " + columnB);
+		if (columnA.equals(columnB)) {
+			singleColumn = true;
+		}
 
-		jArray.put(json);
+		meterJSONColumnA = chartDB.getMeterGraphWithPredictValues(fromDate, predict,
+				(String) request.getSession().getAttribute("columnA"), singleColumn);
+		System.out.println("MeterJSON Column A : " + meterJSONColumnA.toString());
 
-		System.out.println(jArray);
-		return jArray.toString();
+		if (!singleColumn) {
+			meterJSONColumnB = chartDB.getMeterGraphWithPredictValues(fromDate, predict,
+					(String) request.getSession().getAttribute("columnB"), singleColumn);
+			System.out.println("MeterJSON Column B : " + meterJSONColumnB.toString());
+			int length = meterJSONColumnA.length() < meterJSONColumnB.length() ? meterJSONColumnB.length()
+					: meterJSONColumnA.length();
+			System.out.println("!!!!!!!!!! : " + length);
+			while (length > 0) {
+				JSONObject jsonObject = new JSONObject();
+				jsonObject = mergeJSONObjects(meterJSONColumnA.getJSONObject(length - 1),
+						meterJSONColumnB.getJSONObject(length - 1));
+				// System.out.println(jsonObject.toString());
+				meterJSONData.put(jsonObject);
+				length--;
+			}
+		} else {
+			meterJSONData = meterJSONColumnA;
+		}
+
+		// System.out.println("Predict2 - meterJSONData - Length :
+		// "+meterJSONData.length());
+		return meterJSONData.toString();
 	}
 
 }

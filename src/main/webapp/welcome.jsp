@@ -15,6 +15,15 @@
 <script src="js/export.min.js"></script>
 <script language="javascript" type="text/javascript"
 	src="js/datetimepicker.js"></script>
+
+<script src="https://code.jquery.com/jquery.min.js"></script>
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.0/bootstrap-table.min.js"></script>
+<link
+	href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.0/bootstrap-table.min.css"
+	rel="stylesheet" type="text/css" />
+
+
 <link rel="icon" type="image/x-icon" href="js/images/favicon.ico">
 <link rel="stylesheet" href="css/export.css" type="text/css" media="all" />
 <script language="javascript" type="text/javascript" src="js/moment.js"></script>
@@ -182,8 +191,13 @@ footer {
 									
 										$("#predictedColumn")
 												.change(
-														function(e) {	
-													
+														function(e) {
+															
+															if(document.getElementById("predictedColumn").value === document.getElementById("provedColumn").value){
+																alert("Both Columns can not be same !!!");
+															} 
+															else{
+																
 															$
 																	.ajax({
 																		url : 'http://localhost:8080/Prediction/prediction/graph/changeColumn?columnA='
@@ -202,7 +216,7 @@ footer {
 																		type : 'GET',
 																		dataType : 'text',
 																		success : function(
-																				response) {
+																				response) {																			
 																			console
 																					.log(response);
 																			loadChart(
@@ -211,13 +225,17 @@ footer {
 																					null,document
 																					.getElementById("predictedColumn").value,document
 																					.getElementById("provedColumn").value);
+																		
+																			
+																		
 																		},
 																		error : function(
 																				error) {
+																			
 																			alert("API failure ");
 																		}
 																	})
-														});
+														}});
 									});
 					
 					
@@ -225,8 +243,11 @@ footer {
 					$("#provedColumn")
 					.change(
 							function(e) {
-								console
-										.log("column button clicked");
+								if(document.getElementById("predictedColumn").value === document.getElementById("provedColumn").value){
+									alert("Both Columns can not be same !!!");
+								} 
+								else{
+									
 								$
 										.ajax({
 											url : 'http://localhost:8080/Prediction/prediction/graph/changeColumn?columnA='
@@ -248,23 +269,65 @@ footer {
 											dataType : 'text',
 											success : function(
 													response) {
-												console
-														.log(response);
+												console.log(response);
+									
 												loadChart(
 														'http://localhost:8080/Prediction/prediction/graph/meter',
 														null,
 														null,document
 														.getElementById("predictedColumn").value,document
 														.getElementById("provedColumn").value);
+												
 											},
 											error : function(
 													error) {
+									
 												alert("API failure ");
 											}
 										})
-							});
+								}});
 
+					function refreshDropdownA() {
+											
+						//var oldVal= document.getElementById("predictedColumn").value
+						//$("#predictedColumn").empty();
 
+						var columnName = "<%=session.getAttribute("columns")%>";
+						//salert(columnName);
+						var str_array = columnName.split(',');
+							for (var i = 0; i < str_array.length; i++) {
+								/* if(str_array[i]!=document.getElementById("provedColumn").value){
+									//alert("A : "+str_array[i]);
+									if(str_array[i]==oldVal)
+								$('#predictedColumn').append($('<option selected>', {value : str_array[i],text : str_array[i]}));
+									else */
+									$('#predictedColumn').append($('<option>', {value : str_array[i],text : str_array[i]}));
+								//}								
+						}
+						
+						
+					}
+					function refreshDropdownB() {
+						//var oldVal= document.getElementById("provedColumn").value
+						//$("#provedColumn").empty();
+						var columnName = "<%=session.getAttribute("columns")%>";
+						//alert(columnName);
+						var str_array = columnName.split(',');
+							for (var i = 0; i < str_array.length; i++) {
+
+								/* if(str_array[i]!=document.getElementById("predictedColumn").value){
+								//	alert("B : "+str_array[i]);
+								if(str_array[i]==oldVal)
+									$('#provedColumn').append($('<option selected>', {value : str_array[i],text : str_array[i]}));
+								else */
+									$('#provedColumn').append($('<option>', {value : str_array[i],text : str_array[i]}));
+								//}								
+						}
+						
+						
+					}
+					
+					
 					function loadPreviousGraph() {
 
 						/* alert("-------------"
@@ -367,20 +430,22 @@ footer {
 
 						// 						alert(document.getElementById("dateFrom").value+" : "+
 						// 								document.getElementById("dateTo").value)");
-
+												
 						if (document.getElementById("dateFrom").value == ''
 								|| document.getElementById("dateTo").value == '') {
 							alert("Please enter values");
-						} else {
+						} else{
 							loadChart(
 									'http://localhost:8080/Prediction/prediction/graph/meter',
 									document.getElementById("dateFrom").value,
 									document.getElementById("dateTo").value);
 							document.getElementById("filter").value = 1;
 						}
+							
 					}
 					function showGraph2() {
 						//alert(document.getElementById("dateFrom1").value +" : "+document.getElementById("predict").value);
+						
 						if (document.getElementById("dateFrom1").value == ''
 								|| document.getElementById("predict").value == '') {
 							alert("Please enter values");
@@ -391,6 +456,7 @@ footer {
 									document.getElementById("predict").value);
 							document.getElementById("filter").value = 2;
 						}
+						
 					}
 
 					var data;
@@ -402,12 +468,13 @@ footer {
 
 									});
 
-					function loadColumns(url) {
+					function loadColumns(url) {						
 						$.ajax({
 							url : url,
 							type : 'GET',
 							dataType : 'json',
 							success : function(response) {
+								
 								//alert(JSON.stringify(response));
 								$("#POIBody").children().remove();
 								for (var i = 0; i < response.length; i++) {
@@ -417,7 +484,8 @@ footer {
 									var dbName = obj["dbName"];
 									// 									alert(columnName + " : " + tableName
 									// 											+ " : " + dbName);
-									addRow(columnName, tableName, dbName);
+									refreshDropdownA();
+									refreshDropdownB();
 
 								}
 								loadChart(
@@ -427,35 +495,33 @@ footer {
 										.getElementById("provedColumn").value);
 							},
 							error : function(error) {
+								
 								alert("Try again");
 							},
 						});
 					}
 
-					function addRow(columnName, dataType, isNull) {
-
-						var str_array = columnName.split(',');
-						for (var i = 0; i < str_array.length; i++) {
-
-							$('#predictedColumn').append($('<option>', {
-								value : str_array[i],
-								text : str_array[i]
-							}));
-							$('#provedColumn').append($('<option>', {
-								value : str_array[i],
-								text : str_array[i]
-							}));
-
-						}
-					}
+					
 
 					function loadChart(url, CurrentDate, PreMonthDate) {
+						var d1 = Date.parse(CurrentDate);
+						var d2 = Date.parse(PreMonthDate);
+					if(d2<d1)
+						{
+						alert("To date must be gretter than from date !!!");
+						}else{
+						
+					
 				<%if ((session.getAttribute("userid") == null) || (session.getAttribute("userid") == "")) {%>
 					alert("Please Login!!!");
 						window.location = "Plogin.jsp";
 				<%} else {
-				System.out.println("-->" + (session.getAttribute("chartDT")) + " : " + (session.getAttribute("columns"))
-						+ " : " + (session.getAttribute("dbName")));
+					
+					
+					
+					
+				//System.out.println("-->" + (session.getAttribute("chartDT")) + " : " + (session.getAttribute("columns"))
+					//	+ " : " + (session.getAttribute("dbName")));
 				String chartDT = session.getAttribute("chartDT").toString();
 				String columns = session.getAttribute("columns").toString();
 				String dbName = session.getAttribute("dbName").toString();
@@ -470,145 +536,236 @@ footer {
 						var columns =  '<%=columns%>';
 						var dbName =  '<%=dbName%>';
 						var tableName =  '<%=tableName%>';
-						$.ajax( {
-							url : url,
-							data : 'dateFrom=' + CurrentDate + '&value=' + PreMonthDate,
-							beforeSend : function ( request ) {
-								request.setRequestHeader( "Authorization", "Negotiate" );
-							},
-							type : 'GET',
-							dataType : 'json',
-							success : function ( response ) {
-								//alert( JSON.stringify( response ) );
-								if ( response.length == 0 ) {
-									alert( "No Value Available !!!" );
-								} else {
-									//data = response;
-									chartData = generateChartData( response );
-									//alert(response);
-									//chart.addListener("rendered", zoomChart);
-									
-									var chart = AmCharts.makeChart( "chartdiv", {
-										"type" : "serial",
-										"theme" : "light",
-										"legend" : {
-											"useGraphSettings" : true
-										},
-										"dataProvider" : chartData,
-										"synchronizeGrid" : true,
-										"valueAxes" : [
-												{
-													"id" : "v1",
-													"axisColor" : "#FF6600",
-													"axisThickness" : 2,
-													"axisAlpha" : 1,
-													"position" : "left"
-												}, {
-													"id" : "v2",
-													"axisColor" : "#00FF00",
-													"axisThickness" : 2,
-													"axisAlpha" : 1,
-													"position" : "right"
-												}, {
-													"id" : "v3",
-													"axisColor" : "#8B4513",
-													"axisThickness" : 2,
-													"gridAlpha" : 0,
-													"offset" : 50,
-													"axisAlpha" : 1,
-													"position" : "left"
-												}, {
-													"id" : "v4",
-													"axisColor" : " #ff3300",
-													"axisThickness" : 2,
-													"gridAlpha" : 0,
-													"offset" : 50,
-													"axisAlpha" : 1,
-													"position" : "right"
-												}
-										],
-										"graphs" : [
-												{
-													"valueAxis" : "v1",
-													"lineColor" : "#FF6600",
-													"bullet" : "round",
-													"bulletBorderThickness" : 1,
-													"hideBulletsCount" : 30,
-													"title" : document.getElementById( "predictedColumn" ).value,
-													"valueField" : document.getElementById( "predictedColumn" ).value,
-													"fillAlphas" : 0
-												}, {
-													"valueAxis" : "v2",
-													"lineColor" : "#00FF00",
-													"bullet" : "round",
-													"bulletBorderThickness" : 1,
-													"hideBulletsCount" : 30,
-													"title" : "_" + document.getElementById( "predictedColumn" ).value,
-													"valueField" : "_" + document.getElementById( "predictedColumn" ).value,
-													"fillAlphas" : 0
-												}, {
-													"valueAxis" : "v3",
-													"lineColor" : "#8B4513",
-													"bullet" : "round",
-													"bulletBorderThickness" : 1,
-													"hideBulletsCount" : 30,
-													"title" : document.getElementById( "provedColumn" ).value,
-													"valueField" : document.getElementById( "provedColumn" ).value,
-													"fillAlphas" : 0
-												}, {
-													"valueAxis" : "v4",
-													"lineColor" : "#ff3300",
-													"bullet" : "triangleUp",
-													"bulletBorderThickness" : 1,
-													"hideBulletsCount" : 30,
-													"title" : "_" + document.getElementById( "provedColumn" ).value,
-													"valueField" : "_" + document.getElementById( "provedColumn" ).value,
-													"fillAlphas" : 0
-												}
+						document.getElementById("btnLoad").disabled = true; 
+							$.ajax( {
+								url : url,
+								data : 'dateFrom=' + CurrentDate + '&value=' + PreMonthDate,
+								beforeSend : function ( request ) {
+									request.setRequestHeader( "Authorization", "Negotiate" );
+								},
+								type : 'GET',
+								dataType : 'json',
+								success : function ( response ) {
+									//( JSON.stringify( response ) );
 
-										],
-										"chartScrollbar" : {},
-										"chartCursor" : {
-											"cursorPosition" : "mouse",
-											"categoryBalloonDateFormat" : "YYYY-MM-DD HH:NN:SS"
-										},
-										"categoryField" : chartDT,
-										"categoryAxis" : {
-											"parseDates" : true,
-											"axisColor" : "#DADADA",
-											"minorGridEnabled" : true
-										},
-										"export" : {
-											"enabled" : true,
-											"dateFormat" : "YYYY-MM-DD HH:NN:SS",
-											"position" : "bottom-right"
+									if ( response.length == 0 ) {
+										alert( "No Value Available !!!" );
+									} else {
+										//data = response;				
+										//document.getElementById( "table" ).deleteTHead();
+										// 									var rows = "<thead><tr><th data-field="+chartDT+">" + chartDT + "</th><th data-field=" + document.getElementById( "predictedColumn" ).value + ">" + document.getElementById( "predictedColumn" ).value + "</th><th data-field=" + "_"
+										// 											+ document.getElementById( "predictedColumn" ).value + ">" + "_" + document.getElementById( "predictedColumn" ).value + "</th><th data-field=" + document.getElementById( "provedColumn" ).value + ">" + document.getElementById( "provedColumn" ).value
+										// 											+ "</th><th data-field=" + "_" + document.getElementById( "provedColumn" ).value + ">" + "_" + document.getElementById( "provedColumn" ).value + "</th></tr></thead>";
+										// 									//var rows = "<thead><tr><th >DateTime</th><th >asdas</th><th>asasasa</th><th >zzzzz</th><th >qqqq</th></tr></thead>";
+										// 									var table = document.createElement( 'table' );
+										// 									table.innerHTML = rows;
+										// 									document.getElementById( "table" ).appendChild( table.firstChild );
+
+										CreateTableFromJSON( response );
+										document.getElementById("btnLoad").disabled = false; 
+										/* 	$( '#table' ).bootstrapTable( 'destroy' );
+
+											$( '#table' ).bootstrapTable( {
+												data : response
+											} ); */
+										//alert( "table called" );
+										chartData = generateChartData( response );
+										//alert(response);
+										//chart.addListener("rendered", zoomChart);
+
+										var chart = AmCharts.makeChart( "chartdiv", {
+											"type" : "serial",
+											"theme" : "light",
+											"legend" : {
+												"useGraphSettings" : true
+											},
+											"dataProvider" : chartData,
+											"synchronizeGrid" : true,
+											"valueAxes" : [
+													{
+														"id" : "v1",
+														"axisColor" : "#FF6600",
+														"axisThickness" : 2,
+														"axisAlpha" : 1,
+														"position" : "left"
+													}, {
+														"id" : "v2",
+														"axisColor" : "#00FF00",
+														"axisThickness" : 2,
+														"axisAlpha" : 1,
+														"position" : "right"
+													}, {
+														"id" : "v3",
+														"axisColor" : "#8B4513",
+														"axisThickness" : 2,
+														"gridAlpha" : 0,
+														"offset" : 50,
+														"axisAlpha" : 1,
+														"position" : "left"
+													}, {
+														"id" : "v4",
+														"axisColor" : " #ff3300",
+														"axisThickness" : 2,
+														"gridAlpha" : 0,
+														"offset" : 50,
+														"axisAlpha" : 1,
+														"position" : "right"
+													}
+											],
+											"graphs" : [
+													{
+														"valueAxis" : "v1",
+														"lineColor" : "#FF6600",
+														"bullet" : "round",
+														"bulletBorderThickness" : 1,
+														"hideBulletsCount" : 30,
+														"title" : document.getElementById( "predictedColumn" ).value,
+														"valueField" : document.getElementById( "predictedColumn" ).value,
+														"fillAlphas" : 0
+													}, {
+														"valueAxis" : "v2",
+														"lineColor" : "#00FF00",
+														"bullet" : "triangleUp",
+														"bulletBorderThickness" : 1,
+														"hideBulletsCount" : 30,
+														"title" : "_" + document.getElementById( "predictedColumn" ).value,
+														"valueField" : "_" + document.getElementById( "predictedColumn" ).value,
+														"fillAlphas" : 0
+													}, {
+														"valueAxis" : "v3",
+														"lineColor" : "#8B4513",
+														"bullet" : "round",
+														"bulletBorderThickness" : 1,
+														"hideBulletsCount" : 30,
+														"title" : document.getElementById( "provedColumn" ).value,
+														"valueField" : document.getElementById( "provedColumn" ).value,
+														"fillAlphas" : 0
+													}, {
+														"valueAxis" : "v4",
+														"lineColor" : "#ff3300",
+														"bullet" : "triangleUp",
+														"bulletBorderThickness" : 1,
+														"hideBulletsCount" : 30,
+														"title" : "_" + document.getElementById( "provedColumn" ).value,
+														"valueField" : "_" + document.getElementById( "provedColumn" ).value,
+														"fillAlphas" : 0
+													}
+
+											],
+											"chartScrollbar" : {},
+											"chartCursor" : {
+
+												"categoryBalloonDateFormat" : "YYYY-MM-DD JJ:NN",
+												"cursorPosition" : "mouse",
+												"selectWithoutZooming" : true,
+												"listeners" : [
+													{
+														"event" : "selected",
+														"method" : function ( event ) {
+															var start = new Date( event.start );
+															var end = new Date( event.end );
+															document.getElementById( 'info' ).innerHTML = "Selected: " + start.toLocaleTimeString() + " -- " + end.toLocaleTimeString()
+														}
+													}
+												]
+											},
+											"categoryField" : chartDT,
+											"categoryAxis" : {
+												"parseDates" : true,
+												"axisColor" : "#DADADA",
+												"minPeriod" : "mm",
+												"minorGridEnabled" : true
+
+											},
+											"export" : {
+												"enabled" : true,
+												"dateFormat" : "YYYY-MM-DD JJ:NN:SS.Q",
+												"position" : "bottom-right"
+											}
+										} );
+
+										chart.addListener( "dataUpdated", zoomChart );
+										zoomChart();
+
+										function generateChartData ( response ) {
+											return response;
 										}
-									} );
 
-									chart.addListener( "dataUpdated", zoomChart );
-									zoomChart();
-									
-									function generateChartData ( response ) {
-										return response;
+										function zoomChart () {
+											chart.zoomToIndexes( chart.dataProvider.length - 40, chart.dataProvider.length - 1 );
+
+										}
 									}
 
-									function zoomChart () {
-										chart.zoomToIndexes( chart.dataProvider.length - 40, chart.dataProvider.length - 1 );
-
-									}
-								}
-							},
-							error : function ( error ) {
-								alert( "Try again" );
-							},
-						} );
+								},
+								error : function ( error ) {
+									document.getElementById("btnLoad").disabled = false; 
+									alert( "Try again" );
+								},
+							} );
 				<%}
 			}%>
+					}
+					}
+
+					function CreateTableFromJSON ( tableData ) {
+
+						// EXTRACT VALUE FOR HTML HEADER. 
+						// ('Book ID', 'Book Name', 'Category' and 'Price')
+						var col = [];
+						for ( var i = 0; i < tableData.length; i++ ) {
+							for ( var key in tableData[ i ] ) {
+								if ( col.indexOf( key ) === -1 ) {
+									col.push( key );
+								}
+							}
+						}
+
+						// CREATE DYNAMIC TABLE.
+						var table = document.createElement( "table" );
+						table.classList.add( 'table' );
+
+						// CREATE HTML TABLE HEADER ROW USING THE EXTRACTED HEADERS ABOVE.
+
+						var tr = table.insertRow( -1 ); // TABLE ROW.
+
+						for ( var i = 0; i < col.length; i++ ) {
+							var th = document.createElement( "th" ); // TABLE HEADER.
+							th.innerHTML = col[ i ];
+							tr.appendChild( th );
+						}
+
+						// ADD JSON DATA TO THE TABLE AS ROWS.
+						for ( var i = 0; i < tableData.length; i++ ) {
+
+							tr = table.insertRow( -1 );
+
+							for ( var j = 0; j < col.length; j++ ) {
+								var tabCell = tr.insertCell( -1 );
+								//alert("---> : "+tableData[i][col[j]]);
+								tabCell.innerHTML = tableData[ i ][ col[ j ] ] == undefined ? "-" : tableData[ i ][ col[ j ] ];
+							}
+						}
+
+						// FINALLY ADD THE NEWLY CREATED TABLE WITH JSON DATA TO A CONTAINER.
+						var divContainer = document.getElementById( "showData" );
+						divContainer.innerHTML = "";
+						divContainer.appendChild( table );
 					}
 				</script>
 
 				<!-- HTML -->
 				<div id="chartdiv"></div>
+				<br> <br>
+				<p>
+				<h1>Prediction Table</h1>
+				<p>
+				<div id="showData" class="table-responsive"></div>
+
+				<!-- 				<div class="table-responsive"> -->
+				<!-- 					<table class="table" id="table"> -->
+				<!-- 					</table> -->
+				<!-- 				</div> -->
 
 			</div>
 			<div class="col-sm-3 sidenav">
@@ -710,13 +867,8 @@ footer {
 						</div>
 					</div>
 				</div>
-				<!-- <div class="well">
-					<p>ADS</p>
-				</div>
-				<div class="well">
-					<p>ADS</p>
-				</div> -->
 			</div>
+
 		</div>
 	</div>
 

@@ -1,7 +1,6 @@
 package com.appian.db;
 
 import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -23,6 +22,7 @@ import org.json.JSONObject;
 
 import com.appian.exception.PException;
 import com.appian.nn.Network;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 
 public class ChartDB {
 	public String url;
@@ -46,14 +46,14 @@ public class ChartDB {
 		try {
 			Connection connection = DBConnection.getConnection();
 			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData ";
-			System.out.println("Inside ChartDB() : " + sql);
+			// System.out.println("Inside ChartDB() : " + sql);
 			PreparedStatement psDBList;
 
 			psDBList = connection.prepareStatement(sql);
 
 			ResultSet rsDBList = psDBList.executeQuery();
 			if (rsDBList.next()) {
-				System.out.println("if rsDBList");
+				// System.out.println("if rsDBList");
 				url = rsDBList.getString("url");
 				columns = rsDBList.getString("columnsName");
 				tableName = rsDBList.getString("tableName");
@@ -63,7 +63,7 @@ public class ChartDB {
 				userName = rsDBList.getString("userName");
 				password = rsDBList.getString("password");
 			} else {
-				System.out.println("ELSE rsDBList");
+				// System.out.println("ELSE rsDBList");
 				url = DBConnection.url;
 				// this.columns = DBConnection.columns;
 				tableName = DBConnection.tableName;
@@ -106,7 +106,7 @@ public class ChartDB {
 		password = (String) jobj.getString("password");
 		chartDT = (String) jobj.getString("chartDT");
 		dbName = (String) jobj.getString("dbName");
-		System.out.println("ChartDB --> Columns : " + columns);
+		// System.out.println("ChartDB --> Columns : " + columns);
 
 	}
 
@@ -125,7 +125,11 @@ public class ChartDB {
 			if (columns != null) {
 				request.getSession().setAttribute("columns", columns);
 				request.getSession().setAttribute("columnA", columns.split(",")[0]);
-				request.getSession().setAttribute("columnB", columns.split(",")[1]);
+				try {
+					request.getSession().setAttribute("columnB", columns.split(",")[1]);
+				} catch (ArrayIndexOutOfBoundsException e) {
+					request.getSession().setAttribute("columnB", columns.split(",")[0]);
+				}
 			}
 		} else {
 			url = (String) request.getSession().getAttribute("url");
@@ -141,8 +145,12 @@ public class ChartDB {
 			String chartDT = (String) request.getSession().getAttribute("chartDT");
 			String dbName = (String) request.getSession().getAttribute("dbName");
 			String tableName = (String) request.getSession().getAttribute("tableName");
-			System.out.println("ChartDB --> Columns : " + columns);
-			this.columnName = predicted == null ? columns.split(",")[0] : predicted;
+			// System.out.println("ChartDB --> Columns : " + columns);
+			try {
+				this.columnName = predicted == null ? columns.split(",")[0] : predicted;
+			} catch (Exception e) {
+
+			}
 		}
 
 		// this.provedColumnName = proved == null ?
@@ -151,14 +159,17 @@ public class ChartDB {
 		dbName = dbName == null ? "" : dbName;
 		tableName = tableName == null ? "" : tableName;
 
-		System.out.println("DBConnection -> dbName : " + dbName + ", tableName : " + tableName);
+		// System.out.println("DBConnection -> dbName : " + dbName + ",
+		// tableName : " + tableName);
 	}
 
 	public Connection getConnection() throws PException {
 		try {
-			System.out.println("URL : " + url + " : " + ",\nColumn : " + columns + ",\nTableName : " + tableName
-					+ "\nDBName : " + dbName + "\nChartDT : " + chartDT + "\ndbInstanceName : " + dbInstanceName
-					+ "\nUserName : " + userName + "\nPassword : " + password);
+			// System.out.println("URL : " + url + " : " + ",\nColumn : " +
+			// columns + ",\nTableName : " + tableName
+			// + "\nDBName : " + dbName + "\nChartDT : " + chartDT +
+			// "\ndbInstanceName : " + dbInstanceName
+			// + "\nUserName : " + userName + "\nPassword : " + password);
 
 			Class.forName(driver).newInstance();
 			Connection conn = DriverManager.getConnection(url + dbInstanceName, userName, password);
@@ -169,7 +180,8 @@ public class ChartDB {
 		}
 	}
 
-	public ArrayList<Timestamp> getActualTimestamps(Timestamp fromDate, Timestamp toDate,String tableName) throws PException {
+	public ArrayList<Timestamp> getActualTimestamps(Timestamp fromDate, Timestamp toDate, String tableName)
+			throws PException {
 		try {
 			ArrayList<Timestamp> times = new ArrayList<Timestamp>();
 			Connection conn = getConnection();
@@ -204,7 +216,8 @@ public class ChartDB {
 					+ ",tab2." + Column + ") as val1 FROM " + dbName + ".dbo." + tableName
 					+ " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1." + chartDT
 					+ "=tab2." + chartDT + " where tab1." + chartDT + ">=? and tab1." + chartDT + "<=? order by dt ";
-			System.out.println("[getActualValuesAndSetNormalizationFactors] : " + query);
+			// System.out.println("[getActualValuesAndSetNormalizationFactors] :
+			// " + query);
 			PreparedStatement ps = conn.prepareStatement(query);
 			ps.setTimestamp(1, fromDate);
 			ps.setTimestamp(2, toDate);
@@ -213,9 +226,10 @@ public class ChartDB {
 			Double value;
 			while (rs.next()) {
 				times.add(rs.getTimestamp(1));
-				System.out.println("times : " + times);
+				// System.out.println("times : " + times);
 				value = rs.getDouble(2);
-				System.out.println("times : " + times + " , value : " + value);
+				// System.out.println("times : " + times + " , value : " +
+				// value);
 				values.add(value);
 				if (network.max < value)
 					network.max = value;
@@ -233,11 +247,12 @@ public class ChartDB {
 		}
 	}
 
-	public void savePredictedValues(NavigableMap<Timestamp, Double> values2, String column, String tableName) throws PException {
+	public void savePredictedValues(NavigableMap<Timestamp, Double> values2, String column, String tableName)
+			throws PException {
 		try {
 			Connection conn = getConnection();
 
-			ArrayList<Timestamp> times = getActualTimestamps(values2.firstKey(), values2.lastKey(),tableName);
+			ArrayList<Timestamp> times = getActualTimestamps(values2.firstKey(), values2.lastKey(), tableName);
 			PreparedStatement ps;
 			for (Entry<Timestamp, Double> e : values2.entrySet()) {
 				if (times.contains(e.getKey()))
@@ -267,15 +282,15 @@ public class ChartDB {
 					+ " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + " where tab1." + chartDT
 					+ " <? and coalesce(tab1." + column + ",tab2." + column + ") is not null ) as  a order by dt desc;";
 			PreparedStatement preparedStatement = conn.prepareStatement(query);
-			System.out.println("--> " + query);
-			System.out.println("--> " + fromDate);
+			// System.out.println("--> " + query);
+			// System.out.println("--> " + fromDate);
 			preparedStatement.setTimestamp(1, fromDate);
 			ResultSet rs = preparedStatement.executeQuery();
 			ArrayList<Timestamp> previousValues = new ArrayList<Timestamp>();
 			double[] previousValuesList = new double[network.slidingWindowSize];
 			int i = network.slidingWindowSize - 1;
 			while (rs.next()) {
-				System.out.println("@@@@ : " + rs.getTimestamp(1));
+				// System.out.println("@@@@ : " + rs.getTimestamp(1));
 				previousValues.add(rs.getTimestamp(1));
 				previousValuesList[i--] = network.normalizeValue(rs.getDouble(2));
 			}
@@ -287,14 +302,14 @@ public class ChartDB {
 						+ " where coalesce(tab1." + column + ",tab2." + column
 						+ ") is not null ) as  a order by dt desc;";
 				PreparedStatement preparedStatement1 = conn.prepareStatement(query1);
-				System.out.println("--> " + query1);
-				System.out.println("--> " + fromDate);
+				// System.out.println("--> " + query1);
+				// System.out.println("--> " + fromDate);
 				rs = preparedStatement1.executeQuery();
 				previousValues = new ArrayList<Timestamp>();
 				previousValuesList = new double[network.slidingWindowSize];
 				i = network.slidingWindowSize - 1;
 				while (rs.next()) {
-					System.out.println("@@@@ : " + rs.getTimestamp(1));
+					// System.out.println("@@@@ : " + rs.getTimestamp(1));
 					previousValues.add(rs.getTimestamp(1));
 					previousValuesList[i--] = network.normalizeValue(rs.getDouble(2));
 				}
@@ -309,7 +324,7 @@ public class ChartDB {
 					return o2.getTime() >= o1.getTime() ? -1 : 1;
 				}
 			});
-			System.out.println(previousValues.size());
+			// System.out.println(previousValues.size());
 			Long avgDelay = findAvgDelay(previousValues);
 
 			PreparedStatement getValues = conn.prepareStatement("select coalesce(tab1." + chartDT + ",tab2." + chartDT
@@ -348,7 +363,7 @@ public class ChartDB {
 				network.getNeuralNetwork().learn(network.trainingSet);
 				previousTime = valuesSet.getTimestamp(1).getTime();
 				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
-				System.out.println("--- > " + nextVal);
+				// System.out.println("--- > " + nextVal);
 			}
 
 			while (toDate.getTime() - previousTime > 2 * avgDelay) {
@@ -356,7 +371,7 @@ public class ChartDB {
 				previousValuesList = this.shiftAllLeft(previousValuesList, network.normalizeValue(nextVal));
 				previousTime = previousTime + avgDelay;
 				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
-				System.out.println("--- > " + nextVal);
+				// System.out.println("--- > " + nextVal);
 			}
 			return predictedValuesMap;
 		} catch (Exception e) {
@@ -370,12 +385,14 @@ public class ChartDB {
 			Network network, String column) throws PException {
 		try {
 			Connection conn = getConnection();
-			PreparedStatement preparedStatement = conn.prepareStatement("select top " + network.slidingWindowSize
-					+ " * from (select coalesce(tab1." + chartDT + ",tab2." + chartDT + ") as dt ,coalesce(tab1."
-					+ column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo." + tableName
-					+ " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1." + chartDT
-					+ "=tab2." + chartDT + " where tab1." + chartDT + " <? and coalesce(tab1." + column + ",tab2."
-					+ column + ") is not null ) as  a order by dt desc;");
+
+			String query = "select top " + network.slidingWindowSize + " * from (select coalesce(tab1." + chartDT
+					+ ",tab2." + chartDT + ") as dt ,coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM "
+					+ dbName + ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName
+					+ " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + " where tab1." + chartDT
+					+ " <? and coalesce(tab1." + column + ",tab2." + column + ") is not null ) as  a order by dt desc;";
+			PreparedStatement preparedStatement = conn.prepareStatement(query);
+			System.out.println("[ChartDB][getPredictedValues] : Query : " + query);
 			preparedStatement.setTimestamp(1, fromDate);
 			ResultSet prevValRs = preparedStatement.executeQuery();
 			ArrayList<Timestamp> previousValues = new ArrayList<Timestamp>();
@@ -395,15 +412,15 @@ public class ChartDB {
 			});
 			Long avgDelay = findAvgDelay(previousValues);
 
-			PreparedStatement getValues = conn.prepareStatement("select top " + numberOfValues
-					+ " * from (select coalesce(tab1." + chartDT + ",tab2." + chartDT + ") as dt ,coalesce(tab1."
-					+ column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo." + tableName
-					+ " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1." + chartDT
-					+ "=tab2." + chartDT + " where tab1." + chartDT + ">?) as a order by dt ");
+			query = "select top " + numberOfValues + " * from (select coalesce(tab1." + chartDT + ",tab2." + chartDT
+					+ ") as dt ,coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo."
+					+ tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1."
+					+ chartDT + "=tab2." + chartDT + " where tab1." + chartDT + ">?) as a order by dt ";
+			PreparedStatement getValues = conn.prepareStatement(query);
 			getValues.setTimestamp(1, fromDate);
 			ResultSet valuesSet = getValues.executeQuery();
 			double nextVal;
-
+			System.out.println("[ChartDB][getPredictedValues] : Top 10 : " + query);
 			Long previousTime = findPrevTime(fromDate, previousValuesList, network,
 					previousValues.get(previousValues.size() - 1).getTime(), avgDelay);
 			TreeMap<Timestamp, Double> predictedValuesMap = new TreeMap<Timestamp, Double>();
@@ -480,34 +497,42 @@ public class ChartDB {
 		return previousValuesList;
 	}
 
-	public JSONArray getMeterGraphValues(Timestamp fromDate, Timestamp toDate, String column) throws PException {
+	public JSONArray getMeterGraphValues(Timestamp fromDate, Timestamp toDate, String column, Boolean singleColumn)
+			throws PException {
 		try {
 			Connection conn = getConnection();
 			PreparedStatement ps;
+
+			String orderBy = "";
+			if (singleColumn) {
+				orderBy = " order by dt  ";
+			} else {
+				orderBy = " order by dt desc ";
+			}
 
 			if (fromDate == null && toDate == null) {
 				String query = "SELECT coalesce(tab1." + chartDT + ",tab2." + chartDT + ") as dt ,ISNULL(tab1." + column
 						+ ",0) as predicted,ISNULL(tab2." + column + ",0) as proved from " + dbName + ".dbo."
 						+ tableName + " as tab1 full outer join " + tableName + " as tab2 on tab1." + chartDT + "=tab2."
-						+ chartDT + " order by dt desc ";
-				System.out.println("[getMeterGraphValues] : from\\to date is null Query : " + query);
+						+ chartDT + orderBy;
+				System.out.println("[ChartDB][getMeterGraphValues] : " + query);
 				ps = conn.prepareStatement(query);
-				System.out.println("---> : " + query);
+				// System.out.println("---> : " + query);
 			} else {
 				String query = "SELECT coalesce(tab1." + chartDT + ",tab2." + chartDT + ") as dt ,ISNULL(tab1." + column
 						+ ",0) as val1, ISNULL(tab2." + column + ",0) as val2  FROM  [" + dbName + "].[dbo].["
 						+ tableName + "] as tab1 FULL OUTER join [" + dbName + "].[dbo].[_" + tableName
 						+ "] as tab2 on tab1." + chartDT + "=tab2." + chartDT + " where coalesce(tab1." + chartDT
-						+ ",tab2." + chartDT + ") > ? and coalesce(tab1." + chartDT + ",tab2." + chartDT
-						+ ") <? order by dt desc ";
-				System.out.println("[getMeterGraphValues] : from \\ to date Not null Query : " + query);
+						+ ",tab2." + chartDT + ") > ? and coalesce(tab1." + chartDT + ",tab2." + chartDT + ") <? "
+						+ orderBy;
+				System.out.println("[ChartDB][getMeterGraphValues] : Query " + query);
 				ps = conn.prepareStatement(query);
 
 				ps.setTimestamp(1, fromDate);
 				ps.setTimestamp(2, toDate);
-				System.out.println("---> : " + query);
+				// System.out.println("---> : " + query);
 			}
-			System.out.println("3 : " + fromDate + " : " + toDate);
+			// System.out.println("3 : " + fromDate + " : " + toDate);
 
 			JSONArray jArray = new JSONArray();
 
@@ -521,27 +546,29 @@ public class ChartDB {
 						+ " where tab1." + chartDT + "<? order by dt desc) a order by  dt desc";
 				oldValues = conn.prepareStatement(query);
 				oldValues.setTimestamp(1, fromDate);
-				System.out.println("[getMeterGraphValues] : " + query);
+				System.out.println("[ChartDB][getMeterGraphValues] : Top10  : " + query);
 				rsOld = oldValues.executeQuery();
 				while (rsOld.next()) {
 					String timestamp = rsOld.getString(1);
 					Float actual = rsOld.getString(2) != null ? Float.valueOf(rsOld.getString(2)) : 0f;
 					Float predicted = rsOld.getString(3) != null ? Float.valueOf(rsOld.getString(3)) : 0f;
-					System.out.println("actual : " + actual + ", predicted" + predicted);
+					// System.out.println("actual : " + actual + ", predicted" +
+					// predicted);
 
 					if (actual == null || predicted == null || actual.equals(0f)) {
 					} else
 						Math.abs(((actual - predicted) / actual) * 100);
 					JSONObject json = new JSONObject();
-					System.out.println(
-							timestamp + " : actual : " + actual.toString() + ", predicted" + predicted.toString());
+					// System.out.println(
+					// timestamp + " : actual : " + actual.toString() + ",
+					// predicted" + predicted.toString());
 					json.put(chartDT, timestamp);
 					json.put(column, actual == 0f ? null : actual.toString());
 					json.put("_" + column, predicted == 0f ? null : predicted.toString());
-					System.out.println("json : " + json.toString());
+					// System.out.println("json : " + json.toString());
 					// json.put("error", error != null ? error.toString() :
 					// null);
-					// System.out.println("[getMeterGraphValues] : JSON1 : " +
+					// //System.out.println("[getMeterGraphValues] : JSON1 : " +
 					// json.toString());
 					jArray.put(json);
 				}
@@ -559,16 +586,17 @@ public class ChartDB {
 					Math.abs(((actual - predicted) / actual) * 100);
 				JSONObject json = new JSONObject();
 
-				// System.out.println("timestamp : " + timestamp + ", actual : "
+				// //System.out.println("timestamp : " + timestamp + ", actual :
+				// "
 				// + actual + ", predicted : " + predicted);
 				json.put(chartDT, timestamp);
 				json.put(column, actual == 0f ? null : actual.toString());
 				json.put("_" + column, predicted == 0f ? null : predicted.toString());
 				// json.put("error", error != null ? error.toString() : null);
 
-				System.out.println("json2 : " + json.toString());
+				// System.out.println("json2 : " + json.toString());
 				jArray.put(json);
-				// System.out.println("[getMeterGraphValues] : JSON2 : " +
+				// //System.out.println("[getMeterGraphValues] : JSON2 : " +
 				// json.toString());
 			}
 
@@ -585,14 +613,22 @@ public class ChartDB {
 
 	}
 
-	public String getMeterGraphWithPredictValues(Timestamp fromDate, String predict, String column) throws PException {
+	public JSONArray getMeterGraphWithPredictValues(Timestamp fromDate, String predict, String column,
+			Boolean singleColumn) throws PException {
 		try {
+			String orderBy = "";
+			if (singleColumn) {
+				orderBy = " order by dt desc ";
+			} else {
+				orderBy = " order by dt ";
+			}
+
 			Connection conn = getConnection();
-			String querry = "SELECT TOP " + predict + " tab1." + chartDT + ",tab1." + column + " as val1,tab2." + column
-					+ " as val2 FROM [" + dbName + "].[dbo].[" + tableName + "] as tab1 FULL OUTER join [" + dbName
-					+ "].[dbo].[_" + tableName + "] as tab2 on tab1." + chartDT + "=tab1." + chartDT + " where "
-					+ chartDT + ">? order by " + chartDT + " ";
-			System.out.println("[getMeterGraphWithPredictValues] : " + querry);
+			String querry = "SELECT TOP " + predict + " coalesce(tab1." + chartDT + ",tab2." + chartDT
+					+ ") as dt ,tab1." + column + " as val1,tab2." + column + " as val2 FROM [" + dbName + "].[dbo].["
+					+ tableName + "] as tab1 FULL OUTER join [" + dbName + "].[dbo].[_" + tableName
+					+ "] as tab2 on tab1." + chartDT + "=tab2." + chartDT + " where  tab1." + chartDT + ">? " + orderBy;
+			System.out.println("[ChartDB][getMeterGraphWithPredictValues] : Query : " + querry);
 			PreparedStatement ps = conn.prepareStatement(querry);
 			ps.setTimestamp(1, fromDate);
 
@@ -603,10 +639,13 @@ public class ChartDB {
 			if (fromDate != null) {
 				PreparedStatement oldValues;
 				ResultSet rsOld = null;
-				String sql = "select * from (SELECT top " + ChartDB.oldValues + " tab1." + chartDT + ",tab1" + column
-						+ " as val1, tab2." + column + " as val2 FROM [" + dbName + "].[dbo].[" + tableName + "] where "
-						+ chartDT + "<? order by " + chartDT + " desc) a order by " + chartDT + "";
-				System.out.println("[getMeterGraphWithPredictValues] : " + sql);
+				String sql = "select * from (SELECT top " + ChartDB.oldValues + " coalesce(tab1." + chartDT + ",tab2."
+						+ chartDT + ")as dt, tab1." + column + " as val1, tab2." + column + " as val2 FROM [" + dbName
+						+ "].[dbo].[" + tableName + "] as tab1 FULL OUTER join [" + dbName + "].[dbo].[_" + tableName
+						+ "] as tab2 on tab1." + chartDT + "=tab2." + chartDT + " where coalesce(tab1." + chartDT
+						+ ",tab2." + chartDT + ") <? order by dt desc) a " + orderBy;
+
+				System.out.println("[ChartDB][getMeterGraphWithPredictValues] : Top : " + sql);
 				oldValues = conn.prepareStatement(sql);
 				oldValues.setTimestamp(1, fromDate);
 				rsOld = oldValues.executeQuery();
@@ -614,14 +653,16 @@ public class ChartDB {
 					String timestamp = rsOld.getString(1);
 					Float actual = rsOld.getString(2) != null ? Float.valueOf(rsOld.getString(2)) : 0f;
 					Float predicted = rsOld.getString(3) != null ? Float.valueOf(rsOld.getString(3)) : 0f;
-					System.out.println(column + " -> actual : " + actual + ", predicted : " + predicted);
+					// System.out.println(column + " -> actual : " + actual + ",
+					// predicted : " + predicted);
 					if (actual == null || predicted == null || actual.equals(0f)) {
 					} else
 						Math.abs(((actual - predicted) / actual) * 100);
 					JSONObject json = new JSONObject();
 
-					System.out.println(column + " -> actual.toString() : " + actual.toString()
-							+ ", predicted.toString() : " + predicted.toString());
+					// System.out.println(column + " -> actual.toString() : " +
+					// actual.toString()
+					// + ", predicted.toString() : " + predicted.toString());
 					json.put(chartDT, timestamp);
 					json.put(column, actual == 0f ? null : actual.toString());
 					json.put("_" + column, predicted == 0f ? null : predicted.toString());
@@ -654,7 +695,7 @@ public class ChartDB {
 			ps.close();
 			rs.close();
 			conn.close();
-			return jArray.toString();
+			return jArray;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new PException("Unable to get Meter Graph With Predict Values !!!");
@@ -667,15 +708,15 @@ public class ChartDB {
 			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData where puser='"
 					+ pUser + "' order by dt desc ";
 
-			System.out.println("SQL : " + sql);
+			// System.out.println("SQL : " + sql);
 			PreparedStatement psDBList = connection.prepareStatement(sql);
-			System.out.println("1");
+			// System.out.println("1");
 			ResultSet rsDBList = psDBList.executeQuery();
-			System.out.println("2");
+			// System.out.println("2");
 			JSONArray jArray = new JSONArray();
-			System.out.println("3");
+			// System.out.println("3");
 			if (rsDBList.next()) {
-				System.out.println("4 - IF");
+				// System.out.println("4 - IF");
 				JSONObject json = new JSONObject();
 				json.put("url", rsDBList.getString("url"));
 				json.put("dbInstanceName", rsDBList.getString("dbInstanceName"));
@@ -695,17 +736,22 @@ public class ChartDB {
 				request.getSession().setAttribute("userName", rsDBList.getString("userName"));
 				request.getSession().setAttribute("password", rsDBList.getString("password"));
 				request.getSession().setAttribute("columns", rsDBList.getString("columnsName"));
-				columns= rsDBList.getString("columnsName");
+				columns = rsDBList.getString("columnsName");
 				request.getSession().setAttribute("pUser", pUser);
 				if (columns != null) {
 					request.getSession().setAttribute("columns", columns);
 					request.getSession().setAttribute("columnA", columns.split(",")[0]);
-					request.getSession().setAttribute("columnB", columns.split(",")[1]);
+					try {
+						request.getSession().setAttribute("columnB", columns.split(",")[1]);
+					} catch (ArrayIndexOutOfBoundsException e) {
+						request.getSession().setAttribute("columnB", columns.split(",")[0]);
+					}
+
 				}
 
-				System.out.println(" IF JSON : " + jArray.toString());
+				// System.out.println(" IF JSON : " + jArray.toString());
 			} else {
-				System.out.println("5 - Else getColumns");
+				// System.out.println("5 - Else getColumns");
 				JSONObject json = new JSONObject();
 				json.put("url", DBConnection.url);
 				json.put("dbInstanceName", DBConnection.dbInstanceName);
@@ -714,9 +760,9 @@ public class ChartDB {
 				json.put("userName", DBConnection.userName);
 				json.put("password", DBConnection.password);
 				jArray.put(json);
-				System.out.println("ELSE JSON : " + jArray.toString());
+				// System.out.println("ELSE JSON : " + jArray.toString());
 			}
-			System.out.println("JSON : " + jArray.toString());
+			// System.out.println("JSON : " + jArray.toString());
 			return jArray.toString();
 
 		} catch (Exception e) {

@@ -47,7 +47,7 @@ public class Admin {
 		try {
 			Connection connection = DBConnection.getConnection();
 			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData order by dt desc ";
-			System.out.println("SQL : " + sql);
+			//System.out.println("SQL : " + sql);
 			PreparedStatement psDBList;
 
 			psDBList = connection.prepareStatement(sql);
@@ -66,7 +66,7 @@ public class Admin {
 			}
 			else{
 
-				System.out.println("5");
+				//System.out.println("5");
 				JSONObject json = new JSONObject();
 				json.put("url", DBConnection.getUrl());
 				json.put("dbInstanceName", DBConnection.getDbInstanceName());
@@ -75,7 +75,7 @@ public class Admin {
 				json.put("userName", DBConnection.getUserName());
 				json.put("password", DBConnection.getPassword());
 				jArray.put(json);
-				System.out.println("ELSE JSON : " + jArray.toString());
+				//System.out.println("ELSE JSON : " + jArray.toString());
 			
 			}
 			
@@ -94,7 +94,7 @@ public class Admin {
 	public String Database(@Context HttpServletRequest request) throws PException {
 		// adminDb = new AdminDB(request);
 		String dbList = adminDb.getDBList();
-		System.out.println(dbList);
+		//System.out.println(dbList);
 		return dbList;
 	}
 
@@ -103,10 +103,10 @@ public class Admin {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String Table(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("dbName") String db)
 			throws PException {
-		System.out.println("table : " + db);
+		//System.out.println("table : " + db);
 		// adminDb = new AdminDB(request);
 		String dbList = adminDb.getTableList(db);
-		System.out.println(dbList);
+		//System.out.println(dbList);
 		return dbList;
 	}
 
@@ -115,10 +115,10 @@ public class Admin {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String Columns(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("tableName") String table,
 			@DefaultValue("") @QueryParam("dbName") String db) throws PException {
-		System.out.println("table : " + table);
+		//System.out.println("table : " + table);
 		// AdminDB dbConnection = new AdminDB(request);
 		String dbList = adminDb.getColumnsList(table, db);
-		System.out.println(dbList);
+		//System.out.println(dbList);
 		return dbList;
 	}
 
@@ -130,13 +130,13 @@ public class Admin {
 			@DefaultValue("") @QueryParam("dbName") String dbName,
 			@DefaultValue("") @QueryParam("tableName") String tableName,
 			@DefaultValue("") @QueryParam("chartDT") String chartDT) throws PException {
-		// System.out.println("columns : " + columns);
+		// //System.out.println("columns : " + columns);
 		// AdminDB dbConnection = new AdminDB(request);
 		if (adminDb.setColumns(dbName, tableName, columns, chartDT,(String) request.getSession().getAttribute("pUser"))) {
-			System.out.println("Saved!!!!!!!!!!");
+			//System.out.println("Saved!!!!!!!!!!");
 			return "List saved successful";
 		} else {
-			System.out.println("ERROR ::!!!!!!!!!");
+			//System.out.println("ERROR ::!!!!!!!!!");
 			return "Error : List not saved";
 		}
 	}

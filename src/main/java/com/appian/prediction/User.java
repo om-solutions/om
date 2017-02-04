@@ -41,7 +41,7 @@ public class User {
 			{status = dbConnection.validateUser(username, password);
 			ChartDB chartDB = new ChartDB(request);
 			}
-		System.out.println("Login() : " + status);
+		//System.out.println("Login() : " + status);
 		request.getSession().setAttribute("pUser", username);
 
 		

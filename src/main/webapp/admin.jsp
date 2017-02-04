@@ -164,7 +164,7 @@
 							alert( "Please Login!!!" );
 								window.location = "Plogin.jsp";
 						<%} else {
-				System.out.println(" - - >" + (session.getAttribute("userid")));%>
+				//System.out.println(" - - >" + (session.getAttribute("userid")));%>
 							loadConnection("http://localhost:8080/Prediction/prediction/admin/getCon");
 						<%}%>
 							} );
@@ -184,7 +184,7 @@
 											document.getElementById( 'url' ).value = obj[ "url" ];
 											document.getElementById( 'dbInstanceName' ).value = obj[ "dbInstanceName" ];
 											document.getElementById( 'userName' ).value = obj[ "userName" ];
-											document.getElementById( 'password' ).value = obj[ "password" ];
+											//document.getElementById( 'password' ).value = obj[ "password" ];
 
 										}
 									},
@@ -195,6 +195,14 @@
 							}
 
 							function connectDB () {
+								if(document.getElementById( 'dbInstanceName' ).value===""||
+										document.getElementById( 'userName' ).value===""|| 
+										document.getElementById( 'password' ).value===""||
+										document.getElementById( 'url' ).value==="")
+									{
+									alert("Some field are blank !!! ");
+									}
+								else{
 								$( '#dbSelector' ).children().remove();
 								$.ajax( {
 									url : "http://localhost:8080/Prediction/prediction/admin/dbCon?url=" + document.getElementById( 'url' ).value 
@@ -209,9 +217,11 @@
 
 									},
 									error : function ( error ) {
-										alert( "Unable to connect to database !!!" );
+										alert( "Unable to connect to database, Please check the setting " );
 									},
 								} );
+								}
+								document.getElementById( 'password' ).value="";
 							}
 
 							function loadDatabase ( url ) {

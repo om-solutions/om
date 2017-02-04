@@ -20,16 +20,16 @@
 <%
 	try {
 		// Apache Commons-Fileupload library classes
-		System.out.println("Start");
+		//System.out.println("Start");
 		DiskFileItemFactory factory = new DiskFileItemFactory();
-		System.out.println("1");
+		//System.out.println("1");
 		ServletFileUpload sfu = new ServletFileUpload(factory);
-		System.out.println("2");
+		//System.out.println("2");
 		if (!ServletFileUpload.isMultipartContent(request)) {
-			System.out.println("sorry. No file uploaded");
+			//System.out.println("sorry. No file uploaded");
 			return;
 		}
-		System.out.println("3");
+		//System.out.println("3");
 
 		// parse request
 
@@ -43,16 +43,14 @@
 
 			if (crunchifyCSV != null) {
 				String lines[] = crunchifyCSV.split("\\r?\\n");
-				System.out.println("lines.length : " + lines.length);
+				//System.out.println("lines.length : " + lines.length);
 				for (int j = 0; j < lines.length; j++) {
 					if (j == 0) {
 						String[] headerData = lines[j].split("\\s*,\\s*");
 						String[] rowData = lines[j + 1].split("\\s*,\\s*");
-						try {
+						
 							DBConnection.createReplaceTable(fileName, headerData, rowData);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
+						
 
 					} else {
 						String[] rowData = lines[j].split("\\s*,\\s*");
@@ -60,10 +58,9 @@
 							DBConnection.insertRowTable(rowData);
 						} catch (Exception e) {
 							try {
-							DBConnection.updateRowTable(rowData);}
-							catch(Exception ex)							
-							{
-								
+								DBConnection.updateRowTable(rowData);
+							} catch (Exception ex) {
+
 							}
 						}
 					}
@@ -79,8 +76,8 @@
 </script>
 <%
 	} catch (Exception ex) {
-		System.out.println("99999 : " + ex);
-		session.setAttribute("status", ex.getMessage());
+		//System.out.println("99999 : " + ex);
+		session.setAttribute("status", "Unable to upload the file!! Please check the file name and column names.");
 %><script type="text/javascript">
 	window.location.href = "admin.jsp";
 </script>

@@ -20,7 +20,7 @@ public class Network {
 	private static final double learningRate = 0.5;
 	private static final double maxError = 0.00001;
 	NeuralNetwork<BackPropagation> neuralNetwork;
-	public NeuralNetwork<BackPropagation> getNeuralNetwork() {
+	public synchronized NeuralNetwork<BackPropagation> getNeuralNetwork() {
 		return neuralNetwork;
 	}
 
@@ -122,7 +122,7 @@ public class Network {
 		return predictedValues;
 	}
 	
-	public double nextVal(double[] previousValuesList)
+	synchronized public double nextVal(double[] previousValuesList)
 	{
 		this.getNeuralNetwork().setInput(previousValuesList);
 		this.getNeuralNetwork().calculate();

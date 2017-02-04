@@ -61,7 +61,7 @@ public class TrainNetwork {
 			ArrayList<Integer> missingValues = network.trainNetworkFromData(values);
 			HashMap<Integer, Double> predicted = network.addMissingValues(values, missingValues);
 			chartDB.map.put(tableName + coloumn, network);
-			System.out.println("ChartDB  : " + chartDB.map.toString());
+			//System.out.println("ChartDB  : " + chartDB.map.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

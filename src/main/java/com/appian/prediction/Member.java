@@ -28,7 +28,7 @@ public class Member {
 	@Produces(MediaType.TEXT_PLAIN)
 	public String getCols(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("columns") String columns)
 			throws PException {
-		System.out.println("getCols : " + columns);
+		//System.out.println("getCols : " + columns);
 		ChartDB chartDB = new ChartDB(request);
 		String cloumnList = chartDB.getColumns(request,(String) request.getSession().getAttribute("pUser"));
 		if (!cloumnList.isEmpty()) {
@@ -44,10 +44,10 @@ public class Member {
 			request.getSession().setAttribute("columnA", ChartDB.columns.split(",")[0]);
 			request.getSession().setAttribute("columnB", ChartDB.columns.split(",")[0]);*/
 
-			System.out.println("Clolumn List " + cloumnList);
+			//System.out.println("Clolumn List " + cloumnList);
 			return cloumnList;
 		} else {
-			System.out.println("ERROR ::!!!!!!!!!");
+			//System.out.println("ERROR ::!!!!!!!!!");
 			return "Error : List not saved";
 		}
 	}

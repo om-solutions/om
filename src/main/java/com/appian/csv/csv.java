@@ -33,7 +33,7 @@ public class csv {
 		DBConnection dbConnection = new DBConnection();
 		String status = null;
 		status = dbConnection.validateUser(username, password);
-		System.out.println("Authentication : " + status);
+		//System.out.println("Authentication : " + status);
 		request.getSession().setAttribute("pUser", username);
 
 		ChartDB chartDB = new ChartDB(request);
@@ -46,7 +46,7 @@ public class csv {
 			request.getSession().setAttribute("password", ChartDB.password);
 			request.getSession().setAttribute("userName", ChartDB.userName);
 			request.getSession().setAttribute("url", ChartDB.url);*/
-			System.out.println("Upload --> "+request.getSession().getAttribute("url").toString());
+			//System.out.println("Upload --> "+request.getSession().getAttribute("url").toString());
 		}
 		/// TrainNetwork trainNetwork = new TrainNetwork();
 		// trainNetwork.Train(request, format.format(new Date(0)),

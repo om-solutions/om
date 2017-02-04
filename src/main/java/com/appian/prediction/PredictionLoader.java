@@ -35,7 +35,7 @@ public class PredictionLoader implements ServletContextListener {
 		try {
 			Connection dbConnection = DBConnection.getConnection();
 			String sql = "select [dt],[dbName],[tableName] ,[columnsName],[chartDT],[url],[dbInstanceName],[userName],[password],[pUser] from Danpac.dbo.masterData where dt is not null and columnsname is not null";
-			System.out.println("Inside Context : " + sql);
+			//System.out.println("Inside Context : " + sql);
 			PreparedStatement psDBList;
 
 			psDBList = dbConnection.prepareStatement(sql);
@@ -75,7 +75,7 @@ public class PredictionLoader implements ServletContextListener {
 		if (context != null) {
 			context.log("MyServletContextListener: " + message);
 		} else {
-			System.out.println("MyServletContextListener: " + message);
+			//System.out.println("MyServletContextListener: " + message);
 		}
 	}
 }
