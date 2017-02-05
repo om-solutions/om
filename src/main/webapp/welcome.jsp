@@ -320,13 +320,16 @@ footer {
 						var columnName = "<%=session.getAttribute("columns")%>";
 						//alert(columnName);
 						var str_array = columnName.split(',');
-							for (var i = str_array.length-1; i >= 0; i--) {
+							for (var i = 0; i < str_array.length; i++) {
 
 								/* if(str_array[i]!=document.getElementById("selColumnA").value){
-								//	alert("B : "+str_array[i]);
-								if(str_array[i]==oldVal)
-									$('#selColumnB').append($('<option selected>', {value : str_array[i],text : str_array[i]}));
-								else */
+								//	alert("B : "+str_array[i]);*/
+								if(i==1)
+								{	$('#selColumnB').append($('<option>', {value : str_array[i],text : str_array[i]}));								
+								$('#selColumnB').val(str_array[i]);
+								}
+								
+								else 
 									$('#selColumnB').append($('<option>', {value : str_array[i],text : str_array[i]}));
 								//}								
 						}
