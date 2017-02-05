@@ -320,7 +320,7 @@ footer {
 						var columnName = "<%=session.getAttribute("columns")%>";
 						//alert(columnName);
 						var str_array = columnName.split(',');
-							for (var i = 0; i < str_array.length; i++) {
+							for (var i = str_array.length-1; i >= 0; i--) {
 
 								/* if(str_array[i]!=document.getElementById("selColumnA").value){
 								//	alert("B : "+str_array[i]);
