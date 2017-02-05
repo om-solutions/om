@@ -29,7 +29,7 @@ public class TrainNetwork {
 	public static int slidingWindowSize = 5;
 	SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
-	public String Train(JSONObject jobj, @DefaultValue("") @QueryParam("dateFrom") String dateFrom,
+	public Network Train(JSONObject jobj, @DefaultValue("") @QueryParam("dateFrom") String dateFrom,
 			@DefaultValue("") @QueryParam("dateTo") String dateTo,
 			@DefaultValue("") @QueryParam("coloumn") String coloumn, String tableName) throws PException {
 		Timestamp fromDate;
@@ -49,7 +49,7 @@ public class TrainNetwork {
 		} catch (ParseException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-			return "Dates not in correct format";
+			return null;
 		}
 
 		network = new Network(slidingWindowSize);
@@ -60,18 +60,17 @@ public class TrainNetwork {
 					coloumn);
 			ArrayList<Integer> missingValues = network.trainNetworkFromData(values);
 			HashMap<Integer, Double> predicted = network.addMissingValues(values, missingValues);
-			chartDB.map.put(tableName + coloumn, network);
+			ChartDB.map.put(tableName + coloumn, network);
 			//System.out.println("ChartDB  : " + chartDB.map.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		/* network.lock.unlock(); */
-		return "NetworkTrained" + fromDate + toDate;
+		return network;
 	}
 
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
-	public String Train(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("dateFrom") String dateFrom,
+	public Network Train(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("dateFrom") String dateFrom,
 			@DefaultValue("") @QueryParam("dateTo") String dateTo,
 			@DefaultValue("") @QueryParam("coloumn") String coloumn, String tableName) throws PException {
 		Timestamp fromDate;
@@ -96,7 +95,7 @@ public class TrainNetwork {
 		} catch (ParseException e1) {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
-			return "Dates not in correct format";
+			return null;
 		}
 		if (network == null) {
 
@@ -119,11 +118,11 @@ public class TrainNetwork {
 					coloumn);
 			ArrayList<Integer> missingValues = network.trainNetworkFromData(values);
 			HashMap<Integer, Double> predicted = network.addMissingValues(values, missingValues);
-			chartDB.map.put(tableName + coloumn, network);
+			ChartDB.map.put(tableName + coloumn, network);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		/* network.lock.unlock(); */
-		return "NetworkTrained" + fromDate + toDate;
+		return network;
 	}
 }

@@ -63,8 +63,10 @@ public class PredictionLoader implements ServletContextListener {
 					if (!ChartDB.map.containsKey(tableName + column))
 						trainNetwork.Train(jobj, format.format(new Date(0)), format.format(new Date()), column,
 								tableName);
+					String dt=rsDBList.getString("chartDT");					
 				}
 			}
+			
 		} catch (Exception e) {
 			// TODO: handle exception
 		}

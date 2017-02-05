@@ -55,11 +55,15 @@ public class PredictValues {
 				+ (String) request.getSession().getAttribute("columnA");
 
 		Network networkA = ChartDB.map.get(networkName);
-
+		if(networkA==null)
+			networkA=new TrainNetwork().Train(request, format.format(new Date(0)), format.format(new Date()), (String) request.getSession().getAttribute("columnA"), (String) request.getSession().getAttribute("tableName"));
 		networkName = (String) request.getSession().getAttribute("tableName")
 				+ (String) request.getSession().getAttribute("columnB");
 
 		Network networkB = ChartDB.map.get(networkName);
+		if(networkB==null)
+			networkB=new TrainNetwork().Train(request, format.format(new Date(0)), format.format(new Date()), (String) request.getSession().getAttribute("columnB"), (String) request.getSession().getAttribute("tableName"));
+		
 		/*
 		 * try { if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS)) return
 		 * null; } catch (InterruptedException e1) { return null; }
@@ -108,14 +112,16 @@ public class PredictValues {
 		}
 		String networkName = (String) request.getSession().getAttribute("tableName")
 				+ (String) request.getSession().getAttribute("columnA");
+		
 		Network networkA = ChartDB.map.get(networkName);
+		if(networkA==null)
+			networkA=new TrainNetwork().Train(request, format.format(new Date(0)), format.format(new Date()), (String) request.getSession().getAttribute("columnA"), (String) request.getSession().getAttribute("tableName"));
 		networkName = (String) request.getSession().getAttribute("tableName")
 				+ (String) request.getSession().getAttribute("columnB");
+
 		Network networkB = ChartDB.map.get(networkName);
-		/*
-		 * try { if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS)) return
-		 * null; } catch (InterruptedException e1) { return null; }
-		 */
+		if(networkB==null)
+			networkB=new TrainNetwork().Train(request, format.format(new Date(0)), format.format(new Date()), (String) request.getSession().getAttribute("columnB"), (String) request.getSession().getAttribute("tableName"));
 		ChartDB chartDB = new ChartDB(request);
 		TreeMap<Timestamp, Double> values = null;
 

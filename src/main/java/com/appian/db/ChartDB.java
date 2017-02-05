@@ -283,7 +283,7 @@ public class ChartDB {
 			String query = "select top " + network.slidingWindowSize + " * from (select coalesce(tab1." + chartDT
 					+ ",tab2." + chartDT + ") as dt ,coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM "
 					+ dbName + ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName
-					+ " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + " where tab1." + chartDT
+					+ " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + " where dt"
 					+ " <? and coalesce(tab1." + column + ",tab2." + column + ") is not null ) as  a order by dt desc;";
 			PreparedStatement preparedStatement = conn.prepareStatement(query);
 			// System.out.println("--> " + query);
@@ -334,7 +334,7 @@ public class ChartDB {
 			PreparedStatement getValues = conn.prepareStatement("select coalesce(tab1." + chartDT + ",tab2." + chartDT
 					+ ") as dt ,coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo."
 					+ tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1."
-					+ chartDT + "=tab2." + chartDT + " where tab1." + chartDT + ">? and tab1." + chartDT
+					+ chartDT + "=tab2." + chartDT + " where dt >? and dt"
 					+ "<? order by dt ");
 			getValues.setTimestamp(1, fromDate);
 			getValues.setTimestamp(2, toDate);
