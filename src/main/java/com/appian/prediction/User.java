@@ -43,8 +43,11 @@ public class User {
 			}
 		//System.out.println("Login() : " + status);
 		request.getSession().setAttribute("pUser", username);
-
+		String pUser = (String) request.getSession().getAttribute("pUser");		
 		
+		
+		ChartDB chartDB= new ChartDB(request);
+		String cloumnList = chartDB.getColumns(request,pUser);
 		//if (chartDB != null) {
 			/*
 			 * request.getSession().setAttribute("chartDT", chartDB.chartDT);

@@ -123,10 +123,13 @@
 
 								if ( $( "#asAdmin" ).prop( "checked" ) == true ) {
 									sessionStorage.setItem( 'userid', 'userid' );
+									sessionStorage.setItem( 'pUser', ' + document.getElementById( "username" ).value + ');
 		<%session.setAttribute("userid", "user");%>
 			window.location.href = "http://localhost:8080/Prediction/admin.jsp";
 								} else {
 									sessionStorage.setItem( 'userid', 'userid' );
+									sessionStorage.setItem( 'pUser', ' + document.getElementById( "username" ).value + ');
+									
 		<%session.setAttribute("userid", "user");%>
 			window.location.href = "http://localhost:8080/Prediction/welcome.jsp";
 

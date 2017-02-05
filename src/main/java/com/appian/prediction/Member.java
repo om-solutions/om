@@ -1,10 +1,6 @@
 package com.appian.prediction;
 
-import java.sql.SQLException;
-import java.text.ParseException;
-
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -14,10 +10,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import com.appian.db.ChartDB;
-import com.appian.db.DBConnection;
 import com.appian.exception.PException;
-import com.appian.prediction.POJO.Column;
-import com.google.gson.Gson;
 
 @Path("/member")
 @Produces(MediaType.APPLICATION_JSON)

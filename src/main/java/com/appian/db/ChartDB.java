@@ -33,12 +33,13 @@ public class ChartDB {
 	private static String oldValues = "10";
 	private ArrayList<Timestamp> times = new ArrayList<Timestamp>();
 	private ArrayList<Double> values = new ArrayList<Double>();
-	private String columnName;
+	//private String columnName;
 	// private String predictedColumnName;
 	public String chartDT;
 	public String dbName;
 	public String tableName;
 	public String columns;
+	private String columnA;
 
 	public static ConcurrentHashMap<String, Network> map = new ConcurrentHashMap<>();
 
@@ -122,6 +123,7 @@ public class ChartDB {
 			request.getSession().setAttribute("dbInstanceName", dbInstanceName);
 			request.getSession().setAttribute("userName", userName);
 			request.getSession().setAttribute("password", password);
+			request.getSession().setAttribute("columns", columns);			
 			if (columns != null) {
 				request.getSession().setAttribute("columns", columns);
 				request.getSession().setAttribute("columnA", columns.split(",")[0]);
@@ -131,6 +133,7 @@ public class ChartDB {
 					request.getSession().setAttribute("columnB", columns.split(",")[0]);
 				}
 			}
+			
 		} else {
 			url = (String) request.getSession().getAttribute("url");
 			columns = (String) request.getSession().getAttribute("columns");
@@ -147,10 +150,10 @@ public class ChartDB {
 			String tableName = (String) request.getSession().getAttribute("tableName");
 			// System.out.println("ChartDB --> Columns : " + columns);
 			try {
-				this.columnName = predicted == null ? columns.split(",")[0] : predicted;
+				this.columnA = predicted == null ? columns.split(",")[0] : predicted;
 			} catch (Exception e) {
 
-			}
+			}			
 		}
 
 		// this.provedColumnName = proved == null ?
@@ -186,7 +189,7 @@ public class ChartDB {
 			ArrayList<Timestamp> times = new ArrayList<Timestamp>();
 			Connection conn = getConnection();
 			PreparedStatement ps = conn.prepareStatement("SELECT coalesce(tab1." + chartDT + ",tab2." + chartDT
-					+ ") as dt ,coalesce(tab1." + columnName + ",tab2." + columnName + ") as val1 FROM " + dbName
+					+ ") as dt ,coalesce(tab1." + columnA + ",tab2." + columnA + ") as val1 FROM " + dbName
 					+ ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName
 					+ " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + "  where tab1." + chartDT + ">? and tab1."
 					+ chartDT + "<? order by dt ");
@@ -722,7 +725,7 @@ public class ChartDB {
 				json.put("dbInstanceName", rsDBList.getString("dbInstanceName"));
 				json.put("dbName", rsDBList.getString("dbName"));
 				json.put("tableName", rsDBList.getString("tableName"));
-				json.put("columnsName", rsDBList.getString("columnsName"));
+				json.put("columns", rsDBList.getString("columnsName"));
 				json.put("chartDt", rsDBList.getString("chartDt"));
 				json.put("userName", rsDBList.getString("userName"));
 				json.put("password", rsDBList.getString("password"));
@@ -737,6 +740,7 @@ public class ChartDB {
 				request.getSession().setAttribute("password", rsDBList.getString("password"));
 				request.getSession().setAttribute("columns", rsDBList.getString("columnsName"));
 				columns = rsDBList.getString("columnsName");
+				System.out.println("Columns "+columns);
 				request.getSession().setAttribute("pUser", pUser);
 				if (columns != null) {
 					request.getSession().setAttribute("columns", columns);
@@ -748,6 +752,9 @@ public class ChartDB {
 					}
 
 				}
+				
+				System.out.println("Session Columns "+request.getSession().getAttribute("columnA"));
+				System.out.println("Session Columns "+request.getSession().getAttribute("columnB"));
 
 				// System.out.println(" IF JSON : " + jArray.toString());
 			} else {

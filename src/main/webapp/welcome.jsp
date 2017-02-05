@@ -119,12 +119,12 @@ footer {
 			</div>
 			<div class="col-sm-8 text-left " style="margin-top: 10px;">
 				<div class="col-xs-12" style="height: 30px;">
-					Currently Predicting : <select style="margin-right: 50px;"
+					Column A : <select style="margin-right: 50px;"
 						id="predictedColumn">
 						<!-- <option value="K_Factor">K_Factor</option>
 						<option value="Temprature">Temprature</option>
 						<option value="Pressure">Pressure</option> -->
-					</select> Currently Proved : <select style="margin-right: 50px;"
+					</select> Column B : <select style="margin-right: 50px;"
 						id="provedColumn">
 						<!-- <option value="K_Factor">K_Factor</option>
 						<option value="Temprature">Temprature</option>
@@ -479,7 +479,7 @@ footer {
 								$("#POIBody").children().remove();
 								for (var i = 0; i < response.length; i++) {
 									var obj = response[i];
-									var columnName = obj["columnsName"];
+									var columnName = obj["columns"];
 									var tableName = obj["tableName"];
 									var dbName = obj["dbName"];
 									// 									alert(columnName + " : " + tableName
