@@ -20,6 +20,7 @@ public class Network {
 	private static final double learningRate = 0.5;
 	private static final double maxError = 0.00001;
 	NeuralNetwork<BackPropagation> neuralNetwork;
+	private  Lock lock = new ReentrantLock(); 
 	public synchronized NeuralNetwork<BackPropagation> getNeuralNetwork() {
 		return neuralNetwork;
 	}
@@ -124,12 +125,16 @@ public class Network {
 	
 	synchronized public double nextVal(double[] previousValuesList)
 	{
+		lock.lock();
+		
 		this.getNeuralNetwork().setInput(previousValuesList);
 		this.getNeuralNetwork().calculate();
 		double nextVal=this.getNeuralNetwork().getOutput()[0];
 		this.trainingSet.addRow(previousValuesList, new double[]{nextVal});
 		this.getNeuralNetwork().learn(this.trainingSet);
-		return deNormalizeValue(nextVal);
+		double d = deNormalizeValue(nextVal);
+		lock.unlock();		
+		return deNormalizeValue(d);
 	}
 
 }

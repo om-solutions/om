@@ -119,13 +119,11 @@ footer {
 			</div>
 			<div class="col-sm-8 text-left " style="margin-top: 10px;">
 				<div class="col-xs-12" style="height: 30px;">
-					Column A : <select style="margin-right: 50px;"
-						id="predictedColumn">
+					Column A : <select style="margin-right: 50px;" id="selColumnA">
 						<!-- <option value="K_Factor">K_Factor</option>
 						<option value="Temprature">Temprature</option>
 						<option value="Pressure">Pressure</option> -->
-					</select> Column B : <select style="margin-right: 50px;"
-						id="provedColumn">
+					</select> Column B : <select style="margin-right: 50px;" id="selColumnB">
 						<!-- <option value="K_Factor">K_Factor</option>
 						<option value="Temprature">Temprature</option>
 						<option value="Pressure">Pressure</option> -->
@@ -188,74 +186,78 @@ footer {
 
 														});
 										
-									
-										$("#predictedColumn")
-												.change(
-														function(e) {
+										var prev_valA;
+
+										$('#selColumnA').focus(function() {
+										    prev_valA = $(this).val();
+										}).change(function() {
+											if(document.getElementById("selColumnA").value === document.getElementById("selColumnB").value){
+												alert("Both Columns can not be same !!!");
+												 $(this).val(prev_valA);
+											        //alert('unchanged');
+											        return false; 
+											} 
+											else{$.ajax({
+														url : 'http://localhost:8080/Prediction/prediction/graph/changeColumn?columnA='
+																+ document
+																		.getElementById("selColumnA").value
+																+ '&columnB='
+																+ document
+																		.getElementById("selColumnB").value,
+														beforeSend : function(
+																request) {																			
+															request
+																	.setRequestHeader(
+																			"Authorization",
+																			"Negotiate");
+														},
+														type : 'GET',
+														dataType : 'text',
+														success : function(
+																response) {																			
+															console
+																	.log(response);
+															loadChart(
+																	'http://localhost:8080/Prediction/prediction/graph/meter',
+																	null,
+																	null,document
+																	.getElementById("selColumnA").value,document
+																	.getElementById("selColumnB").value);
+														
 															
-															if(document.getElementById("predictedColumn").value === document.getElementById("provedColumn").value){
-																alert("Both Columns can not be same !!!");
-															} 
-															else{
-																
-															$
-																	.ajax({
-																		url : 'http://localhost:8080/Prediction/prediction/graph/changeColumn?columnA='
-																				+ document
-																						.getElementById("predictedColumn").value
-																				+ '&columnB='
-																				+ document
-																						.getElementById("provedColumn").value,
-																		beforeSend : function(
-																				request) {																			
-																			request
-																					.setRequestHeader(
-																							"Authorization",
-																							"Negotiate");
-																		},
-																		type : 'GET',
-																		dataType : 'text',
-																		success : function(
-																				response) {																			
-																			console
-																					.log(response);
-																			loadChart(
-																					'http://localhost:8080/Prediction/prediction/graph/meter',
-																					null,
-																					null,document
-																					.getElementById("predictedColumn").value,document
-																					.getElementById("provedColumn").value);
-																		
-																			
-																		
-																		},
-																		error : function(
-																				error) {
-																			
-																			alert("API failure ");
-																		}
-																	})
-														}});
-									});
+														
+														},
+														error : function(
+																error) {
+															
+															alert("API failure ");
+														}
+													})
+										}										   
+										});
+										
+										
+								
 					
+					var prev_valB;
 					
-					
-					$("#provedColumn")
-					.change(
-							function(e) {
-								if(document.getElementById("predictedColumn").value === document.getElementById("provedColumn").value){
-									alert("Both Columns can not be same !!!");
-								} 
-								else{
-									
-								$
-										.ajax({
+					$('#selColumnB').focus(function() {
+						prev_valB = $(this).val();
+					}).change(function() {
+						
+						if(document.getElementById("selColumnA").value === document.getElementById("selColumnB").value){
+							alert("Both Columns can not be same !!!");
+							 $(this).val(prev_valB);
+						        //alert('unchanged');
+						        return false; 
+						} 
+						else{$.ajax({
 											url : 'http://localhost:8080/Prediction/prediction/graph/changeColumn?columnA='
 													+ document
-															.getElementById("predictedColumn").value
+															.getElementById("selColumnA").value
 													+ '&columnB='
 													+ document
-															.getElementById("provedColumn").value,
+															.getElementById("selColumnB").value,
 											beforeSend : function(
 													request) {
 												console
@@ -275,8 +277,8 @@ footer {
 														'http://localhost:8080/Prediction/prediction/graph/meter',
 														null,
 														null,document
-														.getElementById("predictedColumn").value,document
-														.getElementById("provedColumn").value);
+														.getElementById("selColumnA").value,document
+														.getElementById("selColumnB").value);
 												
 											},
 											error : function(
@@ -287,40 +289,45 @@ footer {
 										})
 								}});
 
+					
+								});
+							
+				
+
 					function refreshDropdownA() {
 											
-						//var oldVal= document.getElementById("predictedColumn").value
-						//$("#predictedColumn").empty();
+						//var oldVal= document.getElementById("selColumnA").value
+						//$("#selColumnA").empty();
 
 						var columnName = "<%=session.getAttribute("columns")%>";
 						//salert(columnName);
 						var str_array = columnName.split(',');
 							for (var i = 0; i < str_array.length; i++) {
-								/* if(str_array[i]!=document.getElementById("provedColumn").value){
+								/* if(str_array[i]!=document.getElementById("selColumnB").value){
 									//alert("A : "+str_array[i]);
 									if(str_array[i]==oldVal)
-								$('#predictedColumn').append($('<option selected>', {value : str_array[i],text : str_array[i]}));
+								$('#selColumnA').append($('<option selected>', {value : str_array[i],text : str_array[i]}));
 									else */
-									$('#predictedColumn').append($('<option>', {value : str_array[i],text : str_array[i]}));
+									$('#selColumnA').append($('<option>', {value : str_array[i],text : str_array[i]}));
 								//}								
 						}
 						
 						
 					}
 					function refreshDropdownB() {
-						//var oldVal= document.getElementById("provedColumn").value
-						//$("#provedColumn").empty();
+						//var oldVal= document.getElementById("selColumnB").value
+						//$("#selColumnB").empty();
 						var columnName = "<%=session.getAttribute("columns")%>";
 						//alert(columnName);
 						var str_array = columnName.split(',');
 							for (var i = 0; i < str_array.length; i++) {
 
-								/* if(str_array[i]!=document.getElementById("predictedColumn").value){
+								/* if(str_array[i]!=document.getElementById("selColumnA").value){
 								//	alert("B : "+str_array[i]);
 								if(str_array[i]==oldVal)
-									$('#provedColumn').append($('<option selected>', {value : str_array[i],text : str_array[i]}));
+									$('#selColumnB').append($('<option selected>', {value : str_array[i],text : str_array[i]}));
 								else */
-									$('#provedColumn').append($('<option>', {value : str_array[i],text : str_array[i]}));
+									$('#selColumnB').append($('<option>', {value : str_array[i],text : str_array[i]}));
 								//}								
 						}
 						
@@ -491,8 +498,8 @@ footer {
 								loadChart(
 										'http://localhost:8080/Prediction/prediction/graph/meter',
 										null, null,document
-										.getElementById("predictedColumn").value,document
-										.getElementById("provedColumn").value);
+										.getElementById("selColumnA").value,document
+										.getElementById("selColumnB").value);
 							},
 							error : function(error) {
 								
@@ -536,7 +543,7 @@ footer {
 						var columns =  '<%=columns%>';
 						var dbName =  '<%=dbName%>';
 						var tableName =  '<%=tableName%>';
-						document.getElementById("btnLoad").disabled = true; 
+							document.getElementById( "btnLoad" ).disabled = true;
 							$.ajax( {
 								url : url,
 								data : 'dateFrom=' + CurrentDate + '&value=' + PreMonthDate,
@@ -553,16 +560,16 @@ footer {
 									} else {
 										//data = response;				
 										//document.getElementById( "table" ).deleteTHead();
-										// 									var rows = "<thead><tr><th data-field="+chartDT+">" + chartDT + "</th><th data-field=" + document.getElementById( "predictedColumn" ).value + ">" + document.getElementById( "predictedColumn" ).value + "</th><th data-field=" + "_"
-										// 											+ document.getElementById( "predictedColumn" ).value + ">" + "_" + document.getElementById( "predictedColumn" ).value + "</th><th data-field=" + document.getElementById( "provedColumn" ).value + ">" + document.getElementById( "provedColumn" ).value
-										// 											+ "</th><th data-field=" + "_" + document.getElementById( "provedColumn" ).value + ">" + "_" + document.getElementById( "provedColumn" ).value + "</th></tr></thead>";
+										// 									var rows = "<thead><tr><th data-field="+chartDT+">" + chartDT + "</th><th data-field=" + document.getElementById( "selColumnA" ).value + ">" + document.getElementById( "selColumnA" ).value + "</th><th data-field=" + "_"
+										// 											+ document.getElementById( "selColumnA" ).value + ">" + "_" + document.getElementById( "selColumnA" ).value + "</th><th data-field=" + document.getElementById( "selColumnB" ).value + ">" + document.getElementById( "selColumnB" ).value
+										// 											+ "</th><th data-field=" + "_" + document.getElementById( "selColumnB" ).value + ">" + "_" + document.getElementById( "selColumnB" ).value + "</th></tr></thead>";
 										// 									//var rows = "<thead><tr><th >DateTime</th><th >asdas</th><th>asasasa</th><th >zzzzz</th><th >qqqq</th></tr></thead>";
 										// 									var table = document.createElement( 'table' );
 										// 									table.innerHTML = rows;
 										// 									document.getElementById( "table" ).appendChild( table.firstChild );
 
 										CreateTableFromJSON( response );
-										document.getElementById("btnLoad").disabled = false; 
+										document.getElementById( "btnLoad" ).disabled = false;
 										/* 	$( '#table' ).bootstrapTable( 'destroy' );
 
 											$( '#table' ).bootstrapTable( {
@@ -619,8 +626,8 @@ footer {
 														"bullet" : "round",
 														"bulletBorderThickness" : 1,
 														"hideBulletsCount" : 30,
-														"title" : document.getElementById( "predictedColumn" ).value,
-														"valueField" : document.getElementById( "predictedColumn" ).value,
+														"title" : document.getElementById( "selColumnA" ).value,
+														"valueField" : document.getElementById( "selColumnA" ).value,
 														"fillAlphas" : 0
 													}, {
 														"valueAxis" : "v2",
@@ -628,8 +635,8 @@ footer {
 														"bullet" : "triangleUp",
 														"bulletBorderThickness" : 1,
 														"hideBulletsCount" : 30,
-														"title" : "_" + document.getElementById( "predictedColumn" ).value,
-														"valueField" : "_" + document.getElementById( "predictedColumn" ).value,
+														"title" : "_" + document.getElementById( "selColumnA" ).value,
+														"valueField" : "_" + document.getElementById( "selColumnA" ).value,
 														"fillAlphas" : 0
 													}, {
 														"valueAxis" : "v3",
@@ -637,8 +644,8 @@ footer {
 														"bullet" : "round",
 														"bulletBorderThickness" : 1,
 														"hideBulletsCount" : 30,
-														"title" : document.getElementById( "provedColumn" ).value,
-														"valueField" : document.getElementById( "provedColumn" ).value,
+														"title" : document.getElementById( "selColumnB" ).value,
+														"valueField" : document.getElementById( "selColumnB" ).value,
 														"fillAlphas" : 0
 													}, {
 														"valueAxis" : "v4",
@@ -646,8 +653,8 @@ footer {
 														"bullet" : "triangleUp",
 														"bulletBorderThickness" : 1,
 														"hideBulletsCount" : 30,
-														"title" : "_" + document.getElementById( "provedColumn" ).value,
-														"valueField" : "_" + document.getElementById( "provedColumn" ).value,
+														"title" : "_" + document.getElementById( "selColumnB" ).value,
+														"valueField" : "_" + document.getElementById( "selColumnB" ).value,
 														"fillAlphas" : 0
 													}
 
@@ -699,7 +706,7 @@ footer {
 
 								},
 								error : function ( error ) {
-									document.getElementById("btnLoad").disabled = false; 
+									document.getElementById( "btnLoad" ).disabled = false;
 									alert( "Try again" );
 								},
 							} );
