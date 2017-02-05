@@ -278,6 +278,7 @@ public class ChartDB {
 	public NavigableMap<Timestamp, Double> getPredictedValues(Timestamp fromDate, Timestamp toDate, Network network,
 			String column) throws PException {
 		try {
+			boolean updateNetwork = false;
 			Connection conn = getConnection();
 			String query = "select top " + network.slidingWindowSize + " * from (select coalesce(tab1." + chartDT
 					+ ",tab2." + chartDT + ") as dt ,coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM "
@@ -340,55 +341,58 @@ public class ChartDB {
 			ResultSet valuesSet = getValues.executeQuery();
 			double nextVal;
 
-			Long previousTime = findPrevTime(fromDate, previousValuesList, network,
+			Long previousTime = findPrevTime(updateNetwork,fromDate, previousValuesList, network,
 					previousValues.get(previousValues.size() - 1).getTime(), avgDelay);
 
 			NavigableMap<Timestamp, Double> predictedValuesMap = new ConcurrentSkipListMap<Timestamp, Double>();
 			while (valuesSet.next()) {
 				while (valuesSet.getTimestamp(1).getTime() - previousTime > 2 * avgDelay) {
-					nextVal = network.nextVal(previousValuesList);
+					nextVal = network.nextValAndUpdateTrainingSet(previousValuesList);
+					updateNetwork=true;
 					previousValuesList = this.shiftAllLeft(previousValuesList, network.normalizeValue(nextVal));
 					previousTime = previousTime + avgDelay;
 					predictedValuesMap.put(new Timestamp(previousTime), nextVal);
 				}
-				network.getNeuralNetwork().setInput(previousValuesList);
-				network.getNeuralNetwork().calculate();
-				nextVal = network.deNormalizeValue(network.getNeuralNetwork().getOutput()[0]);
+				nextVal = network.getNextVal(previousValuesList);
 				if (valuesSet.getDouble(2) == 0) {
-					network.trainingSet.addRow(previousValuesList, new double[] { network.normalizeValue(nextVal) });
+					
+					network.addRow(previousValuesList, new double[] { network.normalizeValue(nextVal) });
+					updateNetwork=true;
 					previousValuesList = this.shiftAllLeft(previousValuesList, network.normalizeValue(nextVal));
 				} else {
-					network.trainingSet.addRow(previousValuesList,
+					network.addRow(previousValuesList,
 							new double[] { network.normalizeValue(valuesSet.getDouble(2)) });
+					updateNetwork=true;
 					previousValuesList = this.shiftAllLeft(previousValuesList,
 							network.normalizeValue(valuesSet.getDouble(2)));
 				}
-				network.getNeuralNetwork().learn(network.trainingSet);
 				previousTime = valuesSet.getTimestamp(1).getTime();
 				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
 				// System.out.println("--- > " + nextVal);
 			}
 
 			while (toDate.getTime() - previousTime > 2 * avgDelay) {
-				nextVal = network.nextVal(previousValuesList);
+				nextVal = network.nextValAndUpdateTrainingSet(previousValuesList);
+				updateNetwork=true;
 				previousValuesList = this.shiftAllLeft(previousValuesList, network.normalizeValue(nextVal));
 				previousTime = previousTime + avgDelay;
 				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
 				// System.out.println("--- > " + nextVal);
 			}
+			if(updateNetwork==true)
+			network.learn();
 			return predictedValuesMap;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new PException("Unable to get Predicted Values !!!");
 		}
-
 	}
 
 	public java.util.TreeMap<Timestamp, Double> getPredictedValues(Timestamp fromDate, Integer numberOfValues,
 			Network network, String column) throws PException {
 		try {
 			Connection conn = getConnection();
-
+			boolean updateNetwork=false;
 			String query = "select top " + network.slidingWindowSize + " * from (select coalesce(tab1." + chartDT
 					+ ",tab2." + chartDT + ") as dt ,coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM "
 					+ dbName + ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName
@@ -424,13 +428,14 @@ public class ChartDB {
 			ResultSet valuesSet = getValues.executeQuery();
 			double nextVal;
 			System.out.println("[ChartDB][getPredictedValues] : Top 10 : " + query);
-			Long previousTime = findPrevTime(fromDate, previousValuesList, network,
+			Long previousTime = findPrevTime(updateNetwork,fromDate, previousValuesList, network,
 					previousValues.get(previousValues.size() - 1).getTime(), avgDelay);
 			TreeMap<Timestamp, Double> predictedValuesMap = new TreeMap<Timestamp, Double>();
 			while (valuesSet.next() && predictedValuesMap.size() < numberOfValues) {
 				while (valuesSet.getTimestamp(1).getTime() - previousTime > 2 * avgDelay
 						&& predictedValuesMap.size() < numberOfValues) {
-					nextVal = network.nextVal(previousValuesList);
+					nextVal = network.nextValAndUpdateTrainingSet(previousValuesList);
+					updateNetwork=true;
 					previousValuesList = this.shiftAllLeft(previousValuesList, network.normalizeValue(nextVal));
 					previousTime = previousTime + avgDelay;
 					predictedValuesMap.put(new Timestamp(previousTime), nextVal);
@@ -438,28 +443,30 @@ public class ChartDB {
 				if (predictedValuesMap.size() == numberOfValues) {
 					break;
 				}
-				network.getNeuralNetwork().setInput(previousValuesList);
-				network.getNeuralNetwork().calculate();
-				nextVal = network.deNormalizeValue(network.getNeuralNetwork().getOutput()[0]);
+				nextVal=network.getNextVal(previousValuesList);
 				if (valuesSet.getDouble(2) == 0) {
 
-					network.trainingSet.addRow(previousValuesList, new double[] { network.normalizeValue(nextVal) });
+					network.addRow(previousValuesList, new double[] { network.normalizeValue(nextVal) });
+					updateNetwork=true;
 					previousValuesList = this.shiftAllLeft(previousValuesList, nextVal);
 				} else {
-					network.trainingSet.addRow(previousValuesList,
+					network.addRow(previousValuesList,
 							new double[] { network.normalizeValue(valuesSet.getDouble(2)) });
+					updateNetwork=true;
 					previousValuesList = this.shiftAllLeft(previousValuesList, valuesSet.getDouble(2));
 				}
-				network.getNeuralNetwork().learn(network.trainingSet);
 				previousTime = valuesSet.getTimestamp(1).getTime();
 				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
 			}
 			while (predictedValuesMap.size() < numberOfValues) {
-				nextVal = network.nextVal(previousValuesList);
+				nextVal = network.nextValAndUpdateTrainingSet(previousValuesList);
+				updateNetwork=true;
 				previousValuesList = this.shiftAllLeft(previousValuesList, network.deNormalizeValue(nextVal));
 				previousTime = previousTime + avgDelay;
 				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
 			}
+			if(updateNetwork==true)
+			network.learn();
 			return predictedValuesMap;
 
 		} catch (Exception e) {
@@ -468,11 +475,13 @@ public class ChartDB {
 		}
 	}
 
-	private Long findPrevTime(Timestamp fromDate, double[] previousValuesList, Network network, Long previousTime,
+	private Long findPrevTime(boolean updateNetwork,Timestamp fromDate, double[] previousValuesList, Network network, Long previousTime,
 			Long avgDelay) {
 		double nextVal;
+		
 		while (fromDate.getTime() - previousTime > avgDelay * 2) {
-			nextVal = network.nextVal(previousValuesList);
+			updateNetwork=true;
+			nextVal = network.nextValAndUpdateTrainingSet(previousValuesList);
 			this.shiftAllLeft(previousValuesList, network.normalizeValue(nextVal));
 			previousTime = previousTime + avgDelay;
 		}

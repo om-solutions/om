@@ -15,13 +15,13 @@ import org.neuroph.nnet.learning.BackPropagation;
 public class Network {
 	public Double min = Double.MAX_VALUE;
 	public Double max = 0d;
-	public DataSet trainingSet = new DataSet(5, 1);
+	private DataSet trainingSet = new DataSet(5, 1);
 	private static final int maxIterations = 1000;
 	private static final double learningRate = 0.5;
 	private static final double maxError = 0.00001;
-	NeuralNetwork<BackPropagation> neuralNetwork;
+	private NeuralNetwork<BackPropagation> neuralNetwork;
 	private  Lock lock = new ReentrantLock(); 
-	public synchronized NeuralNetwork<BackPropagation> getNeuralNetwork() {
+	private NeuralNetwork<BackPropagation> getNeuralNetwork() {
 		return neuralNetwork;
 	}
 
@@ -87,6 +87,7 @@ public class Network {
 
 	public HashMap<Integer, Double> addMissingValues(ArrayList<Double> values,
 			ArrayList<Integer> missingValues) {
+		lock.lock();
 		HashMap<Integer,Double> predictedValues=new HashMap<Integer,Double>();
 		for(Integer missingIndex:missingValues)
 		{
@@ -120,10 +121,11 @@ public class Network {
 				}
 			}
 		}
+		lock.unlock();
 		return predictedValues;
 	}
 	
-	synchronized public double nextVal(double[] previousValuesList)
+	synchronized public double nextValAndUpdateTrainingSet(double[] previousValuesList)
 	{
 		lock.lock();
 		
@@ -131,10 +133,29 @@ public class Network {
 		this.getNeuralNetwork().calculate();
 		double nextVal=this.getNeuralNetwork().getOutput()[0];
 		this.trainingSet.addRow(previousValuesList, new double[]{nextVal});
-		this.getNeuralNetwork().learn(this.trainingSet);
 		double d = deNormalizeValue(nextVal);
 		lock.unlock();		
-		return deNormalizeValue(d);
+		return d;
+	}
+	public void learn()
+	{
+		lock.lock();
+		this.neuralNetwork.learn(trainingSet);
+		lock.unlock();
+	}
+
+	public double getNextVal(double[] previousValuesList) {
+		lock.lock();
+		getNeuralNetwork().setInput(previousValuesList);
+		getNeuralNetwork().calculate();
+		lock.unlock();
+		return deNormalizeValue(getNeuralNetwork().getOutput()[0]);
+	}
+
+	public void addRow(double[] previousValuesList, double[] ds) {
+		lock.lock();
+		trainingSet.addRow(previousValuesList,ds);
+		lock.unlock();
 	}
 
 }

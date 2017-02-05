@@ -1,5 +1,6 @@
 package com.appian.db;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -9,6 +10,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Properties;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -16,15 +18,15 @@ import org.json.JSONObject;
 import com.appian.exception.PException;
 
 public class DBConnection {
-	static String url = "jdbc:sqlserver://localhost:1433";
-	static String dbInstanceName = ";databaseName=Danpac;instance=SQLEXPRESS";
-	protected static String driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-	static String userName = "sa";
-	static String password = "root";
+	static String url;
+	static String dbInstanceName;
+	protected static String driver;
+	static String userName;
+	static String password;
 	static String chartDT;
 	static String dbName;
 	static String tableName;
-
+	static Properties properties=new Properties();
 	private static String oldValues = "10";
 	private ArrayList<Timestamp> times = new ArrayList<Timestamp>();
 	private ArrayList<Double> values = new ArrayList<Double>();
@@ -36,6 +38,19 @@ public class DBConnection {
 	private static String updateQuery;
 	private static int whereClouseIndex;
 
+	static{
+		try {
+			properties.load(DBConnection.class.getResourceAsStream("/DBproperties.properties"));
+			url=properties.getProperty("url");
+			dbInstanceName = properties.getProperty("dbInstanceName");
+			driver = properties.getProperty("driver");
+			userName = properties.getProperty("userName");
+			password = properties.getProperty("password");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	public ArrayList<Double> getValues() {
 		return values;
 	}
