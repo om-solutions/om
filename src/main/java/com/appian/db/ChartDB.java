@@ -46,11 +46,12 @@ public class ChartDB {
 	public void getDBValues(HttpServletRequest request) throws PException {
 		try {
 			Connection connection = DBConnection.getConnection();
-			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData ";
+			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData  where username=?";
 			// System.out.println("Inside ChartDB() : " + sql);
 			PreparedStatement psDBList;
 
 			psDBList = connection.prepareStatement(sql);
+			psDBList.setString(1, (String) request.getSession().getAttribute("pUser"));
 
 			ResultSet rsDBList = psDBList.executeQuery();
 			if (rsDBList.next()) {
@@ -74,6 +75,7 @@ public class ChartDB {
 				userName = DBConnection.userName;
 				password = DBConnection.password;
 			}
+			connection.close();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
