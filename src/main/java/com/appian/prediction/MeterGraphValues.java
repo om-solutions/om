@@ -139,7 +139,6 @@ public class MeterGraphValues {
 	public String changeColumn(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("columnA") String columnA,
 			@DefaultValue("") @QueryParam("columnB") String columnB) throws PException {
-		Network network = (Network) request.getSession().getAttribute("NeuralNetwork");
 		/*
 		 * try { if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS)) return
 		 * null; } catch (InterruptedException e1) { return null; }

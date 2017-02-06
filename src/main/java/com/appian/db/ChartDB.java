@@ -39,7 +39,7 @@ public class ChartDB {
 	public String dbName;
 	public String tableName;
 	public String columns;
-	private String columnA;
+	public String columnA;
 
 	public static ConcurrentHashMap<String, Network> map = new ConcurrentHashMap<>();
 
@@ -133,7 +133,7 @@ public class ChartDB {
 					request.getSession().setAttribute("columnB", columns.split(",")[0]);
 				}
 			}
-			
+
 		} else {
 			url = (String) request.getSession().getAttribute("url");
 			columns = (String) request.getSession().getAttribute("columns");
@@ -188,11 +188,11 @@ public class ChartDB {
 		try {
 			ArrayList<Timestamp> times = new ArrayList<Timestamp>();
 			Connection conn = getConnection();
-			PreparedStatement ps = conn.prepareStatement("SELECT coalesce(tab1." + chartDT + ",tab2." + chartDT
-					+ ") as dt ,coalesce(tab1." + columnA + ",tab2." + columnA + ") as val1 FROM " + dbName
-					+ ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName
-					+ " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + "  where tab1." + chartDT + ">? and tab1."
-					+ chartDT + "<? order by dt ");
+			String s="SELECT tab2." + chartDT
+					+ " as dt ,tab2." + columnA + " as val1 FROM " + dbName + ".dbo._" + tableName
+					+ " as tab2  where tab2." + chartDT + ">=? and tab2."
+					+ chartDT + "<=? order by dt ";
+			PreparedStatement ps = conn.prepareStatement(s);
 			ps.setTimestamp(1, fromDate);
 			ps.setTimestamp(2, toDate);
 			ResultSet rs = ps.executeQuery();
@@ -204,7 +204,6 @@ public class ChartDB {
 			conn.close();
 			return times;
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new PException("Unable to get Actual Timestamps !!!");
 		}
 	}
@@ -271,6 +270,7 @@ public class ChartDB {
 			}
 			conn.close();
 		} catch (Exception e) {
+			System.out.println(e);
 			e.printStackTrace();
 		}
 	}
@@ -283,7 +283,7 @@ public class ChartDB {
 			String query = "select top " + network.slidingWindowSize + " * from (select coalesce(tab1." + chartDT
 					+ ",tab2." + chartDT + ") as dt ,coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM "
 					+ dbName + ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName
-					+ " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + " where dt"
+					+ " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + " where coalesce(tab1." + chartDT + ",tab2." + chartDT + ")"
 					+ " <? and coalesce(tab1." + column + ",tab2." + column + ") is not null ) as  a order by dt desc;";
 			PreparedStatement preparedStatement = conn.prepareStatement(query);
 			// System.out.println("--> " + query);
@@ -304,7 +304,7 @@ public class ChartDB {
 						+ ") as val1 FROM " + dbName + ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName
 						+ ".dbo._" + tableName + " as tab2  ON tab1." + chartDT + "=tab2." + chartDT
 						+ " where coalesce(tab1." + column + ",tab2." + column
-						+ ") is not null ) as  a order by dt desc;";
+						+ ") is not null ) as  a order by dt;";
 				PreparedStatement preparedStatement1 = conn.prepareStatement(query1);
 				// System.out.println("--> " + query1);
 				// System.out.println("--> " + fromDate);
@@ -334,7 +334,7 @@ public class ChartDB {
 			PreparedStatement getValues = conn.prepareStatement("select coalesce(tab1." + chartDT + ",tab2." + chartDT
 					+ ") as dt ,coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM " + dbName + ".dbo."
 					+ tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName + " as tab2  ON tab1."
-					+ chartDT + "=tab2." + chartDT + " where dt >? and dt"
+					+ chartDT + "=tab2." + chartDT + " where coalesce(tab1." + chartDT + ",tab2." + chartDT + ") >? and coalesce(tab1." + chartDT + ",tab2." + chartDT + ")"
 					+ "<? order by dt ");
 			getValues.setTimestamp(1, fromDate);
 			getValues.setTimestamp(2, toDate);
@@ -355,7 +355,7 @@ public class ChartDB {
 				}
 				nextVal = network.getNextVal(previousValuesList);
 				if (valuesSet.getDouble(2) == 0) {
-					
+
 					network.addRow(previousValuesList, new double[] { network.normalizeValue(nextVal) });
 					updateNetwork=true;
 					previousValuesList = this.shiftAllLeft(previousValuesList, network.normalizeValue(nextVal));
@@ -380,7 +380,7 @@ public class ChartDB {
 				// System.out.println("--- > " + nextVal);
 			}
 			if(updateNetwork==true)
-			network.learn();
+				network.learn();
 			return predictedValuesMap;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -396,7 +396,7 @@ public class ChartDB {
 			String query = "select top " + network.slidingWindowSize + " * from (select coalesce(tab1." + chartDT
 					+ ",tab2." + chartDT + ") as dt ,coalesce(tab1." + column + ",tab2." + column + ") as val1 FROM "
 					+ dbName + ".dbo." + tableName + " as tab1  FULL OUTER JOIN " + dbName + ".dbo._" + tableName
-					+ " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + " where tab1." + chartDT
+					+ " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + " where coalesce(tab1." + chartDT + ",tab2." + chartDT + ")"
 					+ " <? and coalesce(tab1." + column + ",tab2." + column + ") is not null ) as  a order by dt desc;";
 			PreparedStatement preparedStatement = conn.prepareStatement(query);
 			System.out.println("[ChartDB][getPredictedValues] : Query : " + query);
@@ -466,7 +466,7 @@ public class ChartDB {
 				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
 			}
 			if(updateNetwork==true)
-			network.learn();
+				network.learn();
 			return predictedValuesMap;
 
 		} catch (Exception e) {
@@ -478,7 +478,7 @@ public class ChartDB {
 	private Long findPrevTime(boolean updateNetwork,Timestamp fromDate, double[] previousValuesList, Network network, Long previousTime,
 			Long avgDelay) {
 		double nextVal;
-		
+
 		while (fromDate.getTime() - previousTime > avgDelay * 2) {
 			updateNetwork=true;
 			nextVal = network.nextValAndUpdateTrainingSet(previousValuesList);
@@ -761,7 +761,7 @@ public class ChartDB {
 					}
 
 				}
-				
+
 				System.out.println("Session Columns "+request.getSession().getAttribute("columnA"));
 				System.out.println("Session Columns "+request.getSession().getAttribute("columnB"));
 
@@ -785,6 +785,29 @@ public class ChartDB {
 			e.printStackTrace();
 			throw new PException("Unable to get Columns !!!");
 		}
+	}
+
+	public boolean initialSaveValues(Network network, String coloumn) {
+		try
+		{
+			Connection conn=getConnection();
+			String dt=chartDT;	
+			String query="select min("+dt+") as min,max("+dt+") as max from "+tableName;
+			ResultSet rs=conn.createStatement().executeQuery(query);
+			NavigableMap<java.sql.Timestamp, Double> values;
+			if(rs.next())
+			{
+				values=getPredictedValues(rs.getTimestamp(1), rs.getTimestamp(2), network, coloumn);
+				savePredictedValues(values, coloumn, tableName);
+			}
+			conn.close();
+			return true;
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		return false;
+
 	}
 
 }

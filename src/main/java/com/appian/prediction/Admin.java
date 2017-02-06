@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
@@ -134,11 +135,24 @@ public class Admin {
 		// AdminDB dbConnection = new AdminDB(request);
 		if (adminDb.setColumns(dbName, tableName, columns, chartDT,(String) request.getSession().getAttribute("pUser"))) {
 			//System.out.println("Saved!!!!!!!!!!");
+			try{
+			String[] s=columns.trim().split(",");
+			for(String column:s)
+				if(!ChartDB.map.contains(tableName+column))
+				{
+					new TrainNetwork().Train(request, PredictionLoader.format.format(new Date(0)), PredictionLoader.format.format(new Date()), column,
+							tableName);
+				}
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
 			return "List saved successful";
 		} else {
 			//System.out.println("ERROR ::!!!!!!!!!");
 			return "Error : List not saved";
 		}
+		
 	}
 	
 	//call train network
