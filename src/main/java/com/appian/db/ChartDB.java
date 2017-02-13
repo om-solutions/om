@@ -529,7 +529,6 @@ public class ChartDB {
 						+ chartDT + orderBy;
 				System.out.println("[ChartDB][getMeterGraphValues] : " + query);
 				ps = conn.prepareStatement(query);
-				// System.out.println("---> : " + query);
 			} else {
 				String query = "SELECT coalesce(tab1." + chartDT + ",tab2." + chartDT + ") as dt ,ISNULL(tab1." + column
 						+ ",0) as val1, ISNULL(tab2." + column + ",0) as val2  FROM  [" + dbName + "].[dbo].["
@@ -542,10 +541,8 @@ public class ChartDB {
 
 				ps.setTimestamp(1, fromDate);
 				ps.setTimestamp(2, toDate);
-				// System.out.println("---> : " + query);
 			}
-			// System.out.println("3 : " + fromDate + " : " + toDate);
-
+		
 			JSONArray jArray = new JSONArray();
 
 			if (fromDate != null) {
@@ -564,24 +561,11 @@ public class ChartDB {
 					String timestamp = rsOld.getString(1);
 					Float actual = rsOld.getString(2) != null ? Float.valueOf(rsOld.getString(2)) : 0f;
 					Float predicted = rsOld.getString(3) != null ? Float.valueOf(rsOld.getString(3)) : 0f;
-					// System.out.println("actual : " + actual + ", predicted" +
-					// predicted);
-
-					if (actual == null || predicted == null || actual.equals(0f)) {
-					} else
-						Math.abs(((actual - predicted) / actual) * 100);
 					JSONObject json = new JSONObject();
-					// System.out.println(
-					// timestamp + " : actual : " + actual.toString() + ",
-					// predicted" + predicted.toString());
 					json.put(chartDT, timestamp);
 					json.put(column, actual == 0f ? null : actual.toString());
 					json.put("_" + column, predicted == 0f ? null : predicted.toString());
-					// System.out.println("json : " + json.toString());
-					// json.put("error", error != null ? error.toString() :
-					// null);
-					// //System.out.println("[getMeterGraphValues] : JSON1 : " +
-					// json.toString());
+					json.put("err%_" + column, getErrorPercentage(predicted,actual));
 					jArray.put(json);
 				}
 			}
@@ -592,31 +576,17 @@ public class ChartDB {
 				String timestamp = rs.getString(1);
 				Float actual = rs.getString(2) != null ? Float.valueOf(rs.getString(2)) : 0f;
 				Float predicted = rs.getString(3) != null ? Float.valueOf(rs.getString(3)) : 0f;
-
-				if (actual == null || predicted == null || actual.equals(0f)) {
-				} else
-					Math.abs(((actual - predicted) / actual) * 100);
 				JSONObject json = new JSONObject();
-
-				// //System.out.println("timestamp : " + timestamp + ", actual :
-				// "
-				// + actual + ", predicted : " + predicted);
 				json.put(chartDT, timestamp);
 				json.put(column, actual == 0f ? null : actual.toString());
 				json.put("_" + column, predicted == 0f ? null : predicted.toString());
-				// json.put("error", error != null ? error.toString() : null);
-
-				// System.out.println("json2 : " + json.toString());
+				json.put("err%_" + column, getErrorPercentage(predicted,actual));
 				jArray.put(json);
-				// //System.out.println("[getMeterGraphValues] : JSON2 : " +
-				// json.toString());
 			}
 
 			ps.close();
 			rs.close();
 			conn.close();
-			// System.err.println("[getMeterGraphValues] : " +
-			// jArray.toString());
 			return jArray;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -625,6 +595,16 @@ public class ChartDB {
 
 	}
 
+	private Float getErrorPercentage(Float predicted, Float actual){
+		Float error=0f;		
+		error = Math.abs(((actual - predicted) / actual) * 100);
+		if(error.isInfinite()||error.isNaN())
+			error = 0f;
+		return error;
+		
+	}
+	
+	
 	public JSONArray getMeterGraphWithPredictValues(Timestamp fromDate, String predict, String column,
 			Boolean singleColumn) throws PException {
 		try {
@@ -665,22 +645,11 @@ public class ChartDB {
 					String timestamp = rsOld.getString(1);
 					Float actual = rsOld.getString(2) != null ? Float.valueOf(rsOld.getString(2)) : 0f;
 					Float predicted = rsOld.getString(3) != null ? Float.valueOf(rsOld.getString(3)) : 0f;
-					// System.out.println(column + " -> actual : " + actual + ",
-					// predicted : " + predicted);
-					if (actual == null || predicted == null || actual.equals(0f)) {
-					} else
-						Math.abs(((actual - predicted) / actual) * 100);
 					JSONObject json = new JSONObject();
-
-					// System.out.println(column + " -> actual.toString() : " +
-					// actual.toString()
-					// + ", predicted.toString() : " + predicted.toString());
 					json.put(chartDT, timestamp);
 					json.put(column, actual == 0f ? null : actual.toString());
 					json.put("_" + column, predicted == 0f ? null : predicted.toString());
-					// json.put("error", error != null ? error.toString() :
-					// null);
-
+					json.put("err%_" + column, getErrorPercentage(predicted,actual));					
 					jArray.put(json);
 				}
 			}
@@ -689,18 +658,11 @@ public class ChartDB {
 				String timestamp = rs.getString(1);
 				Float actual = rs.getString(2) != null ? Float.valueOf(rs.getString(2)) : 0f;
 				Float predicted = rs.getString(3) != null ? Float.valueOf(rs.getString(3)) : 0f;
-
-				try {
-					Math.abs(((actual - predicted) / actual) * 100);
-				} catch (Exception e) {
-				}
 				JSONObject json = new JSONObject();
-
 				json.put(chartDT, timestamp);
 				json.put(column, actual == 0f ? null : actual.toString());
 				json.put("_" + column, predicted == 0f ? null : predicted.toString());
-				// json.put("error", error != null ? error.toString() : null);
-
+				json.put("err%_" + column, getErrorPercentage(predicted,actual));
 				jArray.put(json);
 			}
 
@@ -720,15 +682,10 @@ public class ChartDB {
 			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData where puser='"
 					+ pUser + "' order by dt desc ";
 
-			// System.out.println("SQL : " + sql);
 			PreparedStatement psDBList = connection.prepareStatement(sql);
-			// System.out.println("1");
 			ResultSet rsDBList = psDBList.executeQuery();
-			// System.out.println("2");
 			JSONArray jArray = new JSONArray();
-			// System.out.println("3");
 			if (rsDBList.next()) {
-				// System.out.println("4 - IF");
 				JSONObject json = new JSONObject();
 				json.put("url", rsDBList.getString("url"));
 				json.put("dbInstanceName", rsDBList.getString("dbInstanceName"));
@@ -765,9 +722,7 @@ public class ChartDB {
 				System.out.println("Session Columns "+request.getSession().getAttribute("columnA"));
 				System.out.println("Session Columns "+request.getSession().getAttribute("columnB"));
 
-				// System.out.println(" IF JSON : " + jArray.toString());
 			} else {
-				// System.out.println("5 - Else getColumns");
 				JSONObject json = new JSONObject();
 				json.put("url", DBConnection.url);
 				json.put("dbInstanceName", DBConnection.dbInstanceName);
@@ -776,9 +731,7 @@ public class ChartDB {
 				json.put("userName", DBConnection.userName);
 				json.put("password", DBConnection.password);
 				jArray.put(json);
-				// System.out.println("ELSE JSON : " + jArray.toString());
 			}
-			// System.out.println("JSON : " + jArray.toString());
 			return jArray.toString();
 
 		} catch (Exception e) {
