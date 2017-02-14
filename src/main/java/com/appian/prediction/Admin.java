@@ -140,6 +140,9 @@ public class Admin {
 			for(String column:s)
 				if(!ChartDB.map.contains(tableName+column))
 				{
+					request.getSession().setAttribute("dbName", dbName);
+					request.getSession().setAttribute("tableName",tableName);
+					request.getSession().setAttribute("chartDT", chartDT);
 					new TrainNetwork().Train(request, PredictionLoader.format.format(new Date(0)), PredictionLoader.format.format(new Date()), column,
 							tableName);
 				}

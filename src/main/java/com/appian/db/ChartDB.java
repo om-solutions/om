@@ -116,7 +116,7 @@ public class ChartDB {
 	public ChartDB(HttpServletRequest request) throws PException {
 
 		String tempurl = (String) request.getSession().getAttribute("url");
-		if (tempurl == null || tempurl.isEmpty()) {
+		if (tempurl == null || tempurl.isEmpty()||(String) request.getSession().getAttribute("columns")==null) {
 			getDBValues(request);
 			request.getSession().setAttribute("url", url);
 			request.getSession().setAttribute("tableName", tableName);
@@ -381,8 +381,8 @@ public class ChartDB {
 				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
 				// System.out.println("--- > " + nextVal);
 			}
-			if(updateNetwork==true)
-				network.learn();
+			//if(updateNetwork==true)
+				//network.learn();
 			return predictedValuesMap;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -467,8 +467,8 @@ public class ChartDB {
 				previousTime = previousTime + avgDelay;
 				predictedValuesMap.put(new Timestamp(previousTime), nextVal);
 			}
-			if(updateNetwork==true)
-				network.learn();
+			//if(updateNetwork==true)
+				//network.learn();
 			return predictedValuesMap;
 
 		} catch (Exception e) {

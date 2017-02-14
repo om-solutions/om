@@ -124,6 +124,8 @@ public class TrainNetwork {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		chartDB.columnA=coloumn;
+		chartDB.initialSaveValues(network,coloumn);
 		/* network.lock.unlock(); */
 		return network;
 	}
