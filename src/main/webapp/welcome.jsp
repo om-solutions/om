@@ -603,21 +603,38 @@ footer {
 														"axisColor" : "#00FF00",
 														"axisThickness" : 2,
 														"axisAlpha" : 1,
-														"position" : "right"
+														"offset" : 50,
+														"position" : "left"
 													}, {
 														"id" : "v3",
-														"axisColor" : "#8B4513",
+														"axisColor" : "#ff0000",
 														"axisThickness" : 2,
 														"gridAlpha" : 0,
-														"offset" : 50,
+														"offset" : 100,
 														"axisAlpha" : 1,
 														"position" : "left"
 													}, {
 														"id" : "v4",
-														"axisColor" : " #ff3300",
+														"axisColor" : " #FF0099",
+														"axisThickness" : 2,
+														"gridAlpha" : 1,												
+														"axisAlpha" : 1,
+														"position" : "right"
+													}, {
+														"id" : "v5",
+														"axisColor" : " #990033",
+														"axisThickness" : 2,
+														"gridAlpha" : 1,
+														"offset" : 50,
+														"axisAlpha" : 1,
+														"position" : "right"
+													}
+													, {
+														"id" : "v6",
+														"axisColor" : " #0000ff",
 														"axisThickness" : 2,
 														"gridAlpha" : 0,
-														"offset" : 50,
+														"offset" : 100,
 														"axisAlpha" : 1,
 														"position" : "right"
 													}
@@ -635,15 +652,26 @@ footer {
 													}, {
 														"valueAxis" : "v2",
 														"lineColor" : "#00FF00",
-														"bullet" : "triangleUp",
+														"bullet" : "square",
 														"bulletBorderThickness" : 1,
 														"hideBulletsCount" : 30,
 														"title" : "_" + document.getElementById( "selColumnA" ).value,
 														"valueField" : "_" + document.getElementById( "selColumnA" ).value,
 														"fillAlphas" : 0
-													}, {
+													},{
 														"valueAxis" : "v3",
-														"lineColor" : "#8B4513",
+														"lineColor" : "#ff0000",
+														"bullet" : "triangleUp",
+														"bulletBorderThickness" : 1,
+														"hideBulletsCount" : 30,
+														"title" : "err%_" + document.getElementById( "selColumnA" ).value,
+														"valueField" : "err%_" + document.getElementById( "selColumnA" ).value,
+														"fillAlphas" : 0
+													}
+													
+													, {
+														"valueAxis" : "v4",
+														"lineColor" : "#FF0099",
 														"bullet" : "round",
 														"bulletBorderThickness" : 1,
 														"hideBulletsCount" : 30,
@@ -651,13 +679,22 @@ footer {
 														"valueField" : document.getElementById( "selColumnB" ).value,
 														"fillAlphas" : 0
 													}, {
-														"valueAxis" : "v4",
-														"lineColor" : "#ff3300",
-														"bullet" : "triangleUp",
+														"valueAxis" : "v5",
+														"lineColor" : "#990033",
+														"bullet" : "square",
 														"bulletBorderThickness" : 1,
 														"hideBulletsCount" : 30,
 														"title" : "_" + document.getElementById( "selColumnB" ).value,
 														"valueField" : "_" + document.getElementById( "selColumnB" ).value,
+														"fillAlphas" : 0
+													},{
+														"valueAxis" : "v6",
+														"lineColor" : "#0000ff",
+														"bullet" : "triangleUp",
+														"bulletBorderThickness" : 1,
+														"hideBulletsCount" : 30,
+														"title" : "err%_" + document.getElementById( "selColumnB" ).value,
+														"valueField" : "err%_" + document.getElementById( "selColumnB" ).value,
 														"fillAlphas" : 0
 													}
 
