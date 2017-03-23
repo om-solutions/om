@@ -20,6 +20,8 @@ import org.json.JSONObject;
 import com.appian.db.ChartDB;
 import com.appian.db.DBConnection;
 import com.appian.nn.Network;
+import com.appian.util.AppianUtil;
+import com.google.gson.Gson;
 import com.sun.jmx.snmp.Timestamp;
 
 public class PredictionLoader implements ServletContextListener {
@@ -39,7 +41,7 @@ public class PredictionLoader implements ServletContextListener {
 		try {
 			Connection dbConnection = DBConnection.getConnection();
 			String sql = "select [dt],[dbName],[tableName] ,[columnsName],[chartDT],[url],[dbInstanceName],[userName],[password],[pUser] from Danpac.dbo.masterData where dt is not null and columnsname is not null";
-			//System.out.println("Inside Context : " + sql);
+			// System.out.println("Inside Context : " + sql);
 			PreparedStatement psDBList;
 
 			psDBList = dbConnection.prepareStatement(sql);
@@ -48,7 +50,7 @@ public class PredictionLoader implements ServletContextListener {
 			while (rsDBList.next()) {
 				JSONObject jobj = new JSONObject();
 				jobj.put("url", rsDBList.getString("url"));
-				jobj.put("columns", rsDBList.getString("columnsName"));
+				jobj.put("columns", AppianUtil.extractColumns(rsDBList.getString("columnsName")));
 				jobj.put("tableName", rsDBList.getString("tableName"));
 				jobj.put("dbName", rsDBList.getString("dbName"));
 				jobj.put("dbInstanceName", rsDBList.getString("dbInstanceName"));
@@ -56,20 +58,20 @@ public class PredictionLoader implements ServletContextListener {
 				jobj.put("password", rsDBList.getString("password"));
 				jobj.put("chartDT", rsDBList.getString("chartDT"));
 
-				String columns = rsDBList.getString("columnsName");
+				System.out.println("111111 : " + rsDBList.getString("columnsName"));
+				String columns = AppianUtil.extractColumns(rsDBList.getString("columnsName"));
 				String tableName = rsDBList.getString("tableName");
-
+				System.out.println("222222 : " + columns);
 				List<String> items = Arrays.asList(columns.split(","));
 				Iterator<String> i = items.iterator();
 
-				ChartDB chartDB=new ChartDB(jobj);
+				ChartDB chartDB = new ChartDB(jobj);
 				while (i.hasNext()) {
 					String column = i.next();
 					TrainNetwork trainNetwork = new TrainNetwork();
 					Network network = null;
-					chartDB.columnA=column;
-					if (!ChartDB.map.containsKey(tableName + column))
-					{
+					chartDB.columnA = column;
+					if (!ChartDB.map.containsKey(tableName + column)) {
 						trainNetwork.Train(jobj, format.format(new Date(0)), format.format(new Date()), column,
 								tableName);
 					}
@@ -90,7 +92,7 @@ public class PredictionLoader implements ServletContextListener {
 		if (context != null) {
 			context.log("MyServletContextListener: " + message);
 		} else {
-			//System.out.println("MyServletContextListener: " + message);
+			// System.out.println("MyServletContextListener: " + message);
 		}
 	}
 }

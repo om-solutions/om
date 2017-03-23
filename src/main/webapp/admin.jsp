@@ -4,12 +4,11 @@
 <title>Bootstrap Example</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet"
-	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-<script
-	src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-<script
-	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="css/bootstrap.min.css">
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/bootstrap-notify.js"></script>
+<script src="js/bootstrap-notify.min.js"></script>
 </head>
 
 <body>
@@ -165,10 +164,9 @@
 								window.location = "Plogin.jsp";
 						<%} else {
 				//System.out.println(" - - >" + (session.getAttribute("userid")));%>
-							loadConnection("http://localhost:8080/Prediction/prediction/admin/getCon");
+							loadConnection( "http://localhost:8080/Prediction/prediction/admin/getCon" );
 						<%}%>
 							} );
-
 
 							function loadConnection () {
 								$( '#dbSelector' ).children().remove();
@@ -176,14 +174,16 @@
 									url : "http://localhost:8080/Prediction/prediction/admin/loadCon",
 									type : 'GET',
 									dataType : 'json',
-									success : function (response) {
-										
+									success : function ( response ) {
+
 										for ( var i = 0; i < response.length; i++ ) {
 											//alert("1221212");
 											var obj = response[ i ];
 											document.getElementById( 'url' ).value = obj[ "url" ];
 											document.getElementById( 'dbInstanceName' ).value = obj[ "dbInstanceName" ];
 											document.getElementById( 'userName' ).value = obj[ "userName" ];
+											document.getElementById( 'daysToPredict' ).value = obj[ "daysToPredict" ];
+
 											//document.getElementById( 'password' ).value = obj[ "password" ];
 
 										}
@@ -195,33 +195,26 @@
 							}
 
 							function connectDB () {
-								if(document.getElementById( 'dbInstanceName' ).value===""||
-										document.getElementById( 'userName' ).value===""|| 
-										document.getElementById( 'password' ).value===""||
-										document.getElementById( 'url' ).value==="")
-									{
-									alert("Some field are blank !!! ");
-									}
-								else{
-								$( '#dbSelector' ).children().remove();
-								$.ajax( {
-									url : "http://localhost:8080/Prediction/prediction/admin/dbCon?url=" + document.getElementById( 'url' ).value 
-											+ "&dbInstanceName=" + document.getElementById( 'dbInstanceName' ).value 
-											+ "&userName=" + document.getElementById( 'userName' ).value 
-											+ "&password="+ document.getElementById( 'password' ).value,
-									type : 'GET',
-									dataType : 'json',
-									success : function () {
-										//alert(JSON.stringify(response));
-										loadDatabase( "http://localhost:8080/Prediction/prediction/admin/database" );
+								if ( document.getElementById( 'dbInstanceName' ).value === "" || document.getElementById( 'userName' ).value === "" || document.getElementById( 'password' ).value === "" || document.getElementById( 'url' ).value === "" ) {
+									alert( "Some field are blank !!! " );
+								} else {
+									$( '#dbSelector' ).children().remove();
+									$.ajax( {
+										url : "http://localhost:8080/Prediction/prediction/admin/dbCon?url=" + document.getElementById( 'url' ).value + "&dbInstanceName=" + document.getElementById( 'dbInstanceName' ).value + "&userName=" + document.getElementById( 'userName' ).value + "&password="
+												+ document.getElementById( 'password' ).value,
+										type : 'GET',
+										dataType : 'json',
+										success : function () {
+											//alert(JSON.stringify(response));
+											loadDatabase( "http://localhost:8080/Prediction/prediction/admin/database" );
 
-									},
-									error : function ( error ) {
-										alert( "Unable to connect to database, Please check the setting " );
-									},
-								} );
+										},
+										error : function ( error ) {
+											alert( "Unable to connect to database, Please check the setting " );
+										},
+									} );
 								}
-								document.getElementById( 'password' ).value="";
+								document.getElementById( 'password' ).value = "";
 							}
 
 							function loadDatabase ( url ) {
@@ -288,6 +281,7 @@
 									dataType : 'json',
 									success : function ( response ) {
 										//alert(JSON.stringify(response));
+										var a = 'txtFlowTemperature';
 										$( "#POIBody" ).children().remove();
 										for ( var i = 0; i < response.length; i++ ) {
 											//alert("1221212");
@@ -295,8 +289,9 @@
 											var columnName = obj[ "columnName" ];
 											var dataType = obj[ "dataType" ];
 											var isNull = obj[ "isNull" ];
-											addRow( columnName, dataType, isNull );
+											addRow( columnName, dataType, isNull, i );
 
+											//alert("!!!!  : "+$( '#txt'+columnName ).val())
 										}
 
 									},
@@ -305,17 +300,29 @@
 									},
 								} );
 							}
-							function addRow ( columnName, dataType, isNull ) {
+							function addRow ( columnName, dataType, isNull, i ) {
 								if ( dataType === 'real' || dataType === 'int' || dataType === 'float' || dataType === 'datetime' )
 									if ( dataType === 'datetime' ) {
-										$( "#POITable" ).append(
-												'<tr><td style="text-align: left;"></td><td style="text-align: left;">' + columnName + '</td> <td style="text-align: left;">' + dataType + '</td><td style="text-align: left;" >' + isNull
-														+ '</td><td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="radio" checked="checked" name="chartDT" value='+columnName+' ></div></tr>' );
+										$( "#POITable" )
+												.append(
+														'<tr><td style="text-align: left;"></td><td style="text-align: left;">'
+																+ columnName
+																+ '</td> <td style="text-align: left;">'
+																+ dataType
+																+ '</td><td style="text-align: left;" >'
+																+ isNull
+																+ '</td><td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="radio" checked="checked" name="chartDT" value='+columnName+' ></div></td>NA<td style="text-align: left;" >NA</td><td style="text-align: left;" >NA</td></tr>' );
 										$( "#btSave" ).removeClass( "disabled" );
 									} else {
-										$( "#POITable" ).append(
-												'<tr><td style="text-align: left;"><input class="messageCheckbox" type="checkbox" value='+columnName+' id='+columnName+'></td><td style="text-align: left;">' + columnName + '</td> <td style="text-align: left;">' + dataType
-														+ '</td><td style="text-align: left;" >' + isNull + '</td><td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="radio" name="chartDT" value='+columnName+' ></div></tr>' );
+										$( "#POITable" )
+												.append(
+														'<tr><td style="text-align: left;"><input class="messageCheckbox" type="checkbox" value='+columnName+' id='+columnName+'></td><td style="text-align: left;">'
+																+ columnName
+																+ '</td> <td style="text-align: left;">'
+																+ dataType
+																+ '</td><td style="text-align: left;" >'
+																+ isNull
+																+ '</td><td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="radio" name="chartDT" value='+columnName+' ></div></td> <td style="text-align: left;" > <select class="selectpicker" name="opt'+columnName+'" id="opt'+columnName+'">  <option><</option>  <option>></option> <option><=</option> <option>>=</option>	</select> </td> <td style="text-align: left;" > <div id="select1" class="product-options " data-toggle="buttons"><input type="number" name="txt'+columnName+'" id="txt'+columnName+'" placeholder="Number Only" name='+columnName+' ></div></td></tr>' );
 									}
 
 							}
@@ -345,24 +352,40 @@
 								var allColumns = "";
 								var dbName = "";
 								var tableName = "";
+								var jArray = [];
 
 								var dbName = $( '#dbSelector' ).find( "option:selected" ).text();
 								var tableName = $( '#tableSelector' ).find( "option:selected" ).text();
 
 								$( "input[type=checkbox]:checked" ).each( function () {
-									if ( allColumns == "" )
+
+									alert( "Inner1 : " + $( this ).val() );
+									alert( "Inner2 : " +  $( '#opt' + $( this ).val() ).find( "option:selected" ).text());
+									alert( "Inner3 : " + $( '#txt' + $( this ).val() ).val() );
+									
+									jArray.push( {
+										"column" : $( this ).val(),
+										"operator" :  $( '#opt' + $( this ).val() ).find( "option:selected" ).text(),
+										"notifyWhen" :  $( '#txt' + $( this ).val() ).val()
+									} );
+
+									if ( allColumns == "" ) {
 										allColumns = $( this ).val();
-									else
+
+									} else {
 										allColumns += ',' + $( this ).val();
+									} 									//alert( "Inner4 : " + JSON.stringify( jArray ) );
+
 								} );
 
+								alert( JSON.stringify( jArray ) );
 								var chartDT = $( 'input[name=chartDT]:checked' ).val();
 
 								if ( chartDT == null ) {
 									alert( "Plese Select Date\Time Cloumn !!!" );
 								} else {
 									$.ajax( {
-										url : "http://localhost:8080/Prediction/prediction/admin/saveCols?columns=" + allColumns + "&dbName=" + dbName + "&tableName=" + tableName + "&chartDT=" + chartDT,
+										url : "http://localhost:8080/Prediction/prediction/admin/saveCols?columns=" + JSON.stringify( jArray ) + "&dbName=" + dbName + "&tableName=" + tableName + "&chartDT=" + chartDT,
 										type : 'GET',
 										success : function ( response ) {
 											alert( response );
@@ -391,6 +414,8 @@
 									<th>Data Type</th>
 									<th>is Null</th>
 									<th>is datetime</th>
+									<th>Operator</th>
+									<th>Notify When</th>
 
 								</tr>
 							</thead>
@@ -435,6 +460,15 @@
 						<br>
 						<br>
 						<tr>
+							<td style="padding-right: 20px">Days to be predicted</td>
+							<td style="padding-right: 20px"><input align="center"
+								name="daysToPredict" id="daysToPredict" type="number" min="0"
+								max="365" class="btn btn-default" /></td>
+							<td style="padding-right: 20px"><input align="center"
+								name="btnDaysToPredict" id="btnDaysToPredict" type="button"
+								value="Save" class="btn btn-default" /></td>
+						</tr>
+						<tr>
 							<td style="padding-right: 20px">Browse File</td>
 							<td style="padding-right: 20px"><input align="center"
 								type="file" name="csvfile" accept=".csv" class="btn btn-default" />
@@ -451,6 +485,32 @@
 
 	</div>
 
+	<script>
+		$( '#btnDaysToPredict' ).on( 'click', function ( e ) {
+
+			var x = $( "#daysToPredict" ).val();
+			$.notify( {
+				// options
+				message : 'Hello World'
+			}, {
+				// settings
+				type : 'danger'
+			} );
+
+			//alert("asadasd : "+x);		
+			$.ajax( {
+				url : "http://localhost:8080/Prediction/prediction/admin/saveDays?daysToPredict=" + x,
+				type : 'GET',
+				success : function ( response ) {
+					alert( response );
+				},
+				error : function ( error ) {
+					alert( "Try again : " + JSON.stringify( error ) );
+				},
+			} );
+
+		} )
+	</script>
 </body>
 </html>
 

@@ -35,12 +35,11 @@
 
 		//List items = sfu.parseRequest(request);
 
-		List<FileItem> items = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
+		List<FileItem> items = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);	
 		for (FileItem item : items) {
 			String fileName = item.getName();
 			String crunchifyCSV = item.getString();
-			ArrayList<String> crunchifyResult = new ArrayList<String>();
-
+			ArrayList<String> crunchifyResult = new ArrayList<String>();			
 			if (crunchifyCSV != null) {
 				String lines[] = crunchifyCSV.split("\\r?\\n");
 				//System.out.println("lines.length : " + lines.length);
@@ -48,9 +47,7 @@
 					if (j == 0) {
 						String[] headerData = lines[j].split("\\s*,\\s*");
 						String[] rowData = lines[j + 1].split("\\s*,\\s*");
-						
-							DBConnection.createReplaceTable(fileName, headerData, rowData);
-						
+						DBConnection.createReplaceTable(fileName, headerData, rowData);
 
 					} else {
 						String[] rowData = lines[j].split("\\s*,\\s*");
@@ -77,7 +74,8 @@
 <%
 	} catch (Exception ex) {
 		//System.out.println("99999 : " + ex);
-		session.setAttribute("status", "Unable to upload the file!! Please check the file name and column names.");
+		session.setAttribute("status",
+				"Unable to upload the file!! Please check the file name and column names.");
 %><script type="text/javascript">
 	window.location.href = "admin.jsp";
 </script>

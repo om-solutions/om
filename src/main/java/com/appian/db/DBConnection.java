@@ -26,7 +26,7 @@ public class DBConnection {
 	static String chartDT;
 	static String dbName;
 	static String tableName;
-	static Properties properties=new Properties();
+	static Properties dbProperties = new Properties();
 	private static String oldValues = "10";
 	private ArrayList<Timestamp> times = new ArrayList<Timestamp>();
 	private ArrayList<Double> values = new ArrayList<Double>();
@@ -37,20 +37,35 @@ public class DBConnection {
 	private static int columnCount;
 	private static String updateQuery;
 	private static int whereClouseIndex;
+	static Properties fileProperties  = new Properties();;
+	private static String daysToPredict;
 
-	static{
+	static {
 		try {
-			properties.load(DBConnection.class.getResourceAsStream("/DBproperties.properties"));
-			url=properties.getProperty("url");
-			dbInstanceName = properties.getProperty("dbInstanceName");
-			driver = properties.getProperty("driver");
-			userName = properties.getProperty("userName");
-			password = properties.getProperty("password");
+			dbProperties.load(DBConnection.class.getResourceAsStream("/DBproperties.properties"));
+			fileProperties.load(DBConnection.class.getResourceAsStream("/FileProperties.properties"));
+			url = dbProperties.getProperty("url");
+			dbInstanceName = dbProperties.getProperty("dbInstanceName");
+			driver = dbProperties.getProperty("driver");
+			userName = dbProperties.getProperty("userName");
+			password = dbProperties.getProperty("password");
+			daysToPredict = dbProperties.getProperty("daysToPredict");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
+
+
+	public static String getDaysToPredict() {
+		return daysToPredict;
+	}
+
+	public static void setDaysToPredict(String daysToPredict) {
+		DBConnection.daysToPredict = daysToPredict;
+	}
+
+	
 	public ArrayList<Double> getValues() {
 		return values;
 	}
@@ -73,7 +88,7 @@ public class DBConnection {
 			Connection conn = DriverManager.getConnection(getUrl() + getDbInstanceName(), getUserName(), getPassword());
 			return conn;
 		} catch (Exception e) {
-			//e.printStackTrace();
+			e.printStackTrace();
 			throw new PException("Unabel to get Connection !!!");
 		}
 
@@ -85,12 +100,12 @@ public class DBConnection {
 
 		try {
 			conn = DBConnection.getConnection();
-			//System.out.println("! Updated");
+			// System.out.println("! Updated");
 			PreparedStatement ps = conn.prepareStatement(updateQuery);
-			//System.out.println("!! Updated");
+			// System.out.println("!! Updated");
 			String whereClauseValue = null;
 			int j = 0;
-			//System.out.println("columnCount : " + columnCount);
+			// System.out.println("columnCount : " + columnCount);
 			for (int i = 0; i < columnCount; i++) {
 				if (whereClouseIndex == i) {
 					whereClauseValue = rowData[i].toString();
@@ -99,16 +114,16 @@ public class DBConnection {
 					j++;
 				}
 			}
-			//System.out.println("!!! Updated : " + whereClauseValue);
+			// System.out.println("!!! Updated : " + whereClauseValue);
 			ps.setString(j, whereClauseValue);
 			count = ps.executeUpdate();
 			ps.close();
 			conn.close();
 			// return jArray.toString();
-			//System.out.println("Updated");
+			// System.out.println("Updated");
 			return count > 0 ? "true" : "false";
 		} catch (SQLException e) {
-			//e.printStackTrace();
+			// e.printStackTrace();
 			throw new PException("Unable to insert / update record into table !!!");
 
 		}
@@ -129,10 +144,10 @@ public class DBConnection {
 			ps.close();
 			conn.close();
 			// return jArray.toString();
-			//System.out.println("Inserted");
+			// System.out.println("Inserted");
 			return count > 0 ? "true" : "false";
 		} catch (SQLException e) {
-			//e.printStackTrace();
+			// e.printStackTrace();
 			throw new PException("Unable to insert / update record into table !!!");
 
 		}
@@ -140,9 +155,9 @@ public class DBConnection {
 	}
 
 	public static void createReplaceTable(String fileName, String[] headerData, String[] rowData) throws PException {
-		//System.out.println("fileName : " + fileName);
+		// System.out.println("fileName : " + fileName);
 		csvTableName = fileName.replace(".csv", "");
-		//System.out.println("fileName : " + csvTableName);
+		// System.out.println("fileName : " + csvTableName);
 		String query = "CREATE TABLE " + csvTableName + " ( ";
 		insertQuery = " insert into " + csvTableName;
 		updateQuery = " update " + csvTableName + " SET  ";
@@ -203,7 +218,7 @@ public class DBConnection {
 		}
 		updateQuery += whereClouse;
 		insertQuery += insertColumns + " ) values " + insertValues + " ) ";
-		//System.out.println("$$$ " + updateQuery);
+		// System.out.println("$$$ " + updateQuery);
 		query += " ) ";
 
 		Statement stmt;
@@ -217,11 +232,11 @@ public class DBConnection {
 			 * " PRIMARY KEY ( id ))";
 			 */
 
-			//System.out.println("Query : " + query);
+			// System.out.println("Query : " + query);
 			stmt.executeUpdate(query);
 
 		} catch (PException | SQLException e) {
-			//e.printStackTrace();
+			// e.printStackTrace();
 			throw new PException(e.getMessage());
 		}
 	}
@@ -257,17 +272,18 @@ public class DBConnection {
 			// return jArray.toString();
 			return status;
 		} catch (SQLException e) {
-			//e.printStackTrace();
+			// e.printStackTrace();
 			throw new PException("Invalid User !!!");
 		}
 
 	}
-	
+
 	public String validateUser(String username, String password) throws PException {
 		try {
 			Connection conn = DBConnection.getConnection();
 			// //System.out.println(username + ":" + password);
-			PreparedStatement ps = conn.prepareStatement("SELECT * FROM Danpac.dbo.members inner join Danpac.dbo.masterData on uname=pUser where uname=? and pass=? ;");
+			PreparedStatement ps = conn.prepareStatement(
+					"SELECT * FROM Danpac.dbo.members inner join Danpac.dbo.masterData on uname=pUser where uname=? and pass=? ;");
 			ps.setString(1, username);
 			ps.setString(2, password);
 			ResultSet rs = ps.executeQuery();
@@ -294,12 +310,11 @@ public class DBConnection {
 			// return jArray.toString();
 			return status;
 		} catch (SQLException e) {
-			//e.printStackTrace();
+			// e.printStackTrace();
 			throw new PException("Invalid User !!!");
 		}
 
 	}
-
 
 	public String register(String name, String email, String username, String password) throws PException {
 		try {
@@ -320,7 +335,7 @@ public class DBConnection {
 
 			return count > 0 ? "true" : "false";
 		} catch (SQLException e) {
-			//e.printStackTrace();
+			// e.printStackTrace();
 			throw new PException(" Uable to register !!!");
 		}
 	}
@@ -340,7 +355,7 @@ public class DBConnection {
 			}
 			return jArray.toString();
 		} catch (SQLException e) {
-			//e.printStackTrace();
+			// e.printStackTrace();
 			throw new PException("Unable to get database list !!!");
 		}
 	}
@@ -361,7 +376,7 @@ public class DBConnection {
 			}
 			return jArray.toString();
 		} catch (SQLException e) {
-			//e.printStackTrace();
+			// e.printStackTrace();
 			throw new PException("Uable to get table list !!!");
 		}
 	}
@@ -373,7 +388,7 @@ public class DBConnection {
 			String sql = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + table
 					+ "' ORDER BY ORDINAL_POSITION ";
 
-			//System.out.println("SQL : " + sql);
+			// System.out.println("SQL : " + sql);
 			PreparedStatement psDBList = connection.prepareStatement(sql);
 			ResultSet rsDBList = psDBList.executeQuery();
 			JSONArray jArray = new JSONArray();
@@ -386,7 +401,7 @@ public class DBConnection {
 			}
 			return jArray.toString();
 		} catch (SQLException e) {
-			//e.printStackTrace();
+			// e.printStackTrace();
 			throw new PException(" Uable to get column list !!!");
 		}
 
@@ -399,7 +414,7 @@ public class DBConnection {
 			Connection conn = DBConnection.getConnection();
 			PreparedStatement ps;
 			if (!columns.trim().isEmpty() || !tableName.trim().isEmpty() || !dbName.trim().isEmpty()) {
-				//System.out.println("Not Blank+columns");
+				// System.out.println("Not Blank+columns");
 				try {
 					ps = conn.prepareStatement(
 							"insert into Danpac.dbo.masterData (dbName,tableName,columnsName,chartDT,dt,url,dbInstanceName,userName,password,user) values (?,?,?,?,?,?,?,?,?,?)");
@@ -416,18 +431,18 @@ public class DBConnection {
 					ps.execute();
 					ps.close();
 				} catch (Exception e) {
-					//e.printStackTrace();
+					// e.printStackTrace();
 					return false;
 				}
 
 			} else {
-				//System.out.println("Blank");
+				// System.out.println("Blank");
 				return false;
 			}
 			conn.close();
 			return true;
 		} catch (SQLException e) {
-			//e.printStackTrace();
+			// e.printStackTrace();
 			throw new PException(" Uable to set column list !!!");
 		}
 	}

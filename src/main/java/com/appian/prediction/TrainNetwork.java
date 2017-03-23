@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
@@ -22,6 +23,8 @@ import org.json.JSONObject;
 import com.appian.db.ChartDB;
 import com.appian.exception.PException;
 import com.appian.nn.Network;
+import com.appian.util.AppianUtil;
+import com.google.gson.Gson;
 
 @Path("/train")
 public class TrainNetwork {
@@ -36,6 +39,8 @@ public class TrainNetwork {
 		Timestamp toDate;
 		Network network = null;
 
+		coloumn = AppianUtil.extractColumns(coloumn);
+		System.out.println("!!!!Columns : " + coloumn);
 		try {
 			if ("".equals(dateFrom))
 				fromDate = new Timestamp(0);
@@ -61,15 +66,16 @@ public class TrainNetwork {
 			ArrayList<Integer> missingValues = network.trainNetworkFromData(values);
 			HashMap<Integer, Double> predicted = network.addMissingValues(values, missingValues);
 			ChartDB.map.put(tableName + coloumn, network);
-			//System.out.println("ChartDB  : " + chartDB.map.toString());
+			// System.out.println("ChartDB : " + chartDB.map.toString());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		chartDB.columnA=coloumn;
-		chartDB.initialSaveValues(network,coloumn);
+		chartDB.columnA = coloumn;
+		chartDB.initialSaveValues(network, coloumn);
 		return network;
 	}
 
+	
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	public Network Train(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("dateFrom") String dateFrom,
@@ -124,8 +130,8 @@ public class TrainNetwork {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		chartDB.columnA=coloumn;
-		chartDB.initialSaveValues(network,coloumn);
+		chartDB.columnA = coloumn;
+		chartDB.initialSaveValues(network, coloumn);
 		/* network.lock.unlock(); */
 		return network;
 	}

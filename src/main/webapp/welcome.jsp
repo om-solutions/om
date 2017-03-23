@@ -6,23 +6,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="css/bootstrap.min.css">
 
-
+<link rel="stylesheet" href="css/bootstrap.min.css">
 <script src="js/jquery.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
 <script src="js/amcharts.js"></script>
 <script src="js/serial.js"></script>
 <script src="js/light.js"></script>
 <script src="js/export.min.js"></script>
-<script language="javascript" type="text/javascript"
-	src="js/datetimepicker.js"></script>
-
-<script src="https://code.jquery.com/jquery.min.js"></script>
-<script
-	src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.0/bootstrap-table.min.js"></script>
-<link
-	href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.10.0/bootstrap-table.min.css"
-	rel="stylesheet" type="text/css" />
-
+<script src="js/bootstrap-notify.js"></script>
+<script src="js/bootstrap-notify.min.js"></script>
+<script src="js/datetimepicker.js"></script>
+<script src="js/bootstrap-table.min.js"></script>
+<link href="js/bootstrap-table.min.css" rel="stylesheet" type="text/css" />
 
 <link rel="icon" type="image/x-icon" href="js/images/favicon.ico">
 <link rel="stylesheet" href="css/export.css" type="text/css" media="all" />
@@ -571,6 +566,7 @@ footer {
 										// 									table.innerHTML = rows;
 										// 									document.getElementById( "table" ).appendChild( table.firstChild );
 
+										ShowAlertsFromJSON( response );
 										CreateTableFromJSON( response );
 										document.getElementById( "btnLoad" ).disabled = false;
 										/* 	$( '#table' ).bootstrapTable( 'destroy' );
@@ -617,7 +613,7 @@ footer {
 														"id" : "v4",
 														"axisColor" : " #FF0099",
 														"axisThickness" : 2,
-														"gridAlpha" : 1,												
+														"gridAlpha" : 1,
 														"axisAlpha" : 1,
 														"position" : "right"
 													}, {
@@ -628,8 +624,7 @@ footer {
 														"offset" : 50,
 														"axisAlpha" : 1,
 														"position" : "right"
-													}
-													, {
+													}, {
 														"id" : "v6",
 														"axisColor" : " #0000ff",
 														"axisThickness" : 2,
@@ -658,7 +653,7 @@ footer {
 														"title" : "_" + document.getElementById( "selColumnA" ).value,
 														"valueField" : "_" + document.getElementById( "selColumnA" ).value,
 														"fillAlphas" : 0
-													},{
+													}, {
 														"valueAxis" : "v3",
 														"lineColor" : "#ff0000",
 														"bullet" : "triangleUp",
@@ -668,7 +663,7 @@ footer {
 														"valueField" : "err%_" + document.getElementById( "selColumnA" ).value,
 														"fillAlphas" : 0
 													}
-													
+
 													, {
 														"valueAxis" : "v4",
 														"lineColor" : "#FF0099",
@@ -687,7 +682,7 @@ footer {
 														"title" : "_" + document.getElementById( "selColumnB" ).value,
 														"valueField" : "_" + document.getElementById( "selColumnB" ).value,
 														"fillAlphas" : 0
-													},{
+													}, {
 														"valueAxis" : "v6",
 														"lineColor" : "#0000ff",
 														"bullet" : "triangleUp",
@@ -755,6 +750,23 @@ footer {
 					}
 					}
 
+					function ShowAlertsFromJSON ( tableData ) {
+						var jsonData = JSON.parse( JSON.stringify( tableData ) );
+						for ( var i = 0; i < jsonData.length; i++ ) {
+							//alert(JSON.stringify(jsonData));
+							var counter = JSON.stringify( jsonData.FlowTemperature );
+
+							$.notify( {
+								// options
+								message : "Value : "
+							}, {
+								// settings
+								type : 'danger'
+							} );
+
+						}
+					}
+
 					function CreateTableFromJSON ( tableData ) {
 
 						// EXTRACT VALUE FOR HTML HEADER. 
@@ -782,7 +794,8 @@ footer {
 							tr.appendChild( th );
 						}
 
-						// ADD JSON DATA TO THE TABLE AS ROWS.
+						// ADD JSON DATA TO THE TABLE AS ROWS.						
+
 						for ( var i = 0; i < tableData.length; i++ ) {
 
 							tr = table.insertRow( -1 );

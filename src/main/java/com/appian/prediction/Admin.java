@@ -22,6 +22,7 @@ import com.appian.db.AdminDB;
 import com.appian.db.ChartDB;
 import com.appian.db.DBConnection;
 import com.appian.exception.PException;
+import com.appian.util.AppianUtil;
 
 @Path("/admin")
 @Produces(MediaType.APPLICATION_JSON)
@@ -42,13 +43,38 @@ public class Admin {
 	}
 
 	@GET
+	@Path("/saveDays")
+	@Produces(MediaType.APPLICATION_JSON)
+	public String saveDays(@Context HttpServletRequest request,
+			@DefaultValue("") @QueryParam("daysToPredict") String daysToPredict) {
+		try {
+			System.out.println("daysToPredict : " + daysToPredict);
+			Connection connection = DBConnection.getConnection();
+
+			String sql = "update Danpac.dbo.masterData set daysToPredict='" + daysToPredict
+					+ "' where dt in (select TOP(1) dt  from Danpac.dbo.masterData order by dt desc)";
+
+			PreparedStatement countRecord;
+			countRecord = connection.prepareStatement(sql);
+			System.out.println(sql);
+			Integer count = countRecord.executeUpdate();
+			if (count > 0)
+				return "true";
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return "false";
+	}
+
+	@GET
 	@Path("/loadCon")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String loadCon(@Context HttpServletRequest request) throws PException {
 		try {
 			Connection connection = DBConnection.getConnection();
-			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password from Danpac.dbo.masterData order by dt desc ";
-			//System.out.println("SQL : " + sql);
+			String sql = "select url,dbInstanceName,dbName,tableName,columnsName,chartDt,userName,password,daysToPredict from Danpac.dbo.masterData order by dt desc ";
+			// System.out.println("SQL : " + sql);
 			PreparedStatement psDBList;
 
 			psDBList = connection.prepareStatement(sql);
@@ -57,17 +83,17 @@ public class Admin {
 			if (rsDBList.next()) {
 				JSONObject json = new JSONObject();
 				json.put("url", rsDBList.getString("url"));
-				json.put("columns", rsDBList.getString("columnsName"));
+				json.put("columns", AppianUtil.extractColumns(rsDBList.getString("columnsName")));
 				json.put("tableName", rsDBList.getString("tableName"));
 				json.put("dbName", rsDBList.getString("dbName"));
 				json.put("chartDT", rsDBList.getString("chartDT"));
 				json.put("dbInstanceName", rsDBList.getString("dbInstanceName"));
 				json.put("userName", rsDBList.getString("userName"));
+				json.put("daysToPredict", rsDBList.getString("daysToPredict"));
 				jArray.put(json);
-			}
-			else{
+			} else {
 
-				//System.out.println("5");
+				// System.out.println("5");
 				JSONObject json = new JSONObject();
 				json.put("url", DBConnection.getUrl());
 				json.put("dbInstanceName", DBConnection.getDbInstanceName());
@@ -75,11 +101,13 @@ public class Admin {
 				json.put("tableName", DBConnection.getTableName());
 				json.put("userName", DBConnection.getUserName());
 				json.put("password", DBConnection.getPassword());
+				json.put("daysToPredict", DBConnection.getDaysToPredict());
+
 				jArray.put(json);
-				//System.out.println("ELSE JSON : " + jArray.toString());
-			
+				// System.out.println("ELSE JSON : " + jArray.toString());
+
 			}
-			
+
 			return jArray.toString();
 
 		} catch (SQLException e) {
@@ -89,13 +117,15 @@ public class Admin {
 
 	}
 
+	
+
 	@GET
 	@Path("/database")
 	@Produces(MediaType.APPLICATION_JSON)
 	public String Database(@Context HttpServletRequest request) throws PException {
 		// adminDb = new AdminDB(request);
 		String dbList = adminDb.getDBList();
-		//System.out.println(dbList);
+		// System.out.println(dbList);
 		return dbList;
 	}
 
@@ -104,10 +134,10 @@ public class Admin {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String Table(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("dbName") String db)
 			throws PException {
-		//System.out.println("table : " + db);
+		// System.out.println("table : " + db);
 		// adminDb = new AdminDB(request);
 		String dbList = adminDb.getTableList(db);
-		//System.out.println(dbList);
+		// System.out.println(dbList);
 		return dbList;
 	}
 
@@ -116,10 +146,10 @@ public class Admin {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String Columns(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("tableName") String table,
 			@DefaultValue("") @QueryParam("dbName") String db) throws PException {
-		//System.out.println("table : " + table);
+		// System.out.println("table : " + table);
 		// AdminDB dbConnection = new AdminDB(request);
 		String dbList = adminDb.getColumnsList(table, db);
-		//System.out.println(dbList);
+		// System.out.println(dbList);
 		return dbList;
 	}
 
@@ -133,30 +163,36 @@ public class Admin {
 			@DefaultValue("") @QueryParam("chartDT") String chartDT) throws PException {
 		// //System.out.println("columns : " + columns);
 		// AdminDB dbConnection = new AdminDB(request);
-		if (adminDb.setColumns(dbName, tableName, columns, chartDT,(String) request.getSession().getAttribute("pUser"))) {
-			//System.out.println("Saved!!!!!!!!!!");
-			try{
-			String[] s=columns.trim().split(",");
-			for(String column:s)
-				if(!ChartDB.map.contains(tableName+column))
-				{
-					request.getSession().setAttribute("dbName", dbName);
-					request.getSession().setAttribute("tableName",tableName);
-					request.getSession().setAttribute("chartDT", chartDT);
-					new TrainNetwork().Train(request, PredictionLoader.format.format(new Date(0)), PredictionLoader.format.format(new Date()), column,
-							tableName);
-				}
-			}
-			catch (Exception e) {
+
+		System.out.println("columns : " + columns);
+		System.out.println("dbName : " + dbName);
+		System.out.println("tableName : " + tableName);
+		System.out.println("columns : " + columns);
+		System.out.println("chartDT : " + chartDT);
+
+		if (adminDb.setColumns(dbName, tableName, columns, chartDT,
+				(String) request.getSession().getAttribute("pUser"))) {
+			// System.out.println("Saved!!!!!!!!!!");
+			try {
+				String[] s = columns.trim().split(",");
+				for (String column : s)
+					if (!ChartDB.map.contains(tableName + column)) {
+						request.getSession().setAttribute("dbName", dbName);
+						request.getSession().setAttribute("tableName", tableName);
+						request.getSession().setAttribute("chartDT", chartDT);
+						new TrainNetwork().Train(request, PredictionLoader.format.format(new Date(0)),
+								PredictionLoader.format.format(new Date()), column, tableName);
+					}
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 			return "List saved successful";
 		} else {
-			//System.out.println("ERROR ::!!!!!!!!!");
+			// System.out.println("ERROR ::!!!!!!!!!");
 			return "Error : List not saved";
 		}
-		
+
 	}
-	
-	//call train network
+
+	// call train network
 }
