@@ -17,7 +17,8 @@
 <script src="js/bootstrap-notify.min.js"></script>
 <script src="js/datetimepicker.js"></script>
 <script src="js/bootstrap-table.min.js"></script>
-<link href="js/bootstrap-table.min.css" rel="stylesheet" type="text/css" />
+<link href="css/bootstrap-table.min.css" rel="stylesheet"
+	type="text/css" />
 
 <link rel="icon" type="image/x-icon" href="js/images/favicon.ico">
 <link rel="stylesheet" href="css/export.css" type="text/css" media="all" />
@@ -485,6 +486,7 @@ footer {
 								for (var i = 0; i < response.length; i++) {
 									var obj = response[i];
 									var columnName = obj["columns"];
+									//alert(columnName);
 									var tableName = obj["tableName"];
 									var dbName = obj["dbName"];
 									// 									alert(columnName + " : " + tableName
@@ -751,26 +753,35 @@ footer {
 					}
 
 					function ShowAlertsFromJSON ( tableData ) {
+						
+					<%-- 	var optColumnA = "<%=session.getAttribute("optColumnA")%>";
+						var whnColumnA = "<%=session.getAttribute("whnColumnA")%>";
+						var optColumnB = "<%=session.getAttribute("optColumnB")%>";
+						var whnColumnB = "<%=session.getAttribute("whnColumnB")%>";
+						
+					
 						var jsonData = JSON.parse( JSON.stringify( tableData ) );
 						for ( var i = 0; i < jsonData.length; i++ ) {
 							//alert(JSON.stringify(jsonData));
-							var counter = JSON.stringify( jsonData.FlowTemperature );
-
-							$.notify( {
-								// options
-								message : "Value : "
-							}, {
-								// settings
-								type : 'danger'
-							} );
-
-						}
+							var counter = JSON.stringify( jsonData[i] );
+							//alert("QWE : "+JSON.stringify(counter));
+							
+							
+						} --%>
 					}
+			
 
 					function CreateTableFromJSON ( tableData ) {
-
+						//console.log("2312"+ JSON.stringify( tableData ) );
 						// EXTRACT VALUE FOR HTML HEADER. 
 						// ('Book ID', 'Book Name', 'Category' and 'Price')
+						
+						var optColumnA = "<%=session.getAttribute("optColumnA")%>";
+						var whnColumnA = "<%=session.getAttribute("whnColumnA")%>";
+						var optColumnB = "<%=session.getAttribute("optColumnB")%>";
+						var whnColumnB = "<%=session.getAttribute("whnColumnB")%>";
+						console.log ("In CreateTableFromJSON optColumn : "+optColumnA +", whnColumnA : "+whnColumnA+", optColumnB : "+optColumnB +"whnColumnB : "+whnColumnB);
+									
 						var col = [];
 						for ( var i = 0; i < tableData.length; i++ ) {
 							for ( var key in tableData[ i ] ) {
@@ -789,12 +800,14 @@ footer {
 						var tr = table.insertRow( -1 ); // TABLE ROW.
 
 						for ( var i = 0; i < col.length; i++ ) {
-							var th = document.createElement( "th" ); // TABLE HEADER.
+							var th = document.createElement( "th" ); // TABLE HEADER.							
 							th.innerHTML = col[ i ];
 							tr.appendChild( th );
 						}
 
 						// ADD JSON DATA TO THE TABLE AS ROWS.						
+						//consle.log( "tableData : " + tableData );
+						//consle.log( "col[ j ] : " + col[ j ] );
 
 						for ( var i = 0; i < tableData.length; i++ ) {
 
@@ -802,15 +815,87 @@ footer {
 
 							for ( var j = 0; j < col.length; j++ ) {
 								var tabCell = tr.insertCell( -1 );
-								//alert("---> : "+tableData[i][col[j]]);
 								tabCell.innerHTML = tableData[ i ][ col[ j ] ] == undefined ? "-" : tableData[ i ][ col[ j ] ];
-							}
-						}
+								
+								
+								if ( col[ j ] == document.getElementById( "selColumnA" ).value ) {
+									console.log(col[ j ]  + " :  "+document.getElementById( "selColumnA" ).value);
+									console.log(isVoilated( tableData[ i ][ col[ j ] ], optColumnA, whnColumnA ));
+									if ( isVoilated( tableData[ i ][ col[ j ] ], optColumnA, whnColumnA ) ) {										
+										console.log(  col[ j ] +" is :  " +tableData[ i ][ col[ j ] ] + optColumnA +whnColumnA);										
+										$.notify( {
+											// options
+											message :  col[ j ] +" is Voilated !!! \n  " +tableData[ i ][ col[ j ] ] + optColumnA +whnColumnA
+										}, {
+											// settings
+											type : 'danger',
+											placement: {
+													from: "bottom",
+													align: "right"
+												},
+											timer: 20000,											
+											newest_on_top: true,
+											
+										} );
+
+										
+										}
+										
+									
+								}
+								if ( col[ j ] == document.getElementById( "selColumnB" ).value ) {
+									console.log(col[ j ]  + " :  "+document.getElementById( "selColumnB" ).value);
+									console.log(isVoilated( tableData[ i ][ col[ j ] ], optColumnB, whnColumnB ));
+									if ( isVoilated( tableData[ i ][ col[ j ] ], optColumnB, whnColumnB ) ) {
+
+										console.log(  col[ j ] +" is :  " +tableData[ i ][ col[ j ] ] + optColumnB +whnColumnB);
+										
+										$.notify( {
+											// options
+											message :  col[ j ] +" is Voilated !!! \n  " +whnColumnB + optColumnB +tableData[ i ][ col[ j ] ] 
+										}, {
+											// settings
+											type : 'danger',
+											placement: {
+													from: "bottom",
+													align: "right"
+												},
+											timer: 20000,											
+											newest_on_top: true,											
+										} );
+
+										
+										}
+									}
+								}
+
+							}						
 
 						// FINALLY ADD THE NEWLY CREATED TABLE WITH JSON DATA TO A CONTAINER.
 						var divContainer = document.getElementById( "showData" );
 						divContainer.innerHTML = "";
 						divContainer.appendChild( table );
+					}
+				
+					function isVoilated ( value, optColumn, whnColumn ) {				
+						console.log("isVoilation -> "+value+ " : " + optColumn+ " : " + whnColumn);
+						switch(optColumn) {
+						    case '<':
+						        return whnColumn<value;
+						        break;
+						    case '>':
+						    	return whnColumn>value;
+						        break;
+						    case '<=':
+						    	return whnColumn<=value;
+						        break;
+						    case '>=':
+						    	return whnColumn>=value;
+						        break;
+						    default:
+						        return false;						        
+						}
+
 					}
 				</script>
 

@@ -359,9 +359,9 @@
 
 								$( "input[type=checkbox]:checked" ).each( function () {
 
-									alert( "Inner1 : " + $( this ).val() );
-									alert( "Inner2 : " +  $( '#opt' + $( this ).val() ).find( "option:selected" ).text());
-									alert( "Inner3 : " + $( '#txt' + $( this ).val() ).val() );
+									//alert( "Inner1 : " + $( this ).val() );
+									//alert( "Inner2 : " +  $( '#opt' + $( this ).val() ).find( "option:selected" ).text());
+									//alert( "Inner3 : " + $( '#txt' + $( this ).val() ).val() );
 									
 									jArray.push( {
 										"column" : $( this ).val(),
@@ -378,7 +378,7 @@
 
 								} );
 
-								alert( JSON.stringify( jArray ) );
+								//alert( JSON.stringify( jArray ) );
 								var chartDT = $( 'input[name=chartDT]:checked' ).val();
 
 								if ( chartDT == null ) {
@@ -488,16 +488,16 @@
 	<script>
 		$( '#btnDaysToPredict' ).on( 'click', function ( e ) {
 
-			var x = $( "#daysToPredict" ).val();
-			$.notify( {
+			 var x = $( "#daysToPredict" ).val();
+			/*$.notify( {
 				// options
 				message : 'Hello World'
 			}, {
 				// settings
 				type : 'danger'
-			} );
+			} ); */
 
-			//alert("asadasd : "+x);		
+			alert("asadasd : ");		
 			$.ajax( {
 				url : "http://localhost:8080/Prediction/prediction/admin/saveDays?daysToPredict=" + x,
 				type : 'GET',

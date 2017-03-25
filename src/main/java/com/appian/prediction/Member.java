@@ -37,7 +37,7 @@ public class Member {
 			request.getSession().setAttribute("columnA", ChartDB.columns.split(",")[0]);
 			request.getSession().setAttribute("columnB", ChartDB.columns.split(",")[0]);*/
 
-			//System.out.println("Clolumn List " + cloumnList);
+			System.out.println("Clolumn List " + cloumnList);
 			return cloumnList;
 		} else {
 			//System.out.println("ERROR ::!!!!!!!!!");

@@ -117,8 +117,6 @@ public class Admin {
 
 	}
 
-	
-
 	@GET
 	@Path("/database")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -163,7 +161,8 @@ public class Admin {
 			@DefaultValue("") @QueryParam("chartDT") String chartDT) throws PException {
 		// //System.out.println("columns : " + columns);
 		// AdminDB dbConnection = new AdminDB(request);
-
+		// to make JSON to Sting
+		// columns = AppianUtil.extractColumns(columns);
 		System.out.println("columns : " + columns);
 		System.out.println("dbName : " + dbName);
 		System.out.println("tableName : " + tableName);
@@ -174,6 +173,7 @@ public class Admin {
 				(String) request.getSession().getAttribute("pUser"))) {
 			// System.out.println("Saved!!!!!!!!!!");
 			try {
+				columns = AppianUtil.extractColumns(columns);
 				String[] s = columns.trim().split(",");
 				for (String column : s)
 					if (!ChartDB.map.contains(tableName + column)) {

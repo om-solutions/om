@@ -58,6 +58,7 @@ public class ChartDB {
 				// System.out.println("if rsDBList");
 				url = rsDBList.getString("url");
 				columns = AppianUtil.extractColumns(rsDBList.getString("columnsName"));
+				System.out.println("-----> " + columns);
 				tableName = rsDBList.getString("tableName");
 				dbName = rsDBList.getString("dbname");
 				chartDT = rsDBList.getString("chartDT");
@@ -691,7 +692,7 @@ public class ChartDB {
 				json.put("dbInstanceName", rsDBList.getString("dbInstanceName"));
 				json.put("dbName", rsDBList.getString("dbName"));
 				json.put("tableName", rsDBList.getString("tableName"));
-				json.put("columns", AppianUtil.extractColumns(rsDBList.getString("columnsName")));
+				json.put("columns", rsDBList.getString("columnsName"));
 				json.put("chartDt", rsDBList.getString("chartDt"));
 				json.put("userName", rsDBList.getString("userName"));
 				json.put("password", rsDBList.getString("password"));
@@ -706,6 +707,25 @@ public class ChartDB {
 				request.getSession().setAttribute("password", rsDBList.getString("password"));
 				request.getSession().setAttribute("columns",
 						AppianUtil.extractColumns(rsDBList.getString("columnsName")));
+
+				// [{"column":"FlowTemperature","operator":">","notifyWhen":"11"},{"column":"FlowPressure","operator":">","notifyWhen":"11"}]
+				JSONArray jsonArray = new JSONArray(rsDBList.getString("columnsName"));
+
+				JSONObject jsonObject1 = jsonArray.getJSONObject(0);
+				request.getSession().setAttribute("optColumnA", jsonObject1.getString("operator"));
+				request.getSession().setAttribute("whnColumnA", jsonObject1.getString("notifyWhen"));
+
+				JSONObject jsonObject2 = jsonArray.getJSONObject(1);
+				request.getSession().setAttribute("optColumnB", jsonObject2.getString("operator"));
+				request.getSession().setAttribute("whnColumnB", jsonObject2.getString("notifyWhen"));
+
+				/*
+				 * ObjectMapper mapper = new ObjectMapper(); List<Column> list =
+				 * mapper.readValue(rsDBList.getString("columnsName").toString()
+				 * , TypeFactory.defaultInstance().constructCollectionType(List.
+				 * class, Column.class));
+				 */
+
 				columns = AppianUtil.extractColumns(rsDBList.getString("columnsName"));
 				System.out.println("Columns " + columns);
 				request.getSession().setAttribute("pUser", pUser);

@@ -502,5 +502,23 @@ public class DBConnection {
 	public static void setPassword(String password) {
 		DBConnection.password = password;
 	}
+	
+	public void TrainDB(String fileName) throws PException, SQLException{
+		String tempDaysToPredict;
+		Connection connection = getConnection();
+		String sql = "select daysToPredict from Danpac.dbo.masterData order by dt desc ";
+		// System.out.println("SQL : " + sql);
+		PreparedStatement psDBList;
+		psDBList = connection.prepareStatement(sql);		
+		ResultSet rsDBList = psDBList.executeQuery();
+		if (rsDBList.next()) {			
+			tempDaysToPredict = rsDBList.getString("daysToPredict");
+		}
+		
+		
+		
+		
+	}
+	
 
 }

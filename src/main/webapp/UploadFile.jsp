@@ -1,3 +1,4 @@
+<%@page import="com.appian.prediction.Admin"%>
 <%@page import="javassist.bytecode.stackmap.BasicBlock.Catch"%>
 <%@page import="java.util.ArrayList"%>
 <%@page import="com.appian.db.DBConnection"%>
@@ -64,7 +65,10 @@
 				}
 
 			}
+			
+			//DBConnection.TrainDB(fileName.toString(),session.getAttribute("pUser").toString());
 		}
+		
 		session.setAttribute("status", "File Uploaded Successfully !!!");
 		//	out.println("File Uploaded Successfully.");
 %>
