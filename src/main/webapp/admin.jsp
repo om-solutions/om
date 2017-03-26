@@ -362,11 +362,11 @@
 									//alert( "Inner1 : " + $( this ).val() );
 									//alert( "Inner2 : " +  $( '#opt' + $( this ).val() ).find( "option:selected" ).text());
 									//alert( "Inner3 : " + $( '#txt' + $( this ).val() ).val() );
-									
+
 									jArray.push( {
 										"column" : $( this ).val(),
-										"operator" :  $( '#opt' + $( this ).val() ).find( "option:selected" ).text(),
-										"notifyWhen" :  $( '#txt' + $( this ).val() ).val()
+										"operator" : $( '#opt' + $( this ).val() ).find( "option:selected" ).text(),
+										"notifyWhen" : $( '#txt' + $( this ).val() ).val()
 									} );
 
 									if ( allColumns == "" ) {
@@ -374,7 +374,7 @@
 
 									} else {
 										allColumns += ',' + $( this ).val();
-									} 									//alert( "Inner4 : " + JSON.stringify( jArray ) );
+									} //alert( "Inner4 : " + JSON.stringify( jArray ) );
 
 								} );
 
@@ -459,6 +459,25 @@
 					<table>
 						<br>
 						<br>
+
+						<tr>
+							<td style="padding-right: 20px">Browse File</td>
+							<td style="padding-right: 20px"><input align="center"
+								type="file" name="csvfile" accept=".csv" class="btn btn-default" />
+							<td style="padding-right: 20px"><input align="center"
+								type="submit" value="Upload File" class="btn btn-default" /></td>
+						</tr>
+					</table>
+					<p />			
+
+				</form>
+			</div>
+			
+			<div class="container text-center">
+			
+			<table>
+
+
 						<tr>
 							<td style="padding-right: 20px">Days to be predicted</td>
 							<td style="padding-right: 20px"><input align="center"
@@ -468,19 +487,9 @@
 								name="btnDaysToPredict" id="btnDaysToPredict" type="button"
 								value="Save" class="btn btn-default" /></td>
 						</tr>
-						<tr>
-							<td style="padding-right: 20px">Browse File</td>
-							<td style="padding-right: 20px"><input align="center"
-								type="file" name="csvfile" accept=".csv" class="btn btn-default" />
-							<td style="padding-right: 20px"><input align="center"
-								type="submit" value="Upload File" class="btn btn-default" /></td>
-						</tr>
 					</table>
-					<p />
-
-
-				</form>
 			</div>
+			
 		</div>
 
 	</div>
@@ -488,7 +497,7 @@
 	<script>
 		$( '#btnDaysToPredict' ).on( 'click', function ( e ) {
 
-			 var x = $( "#daysToPredict" ).val();
+			var x = $( "#daysToPredict" ).val();
 			/*$.notify( {
 				// options
 				message : 'Hello World'
@@ -497,7 +506,7 @@
 				type : 'danger'
 			} ); */
 
-			alert("asadasd : ");		
+			alert( "asadasd : " );
 			$.ajax( {
 				url : "http://localhost:8080/Prediction/prediction/admin/saveDays?daysToPredict=" + x,
 				type : 'GET',

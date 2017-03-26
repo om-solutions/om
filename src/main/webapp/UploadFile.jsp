@@ -1,3 +1,4 @@
+<%@page import="com.appian.prediction.PredictValues"%>
 <%@page import="com.appian.prediction.Admin"%>
 <%@page import="javassist.bytecode.stackmap.BasicBlock.Catch"%>
 <%@page import="java.util.ArrayList"%>
@@ -16,34 +17,42 @@
 	import="org.apache.commons.fileupload.servlet.ServletFileUpload"%>
 
 <%@ page import="com.appian.exception.PException"%>
+<%@ page import="org.json.JSONObject"%>
 
 
 <%
 	try {
 		// Apache Commons-Fileupload library classes
-		//System.out.println("Start");
+		System.out.println("Start");
 		DiskFileItemFactory factory = new DiskFileItemFactory();
-		//System.out.println("1");
+		System.out.println("1");
 		ServletFileUpload sfu = new ServletFileUpload(factory);
-		//System.out.println("2");
+		System.out.println("2");
 		if (!ServletFileUpload.isMultipartContent(request)) {
 			//System.out.println("sorry. No file uploaded");
 			return;
 		}
-		//System.out.println("3");
+		System.out.println("3");
 
 		// parse request
 
 		//List items = sfu.parseRequest(request);
 
-		List<FileItem> items = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);	
+		List<FileItem> items = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
+
+		System.out.println("Item Size  : " + items.size());
+
 		for (FileItem item : items) {
 			String fileName = item.getName();
+			System.out.println("File Name : " + fileName);
+			session.setAttribute("fName", fileName);
+			System.out.println("crunchifyCSV : " + item.getName());
 			String crunchifyCSV = item.getString();
-			ArrayList<String> crunchifyResult = new ArrayList<String>();			
+			ArrayList<String> crunchifyResult = new ArrayList<String>();
 			if (crunchifyCSV != null) {
+				System.out.println("crunchifyCSV : " + crunchifyCSV.toString());
 				String lines[] = crunchifyCSV.split("\\r?\\n");
-				//System.out.println("lines.length : " + lines.length);
+				System.out.println("lines.length : " + lines.length);
 				for (int j = 0; j < lines.length; j++) {
 					if (j == 0) {
 						String[] headerData = lines[j].split("\\s*,\\s*");
@@ -56,7 +65,7 @@
 							DBConnection.insertRowTable(rowData);
 						} catch (Exception e) {
 							try {
-								DBConnection.updateRowTable(rowData);
+									DBConnection.updateRowTable(rowData);
 							} catch (Exception ex) {
 
 							}
@@ -65,10 +74,27 @@
 				}
 
 			}
+
+			ServletContext context = getServletContext();
+			System.out.println("getContextPath() : " + context.getContextPath());
+			String tableName = fileName.replace(".csv", "");
+			System.out.println("##### Max Date " + DBConnection.getMaxDate(tableName));			
+			JSONObject jsonObj = DBConnection.getMaxDate(tableName);			
+			request.setAttribute("dateFrom", jsonObj.get("startdt"));
+			request.setAttribute("dateTo", jsonObj.get("enddt"));
 			
-			//DBConnection.TrainDB(fileName.toString(),session.getAttribute("pUser").toString());
+			PredictValues predictValues = new PredictValues();
+			predictValues.PrePredict(request, jsonObj.get("startdt").toString(), jsonObj.get("enddt").toString(), tableName);
+			
 		}
+
 		
+	
+		//##### Max Date {"startdt":"2009-12-01 06:15:00.0","enddt":"2010-03-01 06:15:00.0"}
+
+
+		//rd.include(request, response);
+
 		session.setAttribute("status", "File Uploaded Successfully !!!");
 		//	out.println("File Uploaded Successfully.");
 %>

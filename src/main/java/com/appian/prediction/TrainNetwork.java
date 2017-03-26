@@ -75,7 +75,6 @@ public class TrainNetwork {
 		return network;
 	}
 
-	
 	@GET
 	@Produces(MediaType.TEXT_PLAIN)
 	public Network Train(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("dateFrom") String dateFrom,
@@ -84,6 +83,10 @@ public class TrainNetwork {
 		Timestamp fromDate;
 		Timestamp toDate;
 		Network network = null;
+
+		System.out.println("^^ Train() dateFrom : " + dateFrom + "\n dateTo : " + dateTo + "\n coloumn : " + coloumn
+				+ "\n tableName : " + tableName);
+
 		try {
 			network = (Network) request.getSession().getAttribute("NeuralNetwork");
 		} catch (Exception e) {
@@ -124,6 +127,70 @@ public class TrainNetwork {
 		try {
 			ArrayList<Double> values = chartDB.getActualValuesAndSetNormalizationFactors(network, fromDate, toDate,
 					coloumn);
+			ArrayList<Integer> missingValues = network.trainNetworkFromData(values);
+			HashMap<Integer, Double> predicted = network.addMissingValues(values, missingValues);
+			ChartDB.map.put(tableName + coloumn, network);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		chartDB.columnA = coloumn;
+		chartDB.initialSaveValues(network, coloumn);
+		/* network.lock.unlock(); */
+		return network;
+	}
+	
+	
+	public Network PreTrain(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("dateFrom") String dateFrom,
+			@DefaultValue("") @QueryParam("dateTo") String dateTo,
+			@DefaultValue("") @QueryParam("coloumn") String coloumn, String tableName) throws PException {
+		Timestamp fromDate;
+		Timestamp toDate;
+		Network network = null;
+
+		System.out.println("^^ Train() dateFrom : " + dateFrom + "\n dateTo : " + dateTo + "\n coloumn : " + coloumn
+				+ "\n tableName : " + tableName);
+
+		try {
+			network = (Network) request.getSession().getAttribute("NeuralNetwork");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		try {
+			if ("".equals(dateFrom))
+				fromDate = new Timestamp(0);
+			else
+				fromDate = new Timestamp(format.parse(dateFrom).getTime());
+
+			if ("".equals(dateTo))
+				toDate = new Timestamp(new Date().getTime());
+			else
+				toDate = new Timestamp(format.parse(dateTo).getTime());
+		} catch (ParseException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+			return null;
+		}
+		if (network == null) {
+
+			network = new Network(slidingWindowSize);
+			/*
+			 * try { if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS))
+			 * return "Cannot obtain lock"; } catch (InterruptedException e2) {
+			 * return "Cannot obtain lock"; }
+			 */
+			try {
+				request.getSession().setAttribute("NeuralNetwork", network);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		network.clearTrainingSet();
+		ChartDB chartDB = new ChartDB(request);
+		
+		try {
+			ArrayList<Double> values = chartDB.getActualValuesAndSetNormalizationFactors(network, fromDate, toDate,
+					coloumn,tableName);
 			ArrayList<Integer> missingValues = network.trainNetworkFromData(values);
 			HashMap<Integer, Double> predicted = network.addMissingValues(values, missingValues);
 			ChartDB.map.put(tableName + coloumn, network);

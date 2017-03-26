@@ -189,6 +189,7 @@ public class ChartDB {
 	public ArrayList<Timestamp> getActualTimestamps(Timestamp fromDate, Timestamp toDate, String tableName)
 			throws PException {
 		try {
+			System.out.println("getActualTimestamps() - tableName : " + tableName);
 			ArrayList<Timestamp> times = new ArrayList<Timestamp>();
 			Connection conn = getConnection();
 			String s = "SELECT tab2." + chartDT + " as dt ,tab2." + columnA + " as val1 FROM " + dbName + ".dbo._"
@@ -250,9 +251,52 @@ public class ChartDB {
 		}
 	}
 
+	public ArrayList<Double> getActualValuesAndSetNormalizationFactors(Network network, Timestamp fromDate,
+			Timestamp toDate, String Column, String tableNm) throws PException {
+		try {
+			times = new ArrayList<Timestamp>();
+			Connection conn = getConnection();
+			String query = "SELECT coalesce(tab1." + chartDT + ",tab2." + chartDT + ") as dt ,coalesce(tab1." + Column
+					+ ",tab2." + Column + ") as val1 FROM " + dbName + ".dbo." + tableNm + " as tab1  FULL OUTER JOIN "
+					+ dbName + ".dbo._" + tableNm + " as tab2  ON tab1." + chartDT + "=tab2." + chartDT + " where tab1."
+					+ chartDT + ">=? and tab1." + chartDT + "<=? order by dt ";
+			System.out.println("[getActualValuesAndSetNormalizationFactors] :" + query);
+			System.out.println("[getActualValuesAndSetNormalizationFactors] fromDate:" + fromDate);
+			System.out.println("[getActualValuesAndSetNormalizationFactors] toDate:" + toDate);
+			PreparedStatement ps = conn.prepareStatement(query);
+			ps.setTimestamp(1, fromDate);
+			ps.setTimestamp(2, toDate);
+			ResultSet rs = ps.executeQuery();
+			values = new ArrayList<Double>();
+			Double value;
+			while (rs.next()) {
+				times.add(rs.getTimestamp(1));
+				// System.out.println("times : " + times);
+				value = rs.getDouble(2);
+				// System.out.println("times : " + times + " , value : " +
+				// value);
+				values.add(value);
+				if (network.max < value)
+					network.max = value;
+				else if (network.min > value) {
+					network.min = value;
+				}
+			}
+			ps.close();
+			rs.close();
+			conn.close();
+			return values;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new PException("Unable to get Actual Values And Set Normalization Factors !!!");
+		}
+	}
+
 	public void savePredictedValues(NavigableMap<Timestamp, Double> values2, String column, String tableName)
 			throws PException {
 		try {
+
+			System.out.println("==> tableName:" + tableName);
 			Connection conn = getConnection();
 
 			ArrayList<Timestamp> times = getActualTimestamps(values2.firstKey(), values2.lastKey(), tableName);

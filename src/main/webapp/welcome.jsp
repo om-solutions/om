@@ -879,6 +879,10 @@ footer {
 				
 					function isVoilated ( value, optColumn, whnColumn ) {				
 						console.log("isVoilation -> "+value+ " : " + optColumn+ " : " + whnColumn);
+						if(whnColumn==='')
+							{
+							return false;
+							}
 						switch(optColumn) {
 						    case '<':
 						        return whnColumn<value;

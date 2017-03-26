@@ -8,11 +8,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Properties;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.appian.exception.PException;
@@ -37,7 +42,7 @@ public class DBConnection {
 	private static int columnCount;
 	private static String updateQuery;
 	private static int whereClouseIndex;
-	static Properties fileProperties  = new Properties();;
+	static Properties fileProperties = new Properties();;
 	private static String daysToPredict;
 
 	static {
@@ -56,7 +61,6 @@ public class DBConnection {
 		}
 	}
 
-
 	public static String getDaysToPredict() {
 		return daysToPredict;
 	}
@@ -65,7 +69,6 @@ public class DBConnection {
 		DBConnection.daysToPredict = daysToPredict;
 	}
 
-	
 	public ArrayList<Double> getValues() {
 		return values;
 	}
@@ -152,6 +155,42 @@ public class DBConnection {
 
 		}
 
+	}
+
+	public static JSONObject getMaxDate(String tableName) throws PException {
+		try {
+			System.out.println("In side getMaxDate()");
+			Connection connection = DBConnection.getConnection();
+			String sql = "SELECT max(DateTime) startdt,DATEADD(day, 90, MAX(DateTime)) as enddt FROM danpac.dbo."
+					+ tableName;
+			System.out.println("In side getMaxDate() Query : " + sql);
+			PreparedStatement psDBList = connection.prepareStatement(sql);
+			ResultSet rsDBList = psDBList.executeQuery();
+			// JSONArray jArray = new JSONArray();
+			JSONObject json = new JSONObject();
+			if (rsDBList.next()) {
+				json.put("startdt", convertDBtoDateFormat(rsDBList.getString("startdt")));
+				json.put("enddt", convertDBtoDateFormat(rsDBList.getString("enddt")));
+
+				// jArray.put(json);
+			}
+			return json;
+		} catch (SQLException | JSONException | ParseException e) {
+			// e.printStackTrace();
+			throw new PException("Unable to get Max Date list !!!");
+		}
+
+	}
+
+	private static String convertDBtoDateFormat(String string) throws ParseException {
+
+		DateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.S");
+		Date date = inputFormat.parse(string);
+
+		// Format date into output format
+		DateFormat outputFormat = new SimpleDateFormat("dd-MMM-yyyy hh:mm:ss");
+
+		return outputFormat.format(date);
 	}
 
 	public static void createReplaceTable(String fileName, String[] headerData, String[] rowData) throws PException {
@@ -502,23 +541,19 @@ public class DBConnection {
 	public static void setPassword(String password) {
 		DBConnection.password = password;
 	}
-	
-	public void TrainDB(String fileName) throws PException, SQLException{
+
+	public void TrainDB(String fileName) throws PException, SQLException {
 		String tempDaysToPredict;
 		Connection connection = getConnection();
 		String sql = "select daysToPredict from Danpac.dbo.masterData order by dt desc ";
 		// System.out.println("SQL : " + sql);
 		PreparedStatement psDBList;
-		psDBList = connection.prepareStatement(sql);		
+		psDBList = connection.prepareStatement(sql);
 		ResultSet rsDBList = psDBList.executeQuery();
-		if (rsDBList.next()) {			
+		if (rsDBList.next()) {
 			tempDaysToPredict = rsDBList.getString("daysToPredict");
 		}
-		
-		
-		
-		
+
 	}
-	
 
 }

@@ -2,15 +2,9 @@ package com.appian.prediction;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.List;
-import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
@@ -27,7 +21,6 @@ import org.json.JSONObject;
 
 import com.appian.db.ChartDB;
 import com.appian.exception.PException;
-import com.appian.nn.Network;
 
 @Path("/graph")
 @Produces(MediaType.APPLICATION_JSON)
