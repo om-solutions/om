@@ -468,28 +468,28 @@
 								type="submit" value="Upload File" class="btn btn-default" /></td>
 						</tr>
 					</table>
-					<p />			
+					<p />
 
 				</form>
 			</div>
-			
+
 			<div class="container text-center">
-			
-			<table>
+
+				<table>
 
 
-						<tr>
-							<td style="padding-right: 20px">Days to be predicted</td>
-							<td style="padding-right: 20px"><input align="center"
-								name="daysToPredict" id="daysToPredict" type="number" min="0"
-								max="365" class="btn btn-default" /></td>
-							<td style="padding-right: 20px"><input align="center"
-								name="btnDaysToPredict" id="btnDaysToPredict" type="button"
-								value="Save" class="btn btn-default" /></td>
-						</tr>
-					</table>
+					<tr>
+						<td style="padding-right: 20px">Days to be predicted</td>
+						<td style="padding-right: 20px"><input align="center"
+							name="daysToPredict" id="daysToPredict" type="number" min="0"
+							max="365" class="btn btn-default" /></td>
+						<td style="padding-right: 20px"><input align="center"
+							name="btnDaysToPredict" id="btnDaysToPredict" type="button"
+							value="Save" class="btn btn-default" /></td>
+					</tr>
+				</table>
 			</div>
-			
+
 		</div>
 
 	</div>
@@ -506,12 +506,16 @@
 				type : 'danger'
 			} ); */
 
-			alert( "asadasd : " );
+			//alert( "asadasd : " );
 			$.ajax( {
 				url : "http://localhost:8080/Prediction/prediction/admin/saveDays?daysToPredict=" + x,
 				type : 'GET',
 				success : function ( response ) {
-					alert( response );
+					if ( response ) {
+						alert( "Days submited sucessfully !!!" );
+					} else {
+						alert( "Something went wrong !!!" );
+					}
 				},
 				error : function ( error ) {
 					alert( "Try again : " + JSON.stringify( error ) );

@@ -65,7 +65,7 @@
 							DBConnection.insertRowTable(rowData);
 						} catch (Exception e) {
 							try {
-									DBConnection.updateRowTable(rowData);
+								DBConnection.updateRowTable(rowData);
 							} catch (Exception ex) {
 
 							}
@@ -75,23 +75,27 @@
 
 			}
 
+			try{
 			ServletContext context = getServletContext();
 			System.out.println("getContextPath() : " + context.getContextPath());
 			String tableName = fileName.replace(".csv", "");
-			System.out.println("##### Max Date " + DBConnection.getMaxDate(tableName));			
-			JSONObject jsonObj = DBConnection.getMaxDate(tableName);			
+			System.out.println("##### Max Date " + DBConnection.getMaxDate(tableName));
+			JSONObject jsonObj = DBConnection.getMaxDate(tableName);
 			request.setAttribute("dateFrom", jsonObj.get("startdt"));
 			request.setAttribute("dateTo", jsonObj.get("enddt"));
-			
+
 			PredictValues predictValues = new PredictValues();
-			predictValues.PrePredict(request, jsonObj.get("startdt").toString(), jsonObj.get("enddt").toString(), tableName);
+			predictValues.PrePredict(request, jsonObj.get("startdt").toString(),
+					jsonObj.get("enddt").toString(), tableName);
+			}catch(Exception e)
+			{
+				e.printStackTrace();
+			}
 			
+
 		}
 
-		
-	
 		//##### Max Date {"startdt":"2009-12-01 06:15:00.0","enddt":"2010-03-01 06:15:00.0"}
-
 
 		//rd.include(request, response);
 

@@ -161,8 +161,9 @@ public class DBConnection {
 		try {
 			System.out.println("In side getMaxDate()");
 			Connection connection = DBConnection.getConnection();
-			String sql = "SELECT max(DateTime) startdt,DATEADD(day, 90, MAX(DateTime)) as enddt FROM danpac.dbo."
-					+ tableName;
+			String noOfDays = getDBDaysToPredict();
+			String sql = "SELECT max(DateTime) startdt,DATEADD(day, " + noOfDays
+					+ ", MAX(DateTime)) as enddt FROM danpac.dbo." + tableName;
 			System.out.println("In side getMaxDate() Query : " + sql);
 			PreparedStatement psDBList = connection.prepareStatement(sql);
 			ResultSet rsDBList = psDBList.executeQuery();
@@ -179,6 +180,22 @@ public class DBConnection {
 			// e.printStackTrace();
 			throw new PException("Unable to get Max Date list !!!");
 		}
+
+	}
+
+	public static String getDBDaysToPredict() throws PException, SQLException {
+		String tempDaysToPredict;
+		Connection connection = getConnection();
+		String sql = "select top 1 daysToPredict from Danpac.dbo.masterData order by dt desc ";
+		System.out.println("getDaysToPredict() : SQL : " + sql);
+		PreparedStatement psDBList;
+		psDBList = connection.prepareStatement(sql);
+		ResultSet rsDBList = psDBList.executeQuery();
+		if (rsDBList.next()) {
+			System.out.println("getDaysToPredict() : daysToPredict" + rsDBList.getString("daysToPredict"));
+			return rsDBList.getString("daysToPredict");
+		}
+		return "90";
 
 	}
 
@@ -540,20 +557,6 @@ public class DBConnection {
 
 	public static void setPassword(String password) {
 		DBConnection.password = password;
-	}
-
-	public void TrainDB(String fileName) throws PException, SQLException {
-		String tempDaysToPredict;
-		Connection connection = getConnection();
-		String sql = "select daysToPredict from Danpac.dbo.masterData order by dt desc ";
-		// System.out.println("SQL : " + sql);
-		PreparedStatement psDBList;
-		psDBList = connection.prepareStatement(sql);
-		ResultSet rsDBList = psDBList.executeQuery();
-		if (rsDBList.next()) {
-			tempDaysToPredict = rsDBList.getString("daysToPredict");
-		}
-
 	}
 
 }
