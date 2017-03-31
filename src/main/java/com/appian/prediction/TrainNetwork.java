@@ -40,7 +40,7 @@ public class TrainNetwork {
 		Network network = null;
 
 		coloumn = AppianUtil.extractColumns(coloumn);
-		System.out.println("!!!!Columns : " + coloumn);
+		// System.out.println("!!!!Columns : " + coloumn);
 		try {
 			if ("".equals(dateFrom))
 				fromDate = new Timestamp(0);
@@ -84,8 +84,9 @@ public class TrainNetwork {
 		Timestamp toDate;
 		Network network = null;
 
-		System.out.println("^^ Train() dateFrom : " + dateFrom + "\n dateTo : " + dateTo + "\n coloumn : " + coloumn
-				+ "\n tableName : " + tableName);
+		/// System.out.println("^^ Train() dateFrom : " + dateFrom + "\n dateTo
+		/// : " + dateTo + "\n coloumn : " + coloumn
+		// + "\n tableName : " + tableName);
 
 		try {
 			network = (Network) request.getSession().getAttribute("NeuralNetwork");
@@ -138,17 +139,18 @@ public class TrainNetwork {
 		/* network.lock.unlock(); */
 		return network;
 	}
-	
-	
-	public Network PreTrain(@Context HttpServletRequest request, @DefaultValue("") @QueryParam("dateFrom") String dateFrom,
+
+	public Network PreTrain(@Context HttpServletRequest request,
+			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
 			@DefaultValue("") @QueryParam("dateTo") String dateTo,
 			@DefaultValue("") @QueryParam("coloumn") String coloumn, String tableName) throws PException {
 		Timestamp fromDate;
 		Timestamp toDate;
 		Network network = null;
 
-		System.out.println("^^ Train() dateFrom : " + dateFrom + "\n dateTo : " + dateTo + "\n coloumn : " + coloumn
-				+ "\n tableName : " + tableName);
+		// System.out.println("^^ Train() dateFrom : " + dateFrom + "\n dateTo :
+		// " + dateTo + "\n coloumn : " + coloumn
+		// + "\n tableName : " + tableName);
 
 		try {
 			network = (Network) request.getSession().getAttribute("NeuralNetwork");
@@ -187,10 +189,10 @@ public class TrainNetwork {
 		}
 		network.clearTrainingSet();
 		ChartDB chartDB = new ChartDB(request);
-		
+
 		try {
 			ArrayList<Double> values = chartDB.getActualValuesAndSetNormalizationFactors(network, fromDate, toDate,
-					coloumn,tableName);
+					coloumn, tableName);
 			ArrayList<Integer> missingValues = network.trainNetworkFromData(values);
 			HashMap<Integer, Double> predicted = network.addMissingValues(values, missingValues);
 			ChartDB.map.put(tableName + coloumn, network);

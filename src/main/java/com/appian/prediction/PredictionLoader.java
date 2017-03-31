@@ -58,10 +58,10 @@ public class PredictionLoader implements ServletContextListener {
 				jobj.put("password", rsDBList.getString("password"));
 				jobj.put("chartDT", rsDBList.getString("chartDT"));
 
-				System.out.println("111111 : " + rsDBList.getString("columnsName"));
+				//System.out.println("111111 : " + rsDBList.getString("columnsName"));
 				String columns = AppianUtil.extractColumns(rsDBList.getString("columnsName"));
 				String tableName = rsDBList.getString("tableName");
-				System.out.println("222222 : " + columns);
+				//System.out.println("222222 : " + columns);
 				List<String> items = Arrays.asList(columns.split(","));
 				Iterator<String> i = items.iterator();
 

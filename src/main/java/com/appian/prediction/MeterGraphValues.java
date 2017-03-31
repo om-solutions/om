@@ -32,11 +32,14 @@ public class MeterGraphValues {
 	@Path("/meter")
 	public String Predict(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
-			@DefaultValue("") @QueryParam("value") String dateTo)
+			@DefaultValue("") @QueryParam("value") String dateTo,
+			@DefaultValue("") @QueryParam("flag") String predictFlag)
 			throws PException, InstantiationException, IllegalAccessException, ClassNotFoundException, SQLException {
 		Timestamp fromDate;
 		Timestamp toDate;
 		boolean flag = true;
+
+		System.out.println("Predict : predictFlag : " + predictFlag);
 		try {
 			if (dateFrom == null || "".equals(dateFrom) || dateFrom.equals("null")) {
 				fromDate = new Timestamp(0);
@@ -57,7 +60,7 @@ public class MeterGraphValues {
 			throw new PException("Invalid Date !!!");
 		}
 
-		if (flag) {
+		if (flag && Boolean.parseBoolean(predictFlag)) {
 			PredictValues predictValues = new PredictValues();
 			predictValues.Predict(request, dateFrom, dateTo);
 		}
@@ -72,21 +75,24 @@ public class MeterGraphValues {
 		boolean singleColumn = false;
 		String columnA = (String) request.getSession().getAttribute("columnA");
 		String columnB = (String) request.getSession().getAttribute("columnB");
-		System.out.println("[<eterGraph][Predict] : columnA : " + columnA + ", columnB : " + columnB);
+		// System.out.println("[<eterGraph][Predict] : columnA : " + columnA +
+		// ", columnB : " + columnB);
 		if (columnA.equals(columnB)) {
 			singleColumn = true;
 		}
 
 		meterJSONColumnA = chartDB.getMeterGraphValues(fromDate, toDate,
 				(String) request.getSession().getAttribute("columnA"), singleColumn);
-		System.out.println("[MeterGraphValues][Predict]  MeterJSON Column A : " + meterJSONColumnA.toString());
+		// System.out.println("[MeterGraphValues][Predict] MeterJSON Column A :
+		// " + meterJSONColumnA.toString());
 		if (!singleColumn) {
 			meterJSONColumnB = chartDB.getMeterGraphValues(fromDate, toDate,
 					(String) request.getSession().getAttribute("columnB"), singleColumn);
 
 			int length = meterJSONColumnA.length() < meterJSONColumnB.length() ? meterJSONColumnB.length()
 					: meterJSONColumnA.length();
-			System.out.println("[MeterGraphValues][Predict]  meterJSON ColumnB : " + meterJSONColumnB.toString());
+			// System.out.println("[MeterGraphValues][Predict] meterJSON ColumnB
+			// : " + meterJSONColumnB.toString());
 			while (length > 0) {
 				JSONObject jsonObject = new JSONObject();
 				jsonObject = mergeJSONObjects(meterJSONColumnA.getJSONObject(length - 1),
@@ -104,11 +110,13 @@ public class MeterGraphValues {
 
 		// System.out.println(meterJSONData.length());
 
-		System.out.println("[MeterGraphValues][Predict] " + meterJSONData);
-		System.out.println("[MeterGraphValues][Predict] meterJSONColumnA length :  " + meterJSONColumnA.length());
+		// System.out.println("[MeterGraphValues][Predict] " + meterJSONData);
+		// System.out.println("[MeterGraphValues][Predict] meterJSONColumnA
+		// length : " + meterJSONColumnA.length());
 		// System.out.println("[MeterGraphValues][Predict] meterJSONColumnB
 		// length : " + meterJSONColumnB.length());
-		System.out.println("[MeterGraphValues][Predict] meterJSONData length :  " + meterJSONData.length());
+		// System.out.println("[MeterGraphValues][Predict] meterJSONData length
+		// : " + meterJSONData.length());
 
 		return meterJSONData.toString();
 	}
@@ -136,6 +144,7 @@ public class MeterGraphValues {
 		 * try { if(!network.lock.tryLock(5000l, TimeUnit.MILLISECONDS)) return
 		 * null; } catch (InterruptedException e1) { return null; }
 		 */
+
 		if (columnA.equals(request.getSession().getAttribute("columnA"))
 				&& columnB.equals(request.getSession().getAttribute("columnB")))
 			return "true";
@@ -150,11 +159,13 @@ public class MeterGraphValues {
 	@Path("/meter2")
 	public String Predict2(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
-			@DefaultValue("") @QueryParam("value") String predict) throws PException {
+			@DefaultValue("") @QueryParam("value") String predict,
+			@DefaultValue("") @QueryParam("flag") String predictFlag) throws PException {
 		// System.out.println("!!! " + predict);
 
 		Timestamp fromDate;
 		Timestamp toDate;
+		System.out.println("Predict2 : predictFlag : " + predictFlag);
 		try {
 			if (dateFrom == null || "".equals(dateFrom) || dateFrom.equals("null"))
 				fromDate = new Timestamp(0);
@@ -164,9 +175,11 @@ public class MeterGraphValues {
 			e1.printStackTrace();
 			return null;
 		}
-		System.out.println("!!!" + fromDate + " : " + predict);
-		PredictValues predictValues = new PredictValues();
-		predictValues.PredictNValues(request, dateFrom, Integer.parseInt(predict));
+		// System.out.println("!!!" + fromDate + " : " + predict);
+		if (Boolean.parseBoolean(predictFlag)) {
+			PredictValues predictValues = new PredictValues();
+			predictValues.PredictNValues(request, dateFrom, Integer.parseInt(predict));
+		}
 
 		ChartDB chartDB = new ChartDB(request);
 
@@ -176,22 +189,25 @@ public class MeterGraphValues {
 		boolean singleColumn = false;
 		String columnA = (String) request.getSession().getAttribute("columnA");
 		String columnB = (String) request.getSession().getAttribute("columnB");
-		System.out.println("[MeterGraph][Predict] : columnA : " + columnA + ", columnB : " + columnB);
+		// System.out.println("[MeterGraph][Predict] : columnA : " + columnA +
+		// ", columnB : " + columnB);
 		if (columnA.equals(columnB)) {
 			singleColumn = true;
 		}
 
 		meterJSONColumnA = chartDB.getMeterGraphWithPredictValues(fromDate, predict,
 				(String) request.getSession().getAttribute("columnA"), singleColumn);
-		System.out.println("MeterJSON Column A : " + meterJSONColumnA.toString());
+		// System.out.println("MeterJSON Column A : " +
+		// meterJSONColumnA.toString());
 
 		if (!singleColumn) {
 			meterJSONColumnB = chartDB.getMeterGraphWithPredictValues(fromDate, predict,
 					(String) request.getSession().getAttribute("columnB"), singleColumn);
-			System.out.println("MeterJSON Column B : " + meterJSONColumnB.toString());
+			// System.out.println("MeterJSON Column B : " +
+			// meterJSONColumnB.toString());
 			int length = meterJSONColumnA.length() < meterJSONColumnB.length() ? meterJSONColumnB.length()
 					: meterJSONColumnA.length();
-			System.out.println("!!!!!!!!!! : " + length);
+			// System.out.println("!!!!!!!!!! : " + length);
 			while (length > 0) {
 				JSONObject jsonObject = new JSONObject();
 				jsonObject = mergeJSONObjects(meterJSONColumnA.getJSONObject(length - 1),

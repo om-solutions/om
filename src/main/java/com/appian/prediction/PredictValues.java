@@ -41,7 +41,7 @@ public class PredictValues {
 	public NavigableMap<Timestamp, Double> Predict(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
 			@DefaultValue("") @QueryParam("dateTo") String dateTo) throws PException {
-		System.out.println("@@@@ inside the predictbetween \ndateFrom:" + dateFrom + "\ndateTo:" + dateTo);
+		//System.out.println("@@@@ inside the predictbetween \ndateFrom:" + dateFrom + "\ndateTo:" + dateTo);
 		Timestamp fromDate;
 		Timestamp toDate;
 		try {
@@ -114,8 +114,8 @@ public class PredictValues {
 			@DefaultValue("") @QueryParam("dateFrom") String dateFrom,
 			@DefaultValue("") @QueryParam("dateTo") String dateTo,
 			@DefaultValue("") @QueryParam("tableName") String tableName) throws PException {
-		System.out.println("@@@@ inside the predictbetween \ndateFrom:" + dateFrom + "\ndateTo:" + dateTo
-				+ "\n tableName:" + tableName);
+		//System.out.println("@@@@ inside the predictbetween \ndateFrom:" + dateFrom + "\ndateTo:" + dateTo
+		//		+ "\n tableName:" + tableName);
 		Timestamp fromDate = null;
 		Timestamp toDate = null;
 
@@ -142,7 +142,7 @@ public class PredictValues {
 		} catch (Exception e) {
 		}
 
-		System.out.println("Real Column List : " + jsonArray.toString());
+		//System.out.println("Real Column List : " + jsonArray.toString());
 
 		for (int i = 0; i < jsonArray.length(); i++) {
 
@@ -195,7 +195,7 @@ public class PredictValues {
 			String sql = "SELECT * FROM danpac.INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '" + table
 					+ "' and DATA_TYPE='real'  ORDER BY ORDINAL_POSITION ";
 
-			System.out.println("getRealColumnsList : SQL : " + sql);
+			//System.out.println("getRealColumnsList : SQL : " + sql);
 			PreparedStatement psDBList = connection.prepareStatement(sql);
 			ResultSet rsDBList = psDBList.executeQuery();
 			JSONArray jArray = new JSONArray();

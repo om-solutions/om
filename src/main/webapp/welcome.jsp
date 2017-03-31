@@ -218,7 +218,7 @@ footer {
 																	null,
 																	null,document
 																	.getElementById("selColumnA").value,document
-																	.getElementById("selColumnB").value);
+																	.getElementById("selColumnB").value,true);
 														
 															
 														
@@ -274,7 +274,7 @@ footer {
 														null,
 														null,document
 														.getElementById("selColumnA").value,document
-														.getElementById("selColumnB").value);
+														.getElementById("selColumnB").value,true);
 												
 											},
 											error : function(
@@ -347,13 +347,13 @@ footer {
 										.getElementById("dateFrom").value);
 								date1.setDate(date1.getDate() - 7);
 								document.getElementById("dateFrom").value = formatDate(date1);
-								showGraph();
+								showGraph(false);
 							} else {
 								var date1 = new Date(document
 										.getElementById("dateFrom1").value);
 								date1.setDate(date1.getDate() - 7);
 								document.getElementById("dateFrom1").value = formatDate(date1);
-								showGraph2();
+								showGraph2(false);
 							}
 						}
 
@@ -372,9 +372,9 @@ footer {
 										.getElementById("dateTo").value);
 								date1.setDate(date1.getDate() + 7);
 								document.getElementById("dateTo").value = formatDate(date1);
-								showGraph();
+								showGraph(false);
 							} else {
-								showGraph2();
+								showGraph2(false);
 							}
 						}
 					}
@@ -416,10 +416,10 @@ footer {
 										+ document.getElementById("filter").value); */
 								if (document.getElementById("filter").value == 1) {
 									//alert("11111");
-									showGraph();
+									showGraph(true);
 								} else {
 									//alert("22222");
-									showGraph2();
+									showGraph2(true);
 								}
 								/* alert(document.getElementById("filter").value
 										+ ":::"
@@ -432,9 +432,9 @@ footer {
 							alert(e);
 						}
 					}
-					function showGraph() {
+					function showGraph(flag) {
 
-						// 						alert(document.getElementById("dateFrom").value+" : "+
+						 //						alert(flag);
 						// 								document.getElementById("dateTo").value)");
 												
 						if (document.getElementById("dateFrom").value == ''
@@ -444,12 +444,12 @@ footer {
 							loadChart(
 									'http://localhost:8080/Prediction/prediction/graph/meter',
 									document.getElementById("dateFrom").value,
-									document.getElementById("dateTo").value);
+									document.getElementById("dateTo").value,flag);
 							document.getElementById("filter").value = 1;
 						}
 							
 					}
-					function showGraph2() {
+					function showGraph2(flag) {
 						//alert(document.getElementById("dateFrom1").value +" : "+document.getElementById("predict").value);
 						
 						if (document.getElementById("dateFrom1").value == ''
@@ -459,7 +459,7 @@ footer {
 							loadChart(
 									'http://localhost:8080/Prediction/prediction/graph/meter2',
 									document.getElementById("dateFrom1").value,
-									document.getElementById("predict").value);
+									document.getElementById("predict").value,flag);
 							document.getElementById("filter").value = 2;
 						}
 						
@@ -499,7 +499,7 @@ footer {
 										'http://localhost:8080/Prediction/prediction/graph/meter',
 										null, null,document
 										.getElementById("selColumnA").value,document
-										.getElementById("selColumnB").value);
+										.getElementById("selColumnB").value,true);
 							},
 							error : function(error) {
 								
@@ -510,7 +510,8 @@ footer {
 
 					
 
-					function loadChart(url, CurrentDate, PreMonthDate) {
+					function loadChart(url, CurrentDate, PreMonthDate,flag) {
+						//alert("eee : "+flag);					
 						var d1 = Date.parse(CurrentDate);
 						var d2 = Date.parse(PreMonthDate);
 					if(d2<d1)
@@ -546,7 +547,7 @@ footer {
 							document.getElementById( "btnLoad" ).disabled = true;
 							$.ajax( {
 								url : url,
-								data : 'dateFrom=' + CurrentDate + '&value=' + PreMonthDate,
+								data : 'dateFrom=' + CurrentDate + '&value=' + PreMonthDate+'&flag='+flag,
 								beforeSend : function ( request ) {
 									request.setRequestHeader( "Authorization", "Negotiate" );
 								},
@@ -963,7 +964,7 @@ footer {
 								<div class="row pull-right" style="margin-top: 10px;">
 									<div class="col-xs-1">
 										<button class="btn btn-success" id="btnLoad" type="button"
-											onclick="showGraph()">Go</button>
+											onclick="showGraph('ture')">Go</button>
 									</div>
 								</div>
 
@@ -1008,7 +1009,7 @@ footer {
 								<div class="row pull-right" style="margin-top: 10px;">
 									<div class="col-xs-1">
 										<button class="btn btn-success" id="btnLoad" type="button"
-											onclick="showGraph2()">Go</button>
+											onclick="showGraph2('true')">Go</button>
 									</div>
 								</div>
 

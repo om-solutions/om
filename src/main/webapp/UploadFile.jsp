@@ -23,16 +23,16 @@
 <%
 	try {
 		// Apache Commons-Fileupload library classes
-		System.out.println("Start");
+		//System.out.println("Start");
 		DiskFileItemFactory factory = new DiskFileItemFactory();
-		System.out.println("1");
+		//System.out.println("1");
 		ServletFileUpload sfu = new ServletFileUpload(factory);
-		System.out.println("2");
+		//System.out.println("2");
 		if (!ServletFileUpload.isMultipartContent(request)) {
 			//System.out.println("sorry. No file uploaded");
 			return;
 		}
-		System.out.println("3");
+		//System.out.println("3");
 
 		// parse request
 
@@ -40,19 +40,19 @@
 
 		List<FileItem> items = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(request);
 
-		System.out.println("Item Size  : " + items.size());
+		//System.out.println("Item Size  : " + items.size());
 
 		for (FileItem item : items) {
 			String fileName = item.getName();
-			System.out.println("File Name : " + fileName);
+			//System.out.println("File Name : " + fileName);
 			session.setAttribute("fName", fileName);
-			System.out.println("crunchifyCSV : " + item.getName());
+			//System.out.println("crunchifyCSV : " + item.getName());
 			String crunchifyCSV = item.getString();
 			ArrayList<String> crunchifyResult = new ArrayList<String>();
 			if (crunchifyCSV != null) {
-				System.out.println("crunchifyCSV : " + crunchifyCSV.toString());
+				//System.out.println("crunchifyCSV : " + crunchifyCSV.toString());
 				String lines[] = crunchifyCSV.split("\\r?\\n");
-				System.out.println("lines.length : " + lines.length);
+				//System.out.println("lines.length : " + lines.length);
 				for (int j = 0; j < lines.length; j++) {
 					if (j == 0) {
 						String[] headerData = lines[j].split("\\s*,\\s*");
@@ -77,9 +77,9 @@
 
 			try{
 			ServletContext context = getServletContext();
-			System.out.println("getContextPath() : " + context.getContextPath());
+			//System.out.println("getContextPath() : " + context.getContextPath());
 			String tableName = fileName.replace(".csv", "");
-			System.out.println("##### Max Date " + DBConnection.getMaxDate(tableName));
+			//System.out.println("##### Max Date " + DBConnection.getMaxDate(tableName));
 			JSONObject jsonObj = DBConnection.getMaxDate(tableName);
 			request.setAttribute("dateFrom", jsonObj.get("startdt"));
 			request.setAttribute("dateTo", jsonObj.get("enddt"));

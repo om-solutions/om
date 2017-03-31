@@ -159,12 +159,12 @@ public class DBConnection {
 
 	public static JSONObject getMaxDate(String tableName) throws PException {
 		try {
-			System.out.println("In side getMaxDate()");
+			//System.out.println("In side getMaxDate()");
 			Connection connection = DBConnection.getConnection();
 			String noOfDays = getDBDaysToPredict();
 			String sql = "SELECT max(DateTime) startdt,DATEADD(day, " + noOfDays
 					+ ", MAX(DateTime)) as enddt FROM danpac.dbo." + tableName;
-			System.out.println("In side getMaxDate() Query : " + sql);
+			//System.out.println("In side getMaxDate() Query : " + sql);
 			PreparedStatement psDBList = connection.prepareStatement(sql);
 			ResultSet rsDBList = psDBList.executeQuery();
 			// JSONArray jArray = new JSONArray();
@@ -187,12 +187,12 @@ public class DBConnection {
 		String tempDaysToPredict;
 		Connection connection = getConnection();
 		String sql = "select top 1 daysToPredict from Danpac.dbo.masterData order by dt desc ";
-		System.out.println("getDaysToPredict() : SQL : " + sql);
+		//System.out.println("getDaysToPredict() : SQL : " + sql);
 		PreparedStatement psDBList;
 		psDBList = connection.prepareStatement(sql);
 		ResultSet rsDBList = psDBList.executeQuery();
 		if (rsDBList.next()) {
-			System.out.println("getDaysToPredict() : daysToPredict" + rsDBList.getString("daysToPredict"));
+			//System.out.println("getDaysToPredict() : daysToPredict" + rsDBList.getString("daysToPredict"));
 			return rsDBList.getString("daysToPredict");
 		}
 		return "90";

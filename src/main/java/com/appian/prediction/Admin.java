@@ -48,7 +48,7 @@ public class Admin {
 	public String saveDays(@Context HttpServletRequest request,
 			@DefaultValue("") @QueryParam("daysToPredict") String daysToPredict) {
 		try {
-			System.out.println("daysToPredict : " + daysToPredict);
+			//System.out.println("daysToPredict : " + daysToPredict);
 			Connection connection = DBConnection.getConnection();
 
 			String sql = "update Danpac.dbo.masterData set daysToPredict='" + daysToPredict
@@ -56,7 +56,7 @@ public class Admin {
 
 			PreparedStatement countRecord;
 			countRecord = connection.prepareStatement(sql);
-			System.out.println(sql);
+			//System.out.println(sql);
 			Integer count = countRecord.executeUpdate();
 			if (count > 0)
 				return "true";
@@ -163,11 +163,11 @@ public class Admin {
 		// AdminDB dbConnection = new AdminDB(request);
 		// to make JSON to Sting
 		// columns = AppianUtil.extractColumns(columns);
-		System.out.println("columns : " + columns);
-		System.out.println("dbName : " + dbName);
-		System.out.println("tableName : " + tableName);
-		System.out.println("columns : " + columns);
-		System.out.println("chartDT : " + chartDT);
+		//System.out.println("columns : " + columns);
+		//System.out.println("dbName : " + dbName);
+		//System.out.println("tableName : " + tableName);
+		//System.out.println("columns : " + columns);
+		//System.out.println("chartDT : " + chartDT);
 
 		if (adminDb.setColumns(dbName, tableName, columns, chartDT,
 				(String) request.getSession().getAttribute("pUser"))) {
